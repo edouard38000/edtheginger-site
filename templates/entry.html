@@ -3,6 +3,8 @@
    Zola still writes one address per Entry, so it sends the visitor to the page that lists it. #}
 {% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
 {% block head %}
+{# A broken Entry stops the build here, before anything deploys. #}
+{{<validate.entry page={page} formats={config.extra.formats} />}}
 {% set listing = get_section(path=page.ancestors | last) %}
 <meta http-equiv="refresh" content="0; url={{ listing.permalink | safe }}">
 <link rel="canonical" href="{{ listing.permalink | safe }}">
