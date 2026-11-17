@@ -1,10 +1,79 @@
 {% extends "base.html" %}
-{# Videos page. Stub: ticket #5 shows every Video by Format. The Video Entries are section.pages. #}
+{# Videos page: every Video by Format. The Video Entries are section.pages.
+   The base is a grid of covers, one group per Format. static/js/videos.js turns it into the
+   Desktop layout on wide screens and makes the Format links show one Format at a time. #}
 {% block title %}{{ section.title }} | {{ config.title }}{% endblock title %}
+{% block head %}
+<script src="{{ get_url(path='js/videos.js', cachebust=true) }}" defer></script>
+{% endblock head %}
 {% block body_class %}page-videos{% endblock body_class %}
 {% block content %}
+{{<validate.entries formats={config.extra.formats} />}}
+{# The Video Entries, newest first, grouped by Format. A Format without a Video is left out. #}
+{% set by_format = section.pages | group_by(attribute="extra.format") %}
+{% set portrait = resize_image(path="videos/portrait.jpg", width=900, height=1200, op="fill", format="webp", quality=70) %}
 <section class="videos">
-  <h1>{{ section.title }}</h1>
-  <p>The Videos are coming soon.</p>
+  <div class="videos__bar">
+    <h1 id="all-videos">{{ section.title }}</h1>
+    <nav class="videos__formats" aria-label="Formats">
+      <ul>
+        <li><a class="videos__format-link" href="{{ section.permalink | safe }}#all-videos" data-format-group="">All</a></li>
+        {% for format in config.extra.formats %}
+        {% if format in by_format %}
+        <li><a class="videos__format-link" href="{{ section.permalink | safe }}#format-{{ format | slugify }}" data-format-group="format-{{ format | slugify }}">{{ format }}</a></li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+  <div class="videos__stage">
+    <div class="videos__wallpaper" aria-hidden="true">
+      <img src="{{ portrait.url | safe }}" alt="" width="{{ portrait.width }}" height="{{ portrait.height }}" loading="lazy" decoding="async">
+    </div>
+    {% for format in config.extra.formats %}
+    {% if format in by_format %}
+    {% set group = "format-" ~ format | slugify %}
+    <section class="videos__group" id="{{ group }}" aria-labelledby="{{ group }}-title">
+      <h2 class="videos__group-title" id="{{ group }}-title">{{ format }}</h2>
+      <ul class="videos__grid">
+        {% for video in by_format[format] %}
+        {% set cover = resize_image(path=video.extra.cover, width=360, height=640, op="fill", format="webp", quality=80) %}
+        {% set links = 0 %}
+        {% set first = "" %}
+        {% if video.extra.instagram %}{% set links = links + 1 %}{% set first = video.extra.instagram %}{% endif %}
+        {% if video.extra.tiktok %}{% set links = links + 1 %}{% set first = video.extra.tiktok %}{% endif %}
+        <li class="video" data-links="{{ links }}">
+          {% if first %}
+          <a class="video__cover" href="{{ first | safe }}" rel="noopener" tabindex="-1" aria-hidden="true">
+            <img src="{{ cover.url | safe }}" alt="" width="{{ cover.width }}" height="{{ cover.height }}" loading="lazy" decoding="async">
+          </a>
+          {% else %}
+          <span class="video__cover">
+            <img src="{{ cover.url | safe }}" alt="" width="{{ cover.width }}" height="{{ cover.height }}" loading="lazy" decoding="async">
+          </span>
+          {% endif %}
+          <h3 class="video__title">{{ video.title }}</h3>
+          <div class="video__card">
+            <p class="video__format">{{ format }}</p>
+            {% if links > 0 %}
+            <ul class="video__links">
+              {% if video.extra.tiktok %}
+              <li><a class="video__link video__link--tiktok" href="{{ video.extra.tiktok | safe }}" rel="noopener" aria-label="Watch {{ video.title }} on TikTok">TikTok</a></li>
+              {% endif %}
+              {% if video.extra.instagram %}
+              <li><a class="video__link video__link--instagram" href="{{ video.extra.instagram | safe }}" rel="noopener" aria-label="Watch {{ video.title }} on Instagram">Instagram</a></li>
+              {% endif %}
+            </ul>
+            {% else %}
+            <p class="video__no-link">Link coming soon</p>
+            {% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+    {% endfor %}
+  </div>
 </section>
 {% endblock content %}

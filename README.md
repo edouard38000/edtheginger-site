@@ -3,7 +3,8 @@
 Personal website of edouardtheginger: the Real or BS list, the Playbooks and the Videos.
 Served first at <https://edouard38000.github.io/edtheginger-site/>, later at edtheginger.com.
 
-Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS only: no JavaScript,
+Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS, plus one small self-hosted
+script on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without it):
 no third-party scripts, fonts self-hosted. The words used here are defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 ## Build and check
