@@ -1,13 +1,111 @@
 {% extends "base.html" %}
-{# Home page. Stub: ticket #6 builds the Poster, the latest Video and the entry points. #}
+{# Home page: the Poster, the two entry points (the REAL list with its Tally, the Playbooks),
+   then the latest Video. The Tally, the counts and the latest Video are computed from the
+   Entries; the Poster's captions are held in content/_index.md. #}
 {% block body_class %}page-home{% endblock body_class %}
+{# The Poster owns the top of the page, so the shared header is left out here. #}
+{% block header %}{% endblock header %}
 {% block content %}
-<section class="home">
-  <h1>Edouard the Ginger</h1>
-  <ul class="home__links">
-    <li><a href="{{ get_url(path='@/real-or-bs.md') }}">Real or BS</a></li>
-    <li><a href="{{ get_url(path='@/playbooks/_index.md') }}">Playbooks</a></li>
-    <li><a href="{{ get_url(path='@/videos/_index.md') }}">Videos</a></li>
-  </ul>
+{%- set videos_section = get_section(path="videos/_index.md") -%}
+{%- set videos = videos_section.pages -%}
+{%- set playbooks_section = get_section(path="playbooks/_index.md") -%}
+{%- set playbooks = playbooks_section.pages -%}
+{%- set real_count = 0 -%}
+{%- set bs_count = 0 -%}
+{%- for video in videos -%}
+  {%- if video.extra.verdict is defined and video.extra.verdict == "real" -%}{%- set_global real_count = real_count + 1 -%}{%- endif -%}
+  {%- if video.extra.verdict is defined and video.extra.verdict == "bs" -%}{%- set_global bs_count = bs_count + 1 -%}{%- endif -%}
+{%- endfor -%}
+{%- set latest = videos | sort(attribute="date") | last -%}
+{%- set captions = section.extra.captions -%}
+{%- set real_or_bs_url = get_url(path="@/real-or-bs.md") -%}
+{%- set playbooks_url = get_url(path="@/playbooks/_index.md") -%}
+{%- set videos_url = get_url(path="@/videos/_index.md") -%}
+{#- Crayon stickers from static/home/, resized to twice their shown width. -#}
+{%- set tape = resize_image(path="home/tape-strip.png", width=184, op="fit_width") -%}
+{%- set arrow = resize_image(path="home/arrow-down-curve.png", width=96, op="fit_width") -%}
+{%- set pill_new = resize_image(path="home/pill-new.png", width=176, op="fit_width") -%}
+{%- set portrait = resize_image(path="home/portrait.jpg", width=560, op="fit_width", format="webp", quality=80) -%}
+{%- set portrait_2x = resize_image(path="home/portrait.jpg", width=1120, op="fit_width", format="webp", quality=75) -%}
+
+<section class="poster" aria-label="Poster">
+  <svg class="poster__lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <line x1="0" y1="27" x2="100" y2="27"/>
+    <line x1="0" y1="63" x2="100" y2="63"/>
+    <line x1="0" y1="7" x2="100" y2="58"/>
+    <line x1="0" y1="27" x2="100" y2="79"/>
+  </svg>
+
+  <p class="poster__caption poster__caption--top">{{ captions[0] }}</p>
+
+  <p class="poster__mark">
+    <span class="poster__mark-number">{% if videos | length < 10 %}0{% endif %}{{ videos | length }}</span>
+    <span class="poster__mark-label">Videos so far</span>
+  </p>
+
+  <div class="poster__subject">
+  <figure class="poster__photo">
+    <img class="sticker poster__tape poster__tape--left" src="{{ tape.url }}" width="92" height="{{ (tape.height * 92 / tape.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+    <img class="sticker poster__tape poster__tape--right" src="{{ tape.url }}" width="92" height="{{ (tape.height * 92 / tape.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+    <span class="poster__frame">
+      <img src="{{ portrait.url }}" srcset="{{ portrait.url }} 560w, {{ portrait_2x.url }} 1120w"
+           sizes="(min-width: 60rem) 28rem, 78vw"
+           width="{{ portrait.width }}" height="{{ portrait.height }}"
+           alt="{{ section.extra.portrait_alt }}" fetchpriority="high" decoding="async">
+    </span>
+  </figure>
+
+  <h1 class="poster__title"><span class="poster__box poster__box--white">Edouard</span> <span class="poster__box poster__box--yellow">the Ginger</span></h1>
+  </div>
+
+  <p class="poster__caption poster__caption--left">{{ captions[1] }}</p>
+  <p class="poster__caption poster__caption--right">{{ captions[2] }}</p>
 </section>
+
+<section class="entry-points" aria-label="Start here">
+  <img class="sticker entry-points__arrow" src="{{ arrow.url }}" width="44" height="{{ (arrow.height * 44 / arrow.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+  <a class="entry-card entry-card--real" href="{{ real_or_bs_url }}">
+    <h2 class="entry-card__title">The REAL list</h2>
+    <p class="entry-card__tally" aria-label="Tally: REAL {{ real_count }}, BS {{ bs_count }}">
+      <span class="tally__count tally__count--real">REAL: <b>{{ real_count }}</b></span>
+      <span class="tally__count tally__count--bs">BS: <b>{{ bs_count }}</b></span>
+    </p>
+    <p class="entry-card__text">Viral AI claims, tested. What is real stays on the list.</p>
+    <span class="entry-card__go">See the REAL list <span aria-hidden="true">&rarr;</span></span>
+  </a>
+  <a class="entry-card entry-card--playbooks" href="{{ playbooks_url }}">
+    <h2 class="entry-card__title">Playbooks</h2>
+    <p class="entry-card__count"><b>{{ playbooks | length }}</b> {% if playbooks | length == 1 %}Playbook{% else %}Playbooks{% endif %}</p>
+    <p class="entry-card__text">PDF guides to do it yourself, one per Video.</p>
+    <span class="entry-card__go">Open the Playbooks <span aria-hidden="true">&rarr;</span></span>
+  </a>
+</section>
+
+{% if latest -%}
+{%- set cover = resize_image(path=latest.extra.cover, width=270, height=480, op="fill", format="webp", quality=80) -%}
+{%- set cover_2x = resize_image(path=latest.extra.cover, width=540, height=960, op="fill", format="webp", quality=75) -%}
+<section class="latest" aria-labelledby="latest-heading">
+  <p class="latest__label" id="latest-heading">Latest Video</p>
+  <div class="latest__body">
+    <figure class="latest__cover">
+      <img class="sticker latest__tape" src="{{ tape.url }}" width="84" height="{{ (tape.height * 84 / tape.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+      <img src="{{ cover.url }}" srcset="{{ cover.url }} 1x, {{ cover_2x.url }} 2x" width="270" height="480"
+           alt="Cover of the Video {{ latest.title }}" loading="lazy" decoding="async">
+      <img class="sticker latest__new" src="{{ pill_new.url }}" width="88" height="{{ (pill_new.height * 88 / pill_new.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+    </figure>
+    <div class="latest__text">
+      <p class="latest__format"><span class="sticker-tag">{{ latest.extra.format }}</span></p>
+      <h2 class="latest__title">{{ latest.title }}</h2>
+      {% if latest.description %}<p class="latest__description">{{ latest.description }}</p>{% endif %}
+      {% if latest.extra.tiktok or latest.extra.instagram -%}
+      <ul class="latest__links">
+        {% if latest.extra.tiktok %}<li><a class="latest__watch" href="{{ latest.extra.tiktok }}" rel="noopener">Watch on TikTok</a></li>{% endif %}
+        {% if latest.extra.instagram %}<li><a class="latest__watch" href="{{ latest.extra.instagram }}" rel="noopener">Watch on Instagram</a></li>{% endif %}
+      </ul>
+      {%- endif %}
+      <a class="latest__all" href="{{ videos_url }}">All Videos <span aria-hidden="true">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+{%- endif %}
 {% endblock content %}
