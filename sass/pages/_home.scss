@@ -1,5 +1,5 @@
 // Home page. Owned by ticket #6.
-// Phone width first: the Poster, the two entry points, then the latest Video.
+// Phone width first: the Poster, the two entry points, the Playbook shelf, then the latest Video.
 
 .page-home main {
   padding-top: 0;
@@ -552,6 +552,103 @@
 }
 
 // ---------------------------------------------------------------------------
+// The Playbook shelf: the newest Playbooks as the Playbooks page's cards, cut down
+// to the cover, the title and the button. A row that scrolls sideways on phones,
+// the next card peeking in; a grid of three on wider screens.
+// ---------------------------------------------------------------------------
+.shelf {
+  margin-top: 56px;
+}
+
+.shelf__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.shelf__title {
+  margin: 0;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+// The Playbooks page's second box, smaller: white capitals on orange, a little askew.
+.shelf__tagline {
+  margin: 8px 0 0;
+  padding: 0.35em 0.65em;
+  background: var(--color-orange);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.8125rem;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transform: rotate(-1deg);
+}
+
+// Phones: one row, wider than the screen, that scrolls inside itself. It reaches the screen's
+// edges (the negative margins undo the page gutter), so the page itself never scrolls sideways.
+// The top padding leaves room for the tape and the NEW! pill, which stick out of the cards.
+.shelf__list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(74vw, 20rem);
+  gap: 16px;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 24px var(--gutter) 14px;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+}
+
+.shelf__item {
+  display: flex;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+// The Playbooks page's stylesheet comes after this one, so its card rules are overridden from
+// inside .shelf. A portrait page fits better in a square frame than in its wide one.
+.shelf .shelf__cover {
+  aspect-ratio: 1;
+}
+
+.shelf .playbook-card__image {
+  max-height: calc(100% - 36px);
+}
+
+.shelf .playbook-card__block-title {
+  font-size: 1.375rem;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.shelf .shelf__card-title {
+  margin-bottom: 14px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+}
+
+.shelf__all {
+  display: inline-block;
+  padding-block: 6px;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+// ---------------------------------------------------------------------------
 // Wider screens.
 // ---------------------------------------------------------------------------
 @media (min-width: 44rem) {
@@ -594,6 +691,24 @@
 
   .entry-card {
     padding: 28px 28px 24px;
+  }
+
+  .shelf {
+    margin-top: 64px;
+  }
+
+  .shelf__title {
+    font-size: 1.75rem;
+  }
+
+  .shelf__list {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px 24px;
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow-x: visible;
+    scroll-snap-type: none;
   }
 
   .latest {

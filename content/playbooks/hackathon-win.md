@@ -5,4 +5,5 @@ description = "Pick the idea, build it with parallel agents and pitch it, step b
 
 [extra]
 pdf = "https://edouard38000.github.io/edtheginger-playbook/hackathon-playbook.pdf"
+cover = "covers/hackathon-win-playbook.jpg"
 +++

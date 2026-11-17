@@ -50,8 +50,22 @@ impl Site {
     /// [`Site::build`] it does not panic when the build is refused: the error is what Zola
     /// printed, so a check can read the refusal message of a bad Entry.
     pub fn try_build_with(extra_files: &[(&str, &[u8])]) -> Result<Site, String> {
+        Site::try_build_changed(&[], extra_files)
+    }
+
+    /// Like [`Site::try_build_with`], but first takes files out of the fixture site, each given
+    /// as a path inside the Zola project (e.g. `content/playbooks/prompt-pack.md`). A file of
+    /// `extra_files` with the same path as a fixture replaces it.
+    pub fn try_build_changed(
+        removed_files: &[&str],
+        extra_files: &[(&str, &[u8])],
+    ) -> Result<Site, String> {
         let dir = tempfile::tempdir().expect("create a temporary directory");
         assemble(repo_root(), dir.path());
+        for path in removed_files {
+            let target = dir.path().join(path);
+            fs::remove_file(&target).unwrap_or_else(|e| panic!("remove {}: {e}", target.display()));
+        }
         for (path, bytes) in extra_files {
             let target = dir.path().join(path);
             let folder = target.parent().expect("a file inside the site");

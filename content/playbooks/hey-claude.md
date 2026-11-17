@@ -5,4 +5,5 @@ description = "Build a shortcut that lets you say Hey Claude and have it act on 
 
 [extra]
 pdf = "https://edouard38000.github.io/edtheginger-playbook/hey-claude-playbook.pdf"
+cover = "covers/hey-claude-playbook.jpg"
 +++

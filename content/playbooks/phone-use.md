@@ -5,4 +5,5 @@ description = "Set up Phone Use so Claude can open apps and tap through them on 
 
 [extra]
 pdf = "https://edouard38000.github.io/edtheginger-playbook/phone-use-playbook.pdf"
+cover = "covers/phone-use-playbook.jpg"
 +++

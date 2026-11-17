@@ -1,11 +1,14 @@
 //! The home page: the Poster (lit portrait, beam lines, tool tiles, captions, title), the two entry
-//! points and the latest Video.
+//! points, the Playbook shelf and the latest Video.
 //! Built from the fixture Entries, where the newest Video is "Voice Clone" (2026-01-19, Real or BS,
-//! Instagram only), the Verdicts are two `real` and one `bs`, and there are two Playbooks.
+//! Instagram only), the Verdicts are two `real` and one `bs`, and there are two Playbooks: "Prompt
+//! Pack" (2026-01-20, no cover) and "Inbox Zero" (2026-01-12, with a cover).
 
 use std::sync::OnceLock;
 
 use site_checks::{Page, Site, SUB_PATH_BASE_URL};
+
+const ROOT: &str = env!("CARGO_MANIFEST_DIR");
 
 fn site() -> &'static Site {
     static SITE: OnceLock<Site> = OnceLock::new();
@@ -372,8 +375,9 @@ fn the_latest_video_is_the_newest_entry() {
         home.texts(".latest__description"),
         ["Fixture: a Real or BS Video with the Verdict real and no Playbook."]
     );
-    // No other Video is shown on the home page.
-    let main_text = home.texts("main").join(" ");
+    // No other Video is shown on the home page. The shelf is left out: it shows the Playbook
+    // "Inbox Zero", which has the same title as a fixture Video.
+    let main_text = home.texts("main section:not(.shelf)").join(" ");
     for older in [
         "Repo Radar",
         "Inbox Zero",
@@ -433,4 +437,184 @@ fn stickers_are_decoration_and_come_resized_from_the_site_itself() {
         assert!(file.starts_with("processed_images/"), "{file}");
         assert!(site().has_file(file), "{file} is in the built site");
     }
+}
+
+// --- The Playbook shelf ------------------------------------------------------------------------
+
+#[test]
+fn the_playbook_shelf_comes_right_after_the_entry_points() {
+    let home = home();
+    assert_eq!(home.count("section.shelf"), 1, "one shelf");
+    assert_eq!(
+        home.count(".home-body > .entry-points + section.shelf"),
+        1,
+        "the shelf follows the entry points"
+    );
+    assert_eq!(
+        home.count(".home-body > section.shelf + section.latest"),
+        1,
+        "the latest Video follows the shelf"
+    );
+}
+
+#[test]
+fn the_playbook_shelf_is_named_by_its_heading() {
+    let home = home();
+    let label = home.attributes("section.shelf", "aria-labelledby");
+    assert_eq!(label.len(), 1, "the shelf is labelled");
+    let heading = format!("section.shelf h2#{}", label[0]);
+    assert_eq!(home.texts(&heading), ["Latest Playbooks"]);
+    assert_eq!(
+        home.count("section.shelf h1"),
+        0,
+        "the Poster title stays the one h1"
+    );
+}
+
+#[test]
+fn the_playbook_shelf_lists_every_playbook_newest_first() {
+    assert_eq!(
+        home().texts(".shelf .shelf__card-title"),
+        ["Prompt Pack", "Inbox Zero"]
+    );
+}
+
+#[test]
+fn each_grab_it_here_button_links_to_the_pdf_of_its_entry() {
+    let home = home();
+    assert_eq!(
+        home.attributes(".shelf a.playbook-card__button", "href"),
+        [
+            "https://example.com/playbooks/prompt-pack.pdf",
+            "https://example.com/playbooks/inbox-zero-playbook.pdf"
+        ]
+    );
+    assert_eq!(
+        home.attributes(".shelf a.playbook-card__button", "rel"),
+        ["external", "external"]
+    );
+    let names: Vec<String> = home
+        .texts(".shelf a.playbook-card__button")
+        .iter()
+        .map(|text| text.replace('\u{2192}', "").trim().to_owned())
+        .collect();
+    assert_eq!(
+        names,
+        [
+            "Grab it here: the Prompt Pack Playbook (PDF)",
+            "Grab it here: the Inbox Zero Playbook (PDF)"
+        ],
+        "screen readers hear which Playbook each button grabs"
+    );
+}
+
+#[test]
+fn the_shelf_shows_a_cover_or_the_title_block() {
+    let home = home();
+    // Inbox Zero has a cover: resized at build time, described, loaded lazily.
+    let covers = ".shelf img.playbook-card__image";
+    assert_eq!(
+        home.attributes(covers, "alt"),
+        ["Cover of the Inbox Zero Playbook"]
+    );
+    assert_eq!(home.count(&format!("{covers}[loading=lazy]")), 1);
+    let file = built_file(&home.attributes(covers, "src")[0]).to_owned();
+    assert!(file.starts_with("processed_images/"), "{file}");
+    assert!(site().has_file(&file), "{file} is in the built site");
+    // Prompt Pack has none: the orange title block, as on the Playbooks page.
+    assert_eq!(
+        home.texts(".shelf .playbook-card__cover--title .playbook-card__block-title"),
+        ["Prompt Pack"]
+    );
+}
+
+#[test]
+fn the_newest_playbook_on_the_shelf_gets_the_new_pill() {
+    let home = home();
+    assert_eq!(home.count(".shelf .playbook-card__new"), 1);
+    assert_eq!(
+        home.count(".shelf__item:first-child .playbook-card__new"),
+        1,
+        "the pill is on the newest Playbook"
+    );
+}
+
+#[test]
+fn the_shelf_links_to_all_playbooks() {
+    assert_eq!(
+        home().attributes(".shelf a.shelf__all", "href"),
+        [format!("{SUB_PATH_BASE_URL}/playbooks/")]
+    );
+}
+
+/// A Playbook Entry dated `2026-02-<day>`, for the shelf checks.
+fn playbook_entry(day: u32) -> String {
+    format!(
+        "+++\ntitle = \"Extra {day:02}\"\ndate = 2026-02-{day:02}\n\
+         description = \"Fixture: one more Playbook.\"\n\n[extra]\n\
+         pdf = \"https://example.com/playbooks/extra-{day:02}.pdf\"\n+++\n"
+    )
+}
+
+#[test]
+fn the_shelf_shows_at_most_the_six_newest_playbooks() {
+    let entries: Vec<(String, String)> = (1..=5)
+        .map(|day| {
+            (
+                format!("content/playbooks/extra-{day:02}.md"),
+                playbook_entry(day),
+            )
+        })
+        .collect();
+    let files: Vec<(&str, &[u8])> = entries
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.as_bytes()))
+        .collect();
+    let site = Site::try_build_with(&files).unwrap_or_else(|message| panic!("{message}"));
+    assert_eq!(
+        site.page("").texts(".shelf .shelf__card-title"),
+        [
+            "Extra 05",
+            "Extra 04",
+            "Extra 03",
+            "Extra 02",
+            "Extra 01",
+            "Prompt Pack"
+        ],
+        "seven Playbooks, the six newest on the shelf"
+    );
+}
+
+#[test]
+fn a_site_with_no_playbooks_has_no_shelf() {
+    // The fixture Video "Inbox Zero" names a Playbook, so it loses that line with them.
+    let video = "videos/real-or-bs-02-inbox-zero.md";
+    let text = std::fs::read_to_string(format!("{ROOT}/tests/fixtures/{video}")).unwrap();
+    let without_playbook: String = text
+        .lines()
+        .filter(|line| !line.starts_with("playbook ="))
+        .map(|line| format!("{line}\n"))
+        .collect();
+    let site = Site::try_build_changed(
+        &[
+            "content/playbooks/inbox-zero.md",
+            "content/playbooks/prompt-pack.md",
+        ],
+        &[(&format!("content/{video}"), without_playbook.as_bytes())],
+    )
+    .unwrap_or_else(|message| panic!("{message}"));
+    let home = site.page("");
+    assert_eq!(home.count(".shelf"), 0, "no shelf");
+    assert!(
+        !home
+            .texts("main h2")
+            .iter()
+            .any(|h| h == "Latest Playbooks"),
+        "no empty heading"
+    );
+    assert_eq!(
+        home.count(".latest"),
+        1,
+        "the rest of the page is still there"
+    );
 }
