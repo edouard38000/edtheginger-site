@@ -99,3 +99,16 @@
 {{<validate.playbook page={page} />}}
 {% endif %}
 {% endcomponent validate.entry %}
+
+{# Every Entry, for the pages that list them. Zola renders pages in no fixed order, so a page that
+   reads the Entries can meet a broken one before `templates/entry.html` does and stop the build
+   with an error that names neither the Entry nor the problem. Such a page uses this first, so
+   the refusal is what the build prints whichever page is rendered first. #}
+{% component validate.entries(formats) %}
+{% for listing in ["videos/_index.md", "playbooks/_index.md"] %}
+{% set section = get_section(path=listing) %}
+{% for entry in section.pages %}
+{{<validate.entry page={entry} formats={formats} />}}
+{% endfor %}
+{% endfor %}
+{% endcomponent validate.entries %}

@@ -38,7 +38,10 @@ itself is a Rust tool.
 | `src/lib.rs` | The check harness: fixture Entries in, built pages out |
 | `tests/skeleton.rs` | Checks on what every page shares |
 | `tests/{home,real_or_bs,playbooks,videos}.rs` | One test file per page |
-| `tests/fixtures/` | Fixture Entries and covers; the checks never read the real Entries |
+| `tests/fixtures/` | Fixture Entries and covers; the checks on the pages never build the real Entries |
+| `tests/adding_content.rs`, `tests/bad-entries/` | Checks that a broken Entry is refused, with one bad Entry per refusal; one check reads the real Entries for a missing date |
+| `templates/components/validate.html` | The refusals; `templates/entry.html` and every page that lists Entries use them |
+| `docs/adding-content.md` | The guide to adding a Video or a Playbook |
 | `brand-assets/` | Source files for the look. Read and copy only |
 
 A change to one page touches its template, its stylesheet partial and its test file.
@@ -56,7 +59,9 @@ cover in `static/covers/`) is the only step needed.
 [`docs/adding-content.md`](docs/adding-content.md) is the guide: copy-paste templates, naming, the
 cover, and what each refusal message means. A broken Entry is refused by `just check` and by CI, so
 it never deploys. The refusals are in `templates/components/validate.html` (every Entry is rendered
-through `templates/entry.html`), plus one Rust check for a missing date in `src/lib.rs`; their
+through `templates/entry.html`, and a page that reads the Entries starts with
+`{{<validate.entries formats={config.extra.formats} />}}` so the refusal is printed whichever page
+Zola renders first), plus one Rust check for a missing date in `src/lib.rs`; their
 tests are `tests/adding_content.rs` with one bad Entry each in `tests/bad-entries/`.
 
 An Entry has no page of its own: Videos link out to TikTok and Instagram, Playbooks to their PDF.

@@ -4,6 +4,8 @@
 {% block description %}Every viral AI claim edouardtheginger tested in Real or BS that turned out to be real, each with its Playbook.{% endblock description %}
 {% block body_class %}page-real-or-bs{% endblock body_class %}
 {% block content %}
+{# Refuse a broken Entry before this page reads the Entries. #}
+{{<validate.entries formats={config.extra.formats} />}}
 {# The Videos, newest first by posting date. #}
 {% set videos_section = get_section(path="videos/_index.md") %}
 {% set videos = videos_section.pages | sort(attribute="date") | reverse %}
