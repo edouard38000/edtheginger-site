@@ -49,46 +49,15 @@ to `main.css` in styles. Never write a link starting with `/`.
 
 ## Entries
 
-An Entry is one Markdown file with TOML front matter and no body. Adding the file is the only step
-needed. A full guide follows with ticket #7; this is the format.
+An Entry is one Markdown file with TOML front matter and no body: a Video in
+`content/videos/<name>.md`, a Playbook in `content/playbooks/<name>.md`. Adding the file (and its
+cover in `static/covers/`) is the only step needed.
 
-### Video Entry: `content/videos/<name>.md`
-
-```toml
-+++
-title = "Phone Use"
-date = 2026-11-08                      # posting date
-description = "One or two lines about the Video."
-
-[extra]
-format = "Real or BS"                  # Real or BS | GitHub tools | Storytelling | Talking head
-cover = "covers/phone-use.png"         # a file under static/
-tiktok = "https://www.tiktok.com/..."        # optional
-instagram = "https://www.instagram.com/..."  # optional
-
-# Real or BS only
-episode = 2
-tested = "What was tested, in one line"
-verdict = "real"                       # real | bs
-playbook = "playbooks/phone-use.md"    # optional: the Playbook Entry, as a path under content/
-+++
-```
-
-### Playbook Entry: `content/playbooks/<name>.md`
-
-```toml
-+++
-title = "Phone Use"
-date = 2026-11-08
-description = "What it helps you do."
-
-[extra]
-pdf = "https://edouard38000.github.io/edtheginger-playbook/phone-use-playbook.pdf"  # existing https address
-cover = "covers/phone-use-playbook.png"  # optional, a file under static/
-+++
-```
-
-Until an Entry has its real cover, use `covers/placeholder-cover.png`.
+[`docs/adding-content.md`](docs/adding-content.md) is the guide: copy-paste templates, naming, the
+cover, and what each refusal message means. A broken Entry is refused by `just check` and by CI, so
+it never deploys. The refusals are in `templates/components/validate.html` (every Entry is rendered
+through `templates/entry.html`), plus one Rust check for a missing date in `src/lib.rs`; their
+tests are `tests/adding_content.rs` with one bad Entry each in `tests/bad-entries/`.
 
 An Entry has no page of its own: Videos link out to TikTok and Instagram, Playbooks to their PDF.
 Zola still writes an address per Entry (`/videos/<name>/`), which sends the visitor to the page

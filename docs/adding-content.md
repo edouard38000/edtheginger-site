@@ -1,0 +1,177 @@
+# Adding content
+
+How to put a new Video or Playbook on the site. Written for an editing session: follow it at the
+end of an edit, without asking. The words used here are defined in [`GLOSSARY.md`](../GLOSSARY.md).
+
+One Video or one Playbook is one Entry: a Markdown file with TOML front matter between two `+++`
+lines and nothing after them. Adding the Entry and its cover is the whole job. The Tally, the
+numbering of the REAL list and the latest Video on the home page are computed from the Entries at
+build time. Never type them anywhere.
+
+## Steps
+
+1. Put the cover in `static/covers/`.
+2. Add the Entry: copy one of the three templates below and change the values.
+3. Run `just check`. If it refuses the Entry, fix what the message says and run it again.
+4. Commit and push straight to `main` (see [Push](#push)).
+
+## The cover
+
+- Where: `static/covers/`. In the Entry, write the path without `static/`: `cover = "covers/<file>"`.
+- Shape: portrait 9:16, PNG or JPEG (`.png`, `.jpg` or `.jpeg`), 1080 x 1920 if you have it and
+  never smaller than 540 x 960. The site resizes it; keep the original.
+- Name: the same name as the Entry file. The Video `content/videos/real-or-bs-02-phone-use.md` has
+  the cover `static/covers/real-or-bs-02-phone-use.png`. A Playbook cover ends in `-playbook`:
+  `static/covers/phone-use-playbook.png`.
+- A Video must have a cover. A Playbook may have none.
+- No cover ready yet: use `cover = "covers/placeholder-cover.png"` and replace it later.
+
+## Naming an Entry
+
+Lowercase letters, digits and hyphens, ending in `.md`. The name becomes an address on the site, so
+do not rename an Entry once it is pushed.
+
+- Real or BS Video: `content/videos/real-or-bs-<episode, two digits>-<subject>.md`,
+  like `real-or-bs-02-phone-use.md`.
+- Any other Video: `content/videos/<format>-<subject>.md`, like `github-tools-repo-radar.md`,
+  `storytelling-first-hackathon.md` or `talking-head-ai-jobs.md`.
+- Playbook: `content/playbooks/<subject>.md`, like `phone-use.md`.
+
+## Template 1: a Video with no Verdict
+
+For every Format except Real or BS. File: `content/videos/github-tools-repo-radar.md`.
+
+```toml
++++
+title = "Repo Radar"
+date = 2026-11-15
+description = "One or two lines about the Video."
+
+[extra]
+format = "GitHub tools"
+cover = "covers/github-tools-repo-radar.png"
+tiktok = "https://www.tiktok.com/@edouardtheginger/video/1234567890123456789"
+instagram = "https://www.instagram.com/reel/ABC123xyz/"
++++
+```
+
+- `date` is the posting date, written `YYYY-MM-DD` without quotes.
+- `format` is exactly one of: `Real or BS`, `GitHub tools`, `Storytelling`, `Talking head`.
+- `tiktok` and `instagram` are the full https addresses of the posted Video. Leave out the line of
+  a link you do not have yet and add it later. Never write an empty or made-up link.
+- Do not add `verdict`, `episode` or `tested`: they are only for Real or BS.
+
+## Template 2: a Real or BS Video with a Verdict and a Playbook
+
+File: `content/videos/real-or-bs-02-phone-use.md`.
+
+```toml
++++
+title = "Phone Use"
+date = 2026-11-08
+description = "Can Claude really use an iPhone by itself?"
+
+[extra]
+format = "Real or BS"
+cover = "covers/real-or-bs-02-phone-use.png"
+tiktok = "https://www.tiktok.com/@edouardtheginger/video/1234567890123456789"
+instagram = "https://www.instagram.com/reel/ABC123xyz/"
+episode = 2
+tested = "Claude using an iPhone by itself to fill an Uber Eats basket"
+verdict = "real"
+playbook = "playbooks/phone-use.md"
++++
+```
+
+- `episode` is the episode number, a whole number without quotes.
+- `tested` is one line saying what was tested.
+- `verdict` is `"real"` or `"bs"`, lowercase. A Real or BS Video must have one.
+- `playbook` is the file of the Playbook Entry, as a path under `content/`. Leave the line out when
+  the Video has no Playbook. Add the Playbook Entry (template 3) in the same commit, or before.
+
+## Template 3: a Playbook
+
+File: `content/playbooks/phone-use.md`.
+
+```toml
++++
+title = "Phone Use"
+date = 2026-11-08
+description = "Let Claude use an iPhone by itself, like filling an Uber Eats basket."
+
+[extra]
+pdf = "https://edouard38000.github.io/edtheginger-playbook/phone-use-playbook.pdf"
+cover = "covers/phone-use-playbook.png"
++++
+```
+
+- `description` says what the Playbook helps you do.
+- `pdf` is the https address where the PDF already is on the playbook site. The PDF is never copied
+  or moved into this repo.
+- `cover` is optional: leave the line out when there is none.
+
+## Check locally
+
+```sh
+just check
+```
+
+It needs Rust, Zola 0.23.6 and just (`brew install zola just`). It runs the test suite and builds
+the real site with every Entry in `content/`. Green means the Entry is accepted. The build stops at
+the first refused Entry and prints a line like this one among Zola's own lines:
+
+```
+Entry content/videos/real-or-bs-02-phone-use.md refused: the Verdict "maybe" is not "real" or "bs". See docs/adding-content.md.
+```
+
+Links are checked for their shape only. Nothing is fetched, so open each link yourself once.
+
+## Push
+
+A content-only change touches nothing but `content/videos/`, `content/playbooks/` and
+`static/covers/`. Commit it and push it straight to `main`, with no pull request:
+
+```sh
+git pull --rebase
+just check
+git add content static/covers
+git commit -m "Add the Video real-or-bs-02-phone-use"
+git push
+```
+
+Every push to `main` runs the same `just check` on GitHub and, when it is green, deploys the site.
+No one has to do anything else. If the check fails there, nothing is deployed and the site stays
+as it was: fix the Entry and push again.
+
+Anything else (templates, styles, checks, the workflow, `config.toml`, this guide) goes through a
+pull request.
+
+## What each refusal means
+
+Each message starts with `Entry content/<file> refused:` and names the file to fix.
+
+| The message says | What is wrong | Fix |
+| --- | --- | --- |
+| `the Entry has no title` | `title` is missing or empty. | Set `title` above `[extra]`. |
+| `the Entry has no date` | `date` is missing, or it is written under `[extra]`. | Set `date = YYYY-MM-DD` above `[extra]`. |
+| `the Video has no Format` | `format` is missing. | Set `format` under `[extra]`. |
+| `unknown Format` | `format` is not one of the four Formats, letter for letter. | Use `Real or BS`, `GitHub tools`, `Storytelling` or `Talking head`. |
+| `the Video has no cover` | `cover` is missing. | Set `cover`, or use the placeholder cover. |
+| `` `cover` must be the path of a PNG or JPEG `` | `cover` starts with `/`, or does not end in `.png`, `.jpg` or `.jpeg`. | Write it like `covers/<file>.png`. |
+| `the cover file static/... does not exist` | No file at that path under `static/`. Often a typo, `static/` written in the path, or the image was not added. | Add the image or correct the path. |
+| `is not a well-formed https address` | `tiktok`, `instagram` or `pdf` does not start with `https://`, or has a space or a broken host name. | Paste the full address. Leave out a `tiktok` or `instagram` line you have no link for. |
+| `a Real or BS Video needs a Verdict` | The Format is Real or BS and `verdict` is missing. | Set `verdict = "real"` or `verdict = "bs"`. |
+| `is not "real" or "bs"` | `verdict` is something else, like `"REAL"` or `"fake"`. | Use `"real"` or `"bs"`, lowercase. |
+| `` a Real or BS Video needs `episode` `` | `episode` is missing, in quotes, or below 1. | Set `episode = 3`, without quotes. |
+| `` a Real or BS Video needs `tested` `` | `tested` is missing or empty. | Say in one line what was tested. |
+| `is only for Real or BS Videos` | `verdict`, `episode` or `tested` is on a Video of another Format. | Remove the line, or set `format = "Real or BS"`. |
+| `matches no Playbook Entry` | `playbook` names a file that is not in `content/playbooks/`. | Write it like `playbooks/<name>.md`, and add that Playbook Entry. |
+| `the Playbook has no PDF` | `pdf` is missing. | Set `pdf` to the https address of the PDF. |
+
+Two things look different:
+
+- **No date.** Zola leaves an Entry with no date out of the site with only a warning, so this
+  refusal comes from the test `the_real_entries_all_have_a_date` in `just check`, not from the
+  build. The message is the same.
+- **Front matter that is not valid TOML** (a missing quote, a date like `8 November`). Zola refuses
+  it with its own message, which names the file and the line.

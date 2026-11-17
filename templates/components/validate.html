@@ -1,0 +1,101 @@
+{# Refuses a broken Entry: each check stops the build with a message naming the Entry file and
+   the problem. `templates/entry.html` uses `validate.entry` for every Video and Playbook Entry.
+   What each message means is in docs/adding-content.md. #}
+
+{% component validate.refuse(page, problem) %}
+{{ throw(message="Entry content/" ~ page.relative_path ~ " refused: " ~ problem ~ " See docs/adding-content.md.") }}
+{% endcomponent validate.refuse %}
+
+{# A link must be a well-formed https address. It is checked for shape, never fetched. #}
+{% component validate.https(page, field, value) %}
+{% if value is not string or value is not matching(pat='^https://[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?([.][A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+(:[0-9]+)?([/?#][!#-;=?-~]*)?$') %}
+{{<validate.refuse page={page} problem={"`" ~ field ~ "` is not a well-formed https address: " ~ value | json_encode ~ "."} />}}
+{% endif %}
+{% endcomponent validate.https %}
+
+{# A cover is a PNG or JPEG that exists under static/. #}
+{% component validate.cover(page) %}
+{% set cover = page.extra.cover %}
+{% if cover is not string or cover is not matching(pat='^[^/].*[.](png|jpg|jpeg)$') %}
+{{<validate.refuse page={page} problem={'`cover` must be the path of a PNG or JPEG under static/, like "covers/my-video.png", not ' ~ cover | json_encode ~ "."} />}}
+{% endif %}
+{% set image = get_image_metadata(path="static/" ~ cover, allow_missing=true) %}
+{% if not image %}
+{{<validate.refuse page={page} problem={"the cover file static/" ~ cover ~ " does not exist."} />}}
+{% endif %}
+{% endcomponent validate.cover %}
+
+{% component validate.video(page, formats) %}
+{% set extra = page.extra %}
+{% set format = extra.format | default(value="") %}
+{% if extra.format is undefined %}
+{{<validate.refuse page={page} problem={"the Video has no Format: set `format` to one of " ~ formats | join(sep=", ") ~ "."} />}}
+{% endif %}
+{% if format not in formats %}
+{{<validate.refuse page={page} problem={"unknown Format " ~ format | json_encode ~ ": `format` must be one of " ~ formats | join(sep=", ") ~ "."} />}}
+{% endif %}
+{% if extra.cover is undefined %}
+{{<validate.refuse page={page} problem={'the Video has no cover: set `cover` to a file under static/, like "covers/my-video.png".'} />}}
+{% endif %}
+{{<validate.cover page={page} />}}
+{% for field in ["tiktok", "instagram"] %}
+{% if extra[field] is defined %}
+{{<validate.https page={page} field={field} value={extra[field]} />}}
+{% endif %}
+{% endfor %}
+{% if format == "Real or BS" %}
+{% if extra.verdict is undefined %}
+{{<validate.refuse page={page} problem={'a Real or BS Video needs a Verdict: set `verdict` to "real" or "bs".'} />}}
+{% endif %}
+{% if extra.verdict != "real" and extra.verdict != "bs" %}
+{{<validate.refuse page={page} problem={"the Verdict " ~ extra.verdict | json_encode ~ ' is not "real" or "bs".'} />}}
+{% endif %}
+{% if extra.episode is undefined or extra.episode is not integer or extra.episode < 1 %}
+{{<validate.refuse page={page} problem={"a Real or BS Video needs `episode`: a whole number from 1, without quotes."} />}}
+{% endif %}
+{% if extra.tested is undefined or extra.tested is not string or extra.tested | trim == "" %}
+{{<validate.refuse page={page} problem={"a Real or BS Video needs `tested`: one line saying what was tested."} />}}
+{% endif %}
+{% else %}
+{% for field in ["verdict", "episode", "tested"] %}
+{% if extra[field] is defined %}
+{{<validate.refuse page={page} problem={"`" ~ field ~ "` is only for Real or BS Videos, and the Format of this Video is " ~ format | json_encode ~ ". Remove `" ~ field ~ "` or change the Format."} />}}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if extra.playbook is defined %}
+{% set section = get_section(path="playbooks/_index.md") %}
+{% set playbooks = [playbook.relative_path for playbook in section.pages] %}
+{% if extra.playbook not in playbooks %}
+{{<validate.refuse page={page} problem={"`playbook` is " ~ extra.playbook | json_encode ~ ', which matches no Playbook Entry. It must be the file of the Playbook Entry as a path under content/, like "playbooks/phone-use.md".'} />}}
+{% endif %}
+{% endif %}
+{% endcomponent validate.video %}
+
+{% component validate.playbook(page) %}
+{% set extra = page.extra %}
+{% if extra.pdf is undefined %}
+{{<validate.refuse page={page} problem={"the Playbook has no PDF: set `pdf` to the https address of its PDF."} />}}
+{% endif %}
+{{<validate.https page={page} field="pdf" value={extra.pdf} />}}
+{% if extra.cover is defined %}
+{{<validate.cover page={page} />}}
+{% endif %}
+{% endcomponent validate.playbook %}
+
+{% component validate.entry(page, formats) %}
+{% if not page.title %}
+{{<validate.refuse page={page} problem={"the Entry has no title: set `title` above `[extra]`."} />}}
+{% endif %}
+{# With the Entries sorted by date, Zola leaves an Entry with no date out before it gets here;
+   `entries_without_a_date` in src/lib.rs refuses it. This stays for the day the sorting changes. #}
+{% if not page.date %}
+{{<validate.refuse page={page} problem={"the Entry has no date: set `date` above `[extra]`, like 2026-11-08, without quotes."} />}}
+{% endif %}
+{% set listing = page.ancestors | last %}
+{% if listing == "videos/_index.md" %}
+{{<validate.video page={page} formats={formats} />}}
+{% else %}
+{{<validate.playbook page={page} />}}
+{% endif %}
+{% endcomponent validate.entry %}

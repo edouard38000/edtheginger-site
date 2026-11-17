@@ -3,7 +3,8 @@
 //! One seam: Entries in, built pages out. [`Site::build`] puts the real templates, styles,
 //! static files and page stubs next to the fixture Entries from `tests/fixtures`, runs
 //! `zola build` on the result and gives the generated pages back. The real Entries in
-//! `content/` are never read, so a check never depends on real content.
+//! `content/` are never built here, so a check on the pages never depends on real content.
+//! The one check that reads them is [`entries_without_a_date`].
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -42,6 +43,31 @@ impl Site {
             dir,
             base_url: base_url.to_owned(),
         }
+    }
+
+    /// Builds the fixture site plus extra files, each given as a path inside the Zola project
+    /// (e.g. `content/videos/new.md`, `static/covers/new.png`) and its bytes. Unlike
+    /// [`Site::build`] it does not panic when the build is refused: the error is what Zola
+    /// printed, so a check can read the refusal message of a bad Entry.
+    pub fn try_build_with(extra_files: &[(&str, &[u8])]) -> Result<Site, String> {
+        let dir = tempfile::tempdir().expect("create a temporary directory");
+        assemble(repo_root(), dir.path());
+        for (path, bytes) in extra_files {
+            let target = dir.path().join(path);
+            let folder = target.parent().expect("a file inside the site");
+            fs::create_dir_all(folder)
+                .unwrap_or_else(|e| panic!("create {}: {e}", folder.display()));
+            fs::write(&target, bytes).unwrap_or_else(|e| panic!("write {}: {e}", target.display()));
+        }
+        let undated = entries_without_a_date(&dir.path().join("content"));
+        if !undated.is_empty() {
+            return Err(undated.join("\n"));
+        }
+        run_zola(dir.path(), SUB_PATH_BASE_URL)?;
+        Ok(Site {
+            dir,
+            base_url: SUB_PATH_BASE_URL.to_owned(),
+        })
     }
 
     /// The base URL this site was built for.
@@ -144,6 +170,62 @@ impl Page {
             })
             .collect()
     }
+}
+
+/// Refuses every Entry under a `content` folder that has no `date`, with one message each.
+///
+/// This one refusal is Rust and not a template check because Zola never renders such an Entry:
+/// the Videos and Playbooks are sorted by date, so Zola leaves an Entry with no date out of the
+/// site with only a warning, and `templates/entry.html` never sees it.
+pub fn entries_without_a_date(content: &Path) -> Vec<String> {
+    let mut files = Vec::new();
+    for section in ["videos", "playbooks"] {
+        collect_entries(content, &content.join(section), &mut files);
+    }
+    files.sort();
+    files
+        .iter()
+        .filter(|file| {
+            let text =
+                fs::read_to_string(file).unwrap_or_else(|e| panic!("read {}: {e}", file.display()));
+            !front_matter_has_date(&text)
+        })
+        .map(|file| {
+            let entry = file.strip_prefix(content).expect("a file inside content");
+            format!(
+                "Entry content/{} refused: the Entry has no date: set `date` above `[extra]`, \
+                 like 2026-11-08, without quotes. See docs/adding-content.md.",
+                entry.to_string_lossy().replace('\\', "/")
+            )
+        })
+        .collect()
+}
+
+fn collect_entries(content: &Path, dir: &Path, found: &mut Vec<PathBuf>) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries {
+        let path = entry.expect("read a directory entry").path();
+        if path.is_dir() {
+            collect_entries(content, &path, found);
+        } else if is_entry(content, &path) && path.extension().is_some_and(|e| e == "md") {
+            found.push(path);
+        }
+    }
+}
+
+/// Whether the TOML front matter (between the two `+++` lines) sets a top-level `date`.
+fn front_matter_has_date(text: &str) -> bool {
+    text.lines()
+        .skip_while(|line| line.trim() != "+++")
+        .skip(1)
+        .map(str::trim)
+        .take_while(|line| *line != "+++" && !line.starts_with('['))
+        .any(|line| {
+            line.strip_prefix("date")
+                .is_some_and(|rest| rest.trim_start().starts_with('='))
+        })
 }
 
 fn parse_selector(selector: &str) -> Selector {
