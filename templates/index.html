@@ -26,23 +26,59 @@
 {%- set tape = resize_image(path="home/tape-strip.png", width=184, op="fit_width") -%}
 {%- set arrow = resize_image(path="home/arrow-down-curve.png", width=96, op="fit_width") -%}
 {%- set pill_new = resize_image(path="home/pill-new.png", width=176, op="fit_width") -%}
-{#- The cut-out portrait. static/home/portrait-cutout.webp is the web-size source (1080 px wide,
-    edge cleaned) made from brand-assets/portrait/portrait-cutout.png. -#}
-{%- set portrait = resize_image(path="home/portrait-cutout.webp", width=540, op="fit_width", format="webp", quality=82) -%}
-{%- set portrait_2x = resize_image(path="home/portrait-cutout.webp", width=1080, op="fit_width", format="webp", quality=80) -%}
+{#- The lit portrait: static/home/portrait-lit.webp, made by scripts/light-portrait from
+    brand-assets/portrait/portrait-cutout.png. It is lit only between the two diagonal lines of
+    the beam ([extra.beam] in content/_index.md); the lines below are drawn from the same numbers,
+    in the image's own pixels, so they sit on the edges of the light at every width. -#}
+{%- set portrait_file = "home/portrait-lit.webp" -%}
+{%- set image = get_image_metadata(path="static/" ~ portrait_file) -%}
+{%- set portrait = resize_image(path=portrait_file, width=675, op="fit_width", format="webp", quality=82) -%}
+{%- set portrait_2x = resize_image(path=portrait_file, width=1350, op="fit_width", format="webp", quality=80) -%}
+{%- set beam = section.extra.beam -%}
+{%- set frame = section.extra.frame_lines -%}
+{%- set w = image.width -%}
+{%- set h = image.height -%}
+{#- The lines run across five widths of the image: two to the left, two to the right. -#}
+{%- set left = -2 * w -%}
+{%- set right = 3 * w -%}
+{%- set top_left = beam.y - beam.width / 2 + beam.slope * (left - beam.x) -%}
+{%- set top_right = beam.y - beam.width / 2 + beam.slope * (right - beam.x) -%}
+{%- set bottom_left = top_left + beam.width -%}
+{%- set bottom_right = top_right + beam.width -%}
 
 <section class="poster" aria-label="Poster">
-  <div class="poster__stage">
-    <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} 540w, {{ portrait_2x.url }} 1080w"
-         sizes="(min-width: 64rem) 36rem, 120vw"
+  <div class="poster__stage" style="--face-x: {{ beam.x / w }}; --eye-y: {{ beam.y / h }}; --ratio: {{ h / w }}">
+    {#- A faint glow in the background between the lines, so the beam reads across the Poster. #}
+    <svg class="poster__beam" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="beam-soft" x="0" y="-1" width="1" height="3"><feGaussianBlur stdDeviation="{{ beam.soft * 2 }}"/></filter>
+        {#- Brightest at the face, fading towards the ends of the beam. #}
+        <radialGradient id="beam-fade" gradientUnits="userSpaceOnUse" cx="{{ beam.x }}" cy="{{ beam.y }}" r="{{ 1.6 * w }}">
+          <stop offset="0" stop-color="#ffe2a8" stop-opacity="0.30"/>
+          <stop offset="0.35" stop-color="#ffd08a" stop-opacity="0.16"/>
+          <stop offset="1" stop-color="#ffc070" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <polygon points="{{ left }},{{ top_left }} {{ right }},{{ top_right }} {{ right }},{{ bottom_right }} {{ left }},{{ bottom_left }}" filter="url(#beam-soft)"/>
+    </svg>
+    <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} 675w, {{ portrait_2x.url }} 1350w"
+         sizes="(min-width: 44rem) 52rem, 175vw"
          width="{{ portrait.width }}" height="{{ portrait.height }}"
          alt="{{ section.extra.portrait_alt }}" fetchpriority="high" decoding="async">
-    {#- Thin lines, drawn in the stage's coordinates so they cross the hair and the neck, never the eyes. #}
-    <svg class="poster__lines" viewBox="-250 0 500 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <line x1="-250" y1="14.5" x2="250" y2="14.5"/>
-      <line x1="-250" y1="49.5" x2="250" y2="49.5"/>
-      <line x1="-250" y1="-44" x2="250" y2="86"/>
-      <line x1="-250" y1="-9" x2="250" y2="121"/>
+    {#- Thin white lines: the two edges of the beam, and two straight lines at eye and nose height. #}
+    <svg class="poster__lines" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <defs>
+        {#- The edges of the beam are brightest across the face. #}
+        <linearGradient id="beam-line" gradientUnits="userSpaceOnUse" x1="{{ beam.x - 1.6 * w }}" y1="0" x2="{{ beam.x + 1.6 * w }}" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity="0.3"/>
+          <stop offset="0.5" stop-color="#fff" stop-opacity="0.75"/>
+          <stop offset="1" stop-color="#fff" stop-opacity="0.3"/>
+        </linearGradient>
+      </defs>
+      <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ top_left }}" x2="{{ right }}" y2="{{ top_right }}"/>
+      <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ bottom_left }}" x2="{{ right }}" y2="{{ bottom_right }}"/>
+      <line class="poster__line" x1="{{ left }}" y1="{{ frame.eyes }}" x2="{{ right }}" y2="{{ frame.eyes }}"/>
+      <line class="poster__line" x1="{{ left }}" y1="{{ frame.nose }}" x2="{{ right }}" y2="{{ frame.nose }}"/>
     </svg>
     {#- The tool tiles: one per tool of the list, placed by rank in the stylesheet. Not links. #}
     <ul class="poster__tools" aria-label="Tools Edouard uses">
