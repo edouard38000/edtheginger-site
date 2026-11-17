@@ -8,6 +8,7 @@
 {% endblock head %}
 {% block body_class %}page-videos{% endblock body_class %}
 {% block content %}
+{{<validate.entries formats={config.extra.formats} />}}
 {# The Video Entries, newest first, grouped by Format. A Format without a Video is left out. #}
 {% set by_format = section.pages | group_by(attribute="extra.format") %}
 {% set portrait = resize_image(path="videos/portrait.jpg", width=900, height=1200, op="fill", format="webp", quality=70) %}

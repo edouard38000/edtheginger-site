@@ -37,7 +37,9 @@
   background: var(--color-yellow);
 }
 
-.videos__format-link[aria-current] {
+// JavaScript off: "All" is the current link as long as no Format is targeted.
+.videos__format-link[aria-current],
+.videos:not(.videos--enhanced):not(:has(.videos__group:target)) .videos__format-link[data-format-group=""] {
   border-color: var(--color-orange);
   background: var(--color-orange);
   color: var(--color-background);

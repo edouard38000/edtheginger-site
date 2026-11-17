@@ -212,7 +212,16 @@ fn the_portrait_of_the_desktop_layout_is_resized_at_build_time() {
     let page = videos();
     let portrait = page.attributes(".videos__wallpaper img", "src");
     assert_eq!(portrait.len(), 1);
-    assert!(portrait[0].starts_with(&format!("{SUB_PATH_BASE_URL}/processed_images/")));
+    let file = portrait[0]
+        .strip_prefix(&format!("{SUB_PATH_BASE_URL}/"))
+        .unwrap_or_else(|| panic!("{} is not served by the site itself", portrait[0]));
+    assert!(file.starts_with("processed_images/"));
+    assert!(site().has_file(file), "{file} is in the built site");
+    assert_eq!(
+        page.count(".videos__wallpaper img[srcset]"),
+        0,
+        "one address for the portrait, the one checked above"
+    );
     // Decoration only: hidden from assistive technology.
     assert_eq!(page.count(".videos__wallpaper[aria-hidden='true']"), 1);
 }

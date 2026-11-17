@@ -10,6 +10,7 @@
   if (!root) return;
 
   var stage = root.querySelector(".videos__stage");
+  var wallpaper = root.querySelector(".videos__wallpaper img");
   var groups = Array.prototype.slice.call(root.querySelectorAll(".videos__group"));
   var videos = Array.prototype.slice.call(root.querySelectorAll(".video"));
   var formatLinks = Array.prototype.slice.call(root.querySelectorAll("[data-format-group]"));
@@ -25,6 +26,7 @@
   var STAGE_PADDING = 16;
   var CARD_WIDTH = 184;
   var MIN_STAGE_HEIGHT = 420;
+  var FEW_VIDEOS = 8;
 
   root.classList.add("videos--enhanced");
 
@@ -159,8 +161,8 @@
     var cellHeight = (height - 2 * STAGE_PADDING) / rows;
     var iconHeight = (size.cover * 16) / 9 + LABEL_HEIGHT;
 
-    // Choose the cells: a ring around the middle first, so the portrait stays visible when
-    // there are few Videos, with a fixed number per cell to break the ring into a scatter.
+    // Choose the cells: a ring around the middle first, with a fixed number per cell to break
+    // the ring into a scatter.
     var cells = [];
     for (var row = 0; row < rows; row++) {
       for (var column = 0; column < columns; column++) {
@@ -168,13 +170,19 @@
         var dy = rows > 1 ? (row / (rows - 1)) * 2 - 1 : 0;
         var fromMiddle = Math.sqrt(dx * dx + dy * dy) / Math.SQRT2;
         var id = row * 1000 + column;
+        var rank = Math.abs(fromMiddle - 0.7) + fixedNumber(id) * 0.3;
+        if (count <= FEW_VIDEOS) {
+          // Few Videos: left and right of the head and shoulders, never over the face.
+          rank = Math.abs(Math.abs(dx) - 0.55) + Math.abs(dy) * 0.25 + fixedNumber(id) * 0.1;
+          if (Math.abs(dx) < 0.3) rank += 1;
+        }
         cells.push({
           row: row,
           column: column,
           id: id,
           taken: false,
           neighbours: 0,
-          rank: Math.abs(fromMiddle - 0.7) + fixedNumber(id) * 0.3
+          rank: rank
         });
       }
     }
@@ -240,6 +248,9 @@
       desktop = now;
       closeCard();
       root.classList.toggle("videos--desktop", desktop);
+      // The portrait is only needed here. It is lazy in the page so phones never fetch it;
+      // ask for it now instead of waiting for the browser to notice it became visible.
+      if (desktop && wallpaper) wallpaper.loading = "eager";
       setCoverLinks(desktop);
       if (!desktop) clearPlaces();
     }
