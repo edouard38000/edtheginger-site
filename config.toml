@@ -1,6 +1,7 @@
-# The one base URL setting. Every internal link and asset is built from it,
-# so the site works under this sub-path now and at https://edtheginger.com later.
-base_url = "https://edouard38000.github.io/edtheginger-site"
+# The one base URL setting. Every internal link and asset is built from it.
+# The site is served at the root of edtheginger.com (see docs/domain.md); static/CNAME
+# names the same host.
+base_url = "https://edtheginger.com"
 
 title = "Edouard the Ginger"
 description = "Edouard the Ginger: the Real or BS list, the Playbooks and the Videos."
