@@ -200,6 +200,51 @@ fn every_bad_entry_has_a_check() {
     }
 }
 
+/// Zola renders pages in no fixed order. A page that reads the Entries (through `get_section`,
+/// `get_page` or `section.pages`) can meet a broken Entry before `templates/entry.html` refuses it
+/// and stop the build with an error of its own, so it must refuse the broken Entries first.
+#[test]
+fn every_page_that_reads_the_entries_refuses_the_broken_ones_first() {
+    let mut reading = 0;
+    for file in std::fs::read_dir(format!("{ROOT}/templates")).unwrap() {
+        let path = file.unwrap().path();
+        let name = path.file_name().unwrap().to_string_lossy().into_owned();
+        if !name.ends_with(".html") || name == "entry.html" {
+            continue;
+        }
+        let template = without_comments(&std::fs::read_to_string(&path).unwrap());
+        let reads = ["get_section(", "get_page(", "section.pages", "paginator"]
+            .iter()
+            .filter_map(|read| template.find(read))
+            .min();
+        let Some(first_read) = reads else { continue };
+        reading += 1;
+        let refuses = template.find("{{<validate.entries formats={config.extra.formats} />}}");
+        assert!(
+            refuses.is_some_and(|at| at < first_read),
+            "templates/{name} reads the Entries: put \
+             `{{{{<validate.entries formats={{config.extra.formats}} />}}}}` before its first read"
+        );
+    }
+    assert!(
+        reading >= 2,
+        "the Real or BS and Playbooks pages read the Entries"
+    );
+}
+
+/// A template without its `{# ... #}` comments.
+fn without_comments(template: &str) -> String {
+    let mut kept = String::new();
+    let mut rest = template;
+    while let Some(start) = rest.find("{#") {
+        kept.push_str(&rest[..start]);
+        rest = rest[start..]
+            .find("#}")
+            .map_or("", |end| &rest[start + end + 2..]);
+    }
+    kept + rest
+}
+
 /// The three copy-paste templates of the guide, in order: a Video with no Verdict, a Real or BS
 /// Video with a Verdict and a Playbook, and that Playbook.
 fn guide_templates() -> Vec<String> {

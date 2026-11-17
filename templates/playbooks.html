@@ -5,6 +5,8 @@
 {% block description %}Every Playbook by Edouard the Ginger: step-by-step PDF guides to do what the Videos show.{% endblock description %}
 {% block body_class %}page-playbooks{% endblock body_class %}
 {% block content %}
+{# Refuse a broken Entry before this page reads the Entries. #}
+{{<validate.entries formats={config.extra.formats} />}}
 {% set playbooks = section.pages | sort(attribute="date") | reverse %}
 {% set tape = resize_image(path="playbooks/tape-strip.png", width=220, op="fit_width") %}
 <section class="playbooks" aria-labelledby="playbooks-title">
