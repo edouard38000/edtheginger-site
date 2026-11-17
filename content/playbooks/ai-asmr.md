@@ -32,9 +32,13 @@ Create one short video with several shots, add matching sound, edit it and sched
 
 {%<prompt label="PROMPT" dest="paste in ChatGPT or Claude" logos="chatgpt,claude">%}
 Turn [SELECTED CONCEPT] into one 10-second vertical AI ASMR mukbang clip for [TARGET AUDIENCE].
+
 Return two labeled blocks:
+
 VIDEO PROMPT: Write one Seedance 1.0 prompt under 1,500 characters. Define one adult fictional character, imaginary glass-like food, setting and lighting. Describe three brief shots within 10 seconds: reveal the food, show one complete bite, then show the satisfying texture and chewing. Keep the character and food consistent. Use 9:16 close-ups, simple camera movement and clear cuts. Start immediately. No injuries, dialogue, captions or logos.
+
 AUDIO PROMPT: Write one MMAudio prompt for the entire clip. Describe close-miked bites, cracks, crunches and chewing specific to the material. Match the actual visible actions, including across cuts. Quiet background, controlled volume; no speech or music.
+
 Keep the shots achievable in 10 seconds. Do not output separate generation prompts for each shot.
 {%</prompt>%}
 
@@ -101,8 +105,11 @@ Use your generated AUDIO PROMPT first. This reusable version is useful when you 
 
 {%<prompt label="PROMPT" dest="paste in MMAudio" logos="">%}
 Close-miked ASMR of [FOOD OR MATERIAL] being [VISIBLE EATING ACTION].
+
 [SOUND TEXTURES FOR THE CLIP].
+
 Match each bite, crack, crunch, and chewing sound to the corresponding movement in the uploaded video. Follow the actual action timing across all shots, with delicate texture sounds between stronger crunches.
+
 Use a quiet background, clear detail, and controlled volume. No music, speech, narration, unrelated effects, harsh distortion, or exaggerated reverb.
 {%</prompt>%}
 
@@ -127,9 +134,13 @@ Use a quiet background, clear detail, and controlled volume. No music, speech, n
 
 {%<prompt label="PROMPT" dest="paste in your AI editor" logos="">%}
 Edit [VIDEO CLIP] into a polished vertical 9:16 ASMR video.
+
 Keep the clip’s audio linked and synchronized when trimming. Remove black frames, frozen endings and unnecessary waiting before or after the action. Preserve complete bites, satisfying crunches and quiet texture sounds.
+
 Use clean cuts and consistent volume. Prevent clipping and abrupt audio clicks. Do not add music, voiceover, captions, transitions or generated footage. Keep the original playback speed.
+
 Keep the natural duration without padding. Preserve the source resolution and export an MP4.
+
 Flag any remaining visual artifacts or synchronization problems for review.
 {%</prompt>%}
 
@@ -189,12 +200,17 @@ If a connector requires an API key, enter it in the connector’s secure setting
 
 {%<prompt label="PROMPT" dest="paste in your connected agent" logos="">%}
 Prepare [FINISHED VIDEO FILE OR URL] for publication using [CONNECTED PUBLISHING SERVICE].
+
 Video concept: [CONCEPT].
 Destination accounts: [PLATFORMS AND ACCOUNTS].
 Schedule: [DATE, TIME, AND TIME ZONE].
+
 Write a short caption for each platform with relevant hashtags. Describe the video as AI-generated ASMR. Avoid earnings promises, invented claims, or presenting the footage as real.
+
 Check each platform’s upload requirements and apply supported AI-content disclosures.
+
 Show me the captions, destination accounts, and posting times for approval. After approval, schedule each post once.
+
 Return each platform’s confirmed scheduled time and post ID or link. Report failed or unsupported actions clearly. Do not claim a post is scheduled without confirmation from the publishing service.
 {%</prompt>%}
 

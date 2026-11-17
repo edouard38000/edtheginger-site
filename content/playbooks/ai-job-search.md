@@ -56,8 +56,11 @@ Claude Code downloads the project and installs what it needs: Python 3.10 or new
 
 {%<prompt label="PROMPT" dest="paste in Claude Code" logos="claude">%}
 Download the AI Job Search framework from https://github.com/ai-job-search-dev/ai-job-search into this folder. Clone it; do not fork it, and never push anything to GitHub.
+
 Then install what its README lists for [MAC OR WINDOWS] that I don't already have: Python 3.10 or newer, Bun, a LaTeX distribution with lualatex and xelatex, and the optional pypdf package.
+
 Run tools/install_portal_clis.py with Python to install the job-search tools.
+
 Before each install command, tell me in one sentence what it does. When everything works, tell me to open the ai-job-search folder in a new session and run /setup.
 {%</prompt>%}
 
@@ -79,6 +82,7 @@ Before each install command, tell me in one sentence what it does. When everythi
 
 {%<prompt label="PROMPT" dest="paste in Claude Code" logos="claude">%}
 Compare my profile files with everything in documents/. List each claim in my profile that no document supports, and each important fact in my documents that the profile leaves out, such as a skill, result or responsibility.
+
 Don't change any file yet; wait for my corrections.
 {%</prompt>%}
 
@@ -100,7 +104,9 @@ Run **/setup** again whenever you add documents; reading the documents folder is
 
 {%<prompt label="COMMANDS" dest="type in Claude Code" logos="claude">%}
 /scrape
+
 /add-portal [JOB BOARD ADDRESS]
+
 /rank
 {%</prompt>%}
 
@@ -120,6 +126,7 @@ Some sites block automated access. If a search or a job link fails, open the pos
 
 {%<prompt label="COMMANDS" dest="type in Claude Code" logos="claude">%}
 /apply [JOB LINK]
+
 /apply [FULL JOB DESCRIPTION]
 {%</prompt>%}
 

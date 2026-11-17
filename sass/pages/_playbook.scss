@@ -181,6 +181,18 @@
   line-height: 1.4;
 }
 
+// A step without a title: the number beside what to do.
+.pb-step--plain {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.pb-step--plain .pb-step__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .pb-step__body p {
   margin: 0 0 0.5em;
 }
@@ -409,7 +421,7 @@
 // --- Screenshots --------------------------------------------------------------------------------
 
 .pb-figure {
-  margin: 24px 0;
+  margin: 24px auto;
 }
 
 .pb-figure .pb-label {
@@ -461,6 +473,15 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   box-shadow: 0 4px 14px rgb(25 25 25 / 10%);
+}
+
+// Screenshots beside their steps (wide screens only; see the media query at the end).
+.pb-beside {
+  margin: 24px 0;
+}
+
+.pb-beside__shots {
+  margin-block: 0 24px;
 }
 
 // --- Link buttons -------------------------------------------------------------------------------
@@ -537,6 +558,34 @@
 }
 
 // --- Wider screens ------------------------------------------------------------------------------
+
+// A single screenshot no longer fills the text width: its width follows its shape (--pb-ratio is
+// width / height, set by the step_image component) so every image covers about the same area,
+// about 32rem wide for a 16:9 slide and 16rem for a phone screenshot. Centred. Browsers without
+// CSS sqrt() keep the full width.
+@media (min-width: 48rem) {
+  .pb-figure {
+    max-width: min(100%, calc(sqrt(var(--pb-ratio, 1.778)) * 24rem));
+  }
+}
+
+@media (min-width: 60rem) {
+  .pb-beside {
+    display: grid;
+    grid-template-columns: calc(var(--pb-count, 1) * 10.5rem + (var(--pb-count, 1) - 1) * 16px) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .pb-beside__shots {
+    grid-template-columns: repeat(var(--pb-count, 1), minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .pb-beside__text > :first-child {
+    margin-top: 0;
+  }
+}
 
 @media (min-width: 640px) {
   .pb-row {

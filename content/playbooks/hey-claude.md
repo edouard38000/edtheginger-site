@@ -102,8 +102,7 @@ I stayed on my Mac. In the Claude desktop app I chose my Linux PC as the compute
 Pairing tells the PC and the iPhone that they belong together. Check first that the iPhone is on the same Wi-Fi as the PC, not on mobile data or a guest network.
 {%</part>%}
 
-{{<shots srcs={["playbooks/hey-claude/ip_appstore.jpg"]} labels={["THE RIGHT APP"]} alts={["The Phone Use app in the App Store, by Aleksey Smolenchuk, with a pink cloud holding a phone as its icon."]} />}}
-
+{%<beside srcs={["playbooks/hey-claude/ip_appstore.jpg"]} labels={["THE RIGHT APP"]} alts={["The Phone Use app in the App Store, by Aleksey Smolenchuk, with a pink cloud holding a phone as its icon."]}>%}
 {%<step n={1} title="Install the Phone Use app">%}On the iPhone, open the App Store and search for Phone Use. Take the one by Aleksey Smolenchuk, with the pink cloud holding a phone.{%</step>%}
 
 {%<step n={2} title="Scan the QR code">%}Open the app and point the iPhone at the QR code in the Phone Use window on the PC.{%</step>%}
@@ -111,6 +110,7 @@ Pairing tells the PC and the iPhone that they belong together. Check first that 
 {%<step n={3} title="If the phone says it can't reach the PC">%}This happened to me. The PC's firewall, the part that blocks outside connections, was blocking the iPhone, and the app did not say so. Paste the prompt below.{%</step>%}
 
 {%<step n={4} title="Type your PC password when asked">%}Claude prepares the fix but cannot type your password. It shows you where to type it. Type it, press Enter, then scan the QR code again.{%</step>%}
+{%</beside>%}
 
 {%<prompt label="PROMPT" dest="paste in Claude Code" logos="claude">%}
 On my phone it says it can't reach this computer. Check that Phone Use is running, and open what the firewall is blocking for it, only for my home network.
@@ -130,8 +130,7 @@ On my phone it says it can't reach this computer. Check that Phone Use is runnin
 The PC sees the iPhone through Screen Mirroring and taps on it through Bluetooth, as if it were a mouse and a keyboard. Keep the iPhone unlocked while you do this.
 {%</part>%}
 
-{{<shots srcs={["playbooks/hey-claude/ip_mirroring.jpg", "playbooks/hey-claude/ip_bluetooth.jpg"]} labels={["01 SCREEN MIRRORING", "02 BLUETOOTH"]} alts={["The iPhone Screen Mirroring menu, with Phone Use on the PC to choose.", "The iPhone Bluetooth settings, with Phone Use connected."]} />}}
-
+{%<beside srcs={["playbooks/hey-claude/ip_mirroring.jpg", "playbooks/hey-claude/ip_bluetooth.jpg"]} labels={["01 SCREEN MIRRORING", "02 BLUETOOTH"]} alts={["The iPhone Screen Mirroring menu, with Phone Use on the PC to choose.", "The iPhone Bluetooth settings, with Phone Use connected."]}>%}
 {%<step n={1} title="Start Screen Mirroring">%}Swipe down from the top right corner, tap the two rectangles, and choose "Phone Use on" followed by your PC's name.{%</step>%}
 
 {%<step n={2} title="Connect Bluetooth">%}Settings, Bluetooth, tap Phone Use and accept. It has to say Connected.{%</step>%}
@@ -139,6 +138,7 @@ The PC sees the iPhone through Screen Mirroring and taps on it through Bluetooth
 {%<step n={3} title="Turn on AssistiveTouch">%}Settings, Accessibility, Touch, AssistiveTouch: on. On the same page, Dwell Control: off. A round button appears on screen. Without it Claude can type but not tap.{%</step>%}
 
 {%<step n={4} title="Make the pointer orange">%}Settings, Accessibility, Pointer Control, Colour: Orange.{%</step>%}
+{%</beside>%}
 
 {{<subhead text="If Bluetooth will not stay connected" icon="exclamation" />}}
 
@@ -183,8 +183,7 @@ On camera I said only the sentence below, because my Claude had notes (a skill) 
 A Shortcut is a small list of actions the iPhone runs in order. Claude built mine through Phone Use and it took about 30 minutes, because the mirrored screen lagged 10 to 20 seconds behind every tap. Doing it by hand is probably faster.
 {%</part>%}
 
-{{<shots srcs={["playbooks/hey-claude/sc_record.jpg", "playbooks/hey-claude/sc_final.jpg"]} labels={["THE RECORDING", "ALL SIX ACTIONS"]} alts={["The Record audio action of the Hey Claude Shortcut: Start Recording Immediately, Finish Recording After Time, Duration 10 seconds.", "The six actions of the Hey Claude Shortcut: Record audio, Get contents of URL, Show notification, Speak, If Contents of URL ends with ?, Run Hey Claude, Otherwise, End If."]} />}}
-
+{%<beside srcs={["playbooks/hey-claude/sc_record.jpg", "playbooks/hey-claude/sc_final.jpg"]} labels={["THE RECORDING", "ALL SIX ACTIONS"]} alts={["The Record audio action of the Hey Claude Shortcut: Start Recording Immediately, Finish Recording After Time, Duration 10 seconds.", "The six actions of the Hey Claude Shortcut: Record audio, Get contents of URL, Show notification, Speak, If Contents of URL ends with ?, Run Hey Claude, Otherwise, End If."]}>%}
 {%<step n={1} title="Open Shortcuts and tap +">%}The Shortcuts app is already on your iPhone.{%</step>%}
 
 {%<step n={2} title="Add Record Audio">%}Tap Search Actions, type Record Audio, tap it. Tap the arrow beside it: Start Recording **Immediately**, Finish Recording **After Time**, then **10 seconds** (change minutes to seconds).{%</step>%}
@@ -200,6 +199,7 @@ A Shortcut is a small list of actions the iPhone runs in order. Claude built min
 {%<step n={7} title="Add If">%}Tap its first box and pick Contents of URL, with the type set to **Text**. Set the condition to **ends with** and type **?** in the last box.{%</step>%}
 
 {%<step n={8} title="Add Run Shortcut, inside the If">%}Choose Hey Claude. It lands at the bottom, so move it between If and Otherwise. Claude did it by holding the action, Copy, holding the If line, Paste Below, then removing the original.{%</step>%}
+{%</beside>%}
 
 The order must be: Record audio, Get contents of URL, Show notification, Speak, If (Run Hey Claude), Otherwise, End If. Tap the Hey Claude tile once to test it. When the iPhone asks whether Hey Claude may send a media item to your PC, tap **Always Allow**.
 

@@ -20,13 +20,13 @@ Start with a working product, a specific customer and one action you want people
 {%<part n={1} id="part-1" title="Plan the launch">%}
 {%</part>%}
 
-{%<row key="01">%}Write a short company brief: product and URL, target customer, problem, competitive advantage, verified founder background and evidence you can show. ICP means your ideal customer profile; CTA means the next action, such as trying the product.{%</row>%}
+{%<step n={1}>%}Write a short company brief: product and URL, target customer, problem, competitive advantage, verified founder background and evidence you can show. ICP means your ideal customer profile; CTA means the next action, such as trying the product.{%</step>%}
 
-{%<row key="02">%}Choose one CTA and test its full journey on a phone. Update your X bio, product link and pinned post. Publish useful demos or observations before launch and join relevant conversations.{%</row>%}
+{%<step n={2}>%}Choose one CTA and test its full journey on a phone. Update your X bio, product link and pinned post. Publish useful demos or observations before launch and join relevant conversations.{%</step>%}
 
-{%<row key="03">%}Study three relevant launches in the [Doomers directory](https://doomers.ai/launches) and read its [playbook](https://doomers.ai/playbook). Note the opening claim, demo, creator angles and follow-ups. Treat the view counts as a dated snapshot.{%</row>%}
+{%<step n={3}>%}Study three relevant launches in the [Doomers directory](https://doomers.ai/launches) and read its [playbook](https://doomers.ai/playbook). Note the opening claim, demo, creator angles and follow-ups. Treat the view counts as a dated snapshot.{%</step>%}
 
-{%<row key="04">%}Set the date, time zone, total budget and launch owner. Keep a spreadsheet with creator, email, fee, brief link, wave, calendar link, confirmation, post URL and results.{%</row>%}
+{%<step n={4}>%}Set the date, time zone, total budget and launch owner. Keep a spreadsheet with creator, email, fee, brief link, wave, calendar link, confirmation, post URL and results.{%</step>%}
 
 {{<subhead text="Choose the help you need" icon="check" />}}
 
@@ -47,24 +47,26 @@ Use this prompt for the product launch video. The target length is 2:30-3:00.
 3. Product demonstration
 4. One clear CTA
 
-{%<row key="01">%}Open [ChatGPT](https://chatgpt.com/) or [Claude](https://claude.ai/). Add your company brief and evidence. Replace every terracotta field with your information, then paste the prompt.{%</row>%}
+{%<step n={1}>%}Open [ChatGPT](https://chatgpt.com/) or [Claude](https://claude.ai/). Add your company brief and evidence. Replace every terracotta field with your information, then paste the prompt.{%</step>%}
 
 {%<prompt>%}
 Write a 2:30-3:00 launch video script for [PRODUCT], aimed at [ICP].
 Company context: [COMPANY CONTEXT].
+
 1. Introduce [FOUNDER] using [VERIFIED CREDENTIAL] to explain why they built this product.
 2. State [DEBATABLE CLAIM] and explain why it matters to the audience.
 3. Demonstrate [COMPETITIVE ADVANTAGE] with [VERIFIED EVIDENCE] and one clear [USE CASE].
 4. End with [CTA].
 5. Return a timecoded script with voiceover and a visual cue for each passage. Keep the spoken read within 2:30-3:00.
+
 Use only supplied facts. Mark missing information [MISSING] and continue without follow-up questions.
 {%</prompt>%}
 
 {{<skill name="edouard-video-script" url="https://gist.github.com/edouard38000/6b162cf9abafa0ee54140526f5c08d99/archive/1513748a01e59cfbce7f15222020366d0950201a.zip" />}}
 
-{%<row key="02">%}Check every claim and read the script aloud with a timer. Record the founder and the actual product flow. Keep private data off screen and make sure the result shown matches the claim.{%</row>%}
+{%<step n={2}>%}Check every claim and read the script aloud with a timer. Record the founder and the actual product flow. Keep private data off screen and make sure the result shown matches the claim.{%</step>%}
 
-{%<row key="03">%}Edit out dead time, add complete captions and check the export on a phone. Keep text clear of platform controls. If the read runs long, cut repetition before speeding up the audio.{%</row>%}
+{%<step n={3}>%}Edit out dead time, add complete captions and check the export on a phone. Keep text clear of platform controls. If the read runs long, cut repetition before speeding up the audio.{%</step>%}
 
 {%<note>%}Click GRAB IT HERE, unzip the download and attach SKILL.md to the same chat as your prompt. For video scripts, also attach [Humanizer](https://gist.github.com/edouard38000/fec5733f5712146660c4a1958b27e909/archive/e165a8126bbbaf3e8f6f5242e6a13ad75661a235.zip). Tell the assistant to use your 2:30-3:00 duration and product CTA instead of the skill’s default duration and follow CTA.{%</note>%}
 
@@ -83,12 +85,14 @@ Paste the prompt below into your AI chat with your company brief, creator profil
 {%<prompt>%}
 Use [CREATOR PROFILES + EMAILS + SAMPLE POSTS] to create a unique brief for each creator promoting [PRODUCT] to [ICP].
 Context: [COMPANY CONTEXT]. Shared claim: [CENTRAL CLAIM]. Action: [CTA]. Window: [POSTING WINDOW]. Assets: [ASSET LINKS].
+
 1. Analyze each creator's audience and voice.
 2. Keep the shared claim consistent. Give each creator distinct hooks, framing and format that fit their audience.
 3. Include three hooks, one recommended angle, the format, CTA, posting window and paid-partnership disclosure.
 4. Create one editable PowerPoint (.pptx) or Google Slides deck per creator.
 5. Email each creator their own deck or Slides link with the asset links. If email tools are unavailable, return ready-to-send drafts.
 6. Return a brief list: creator, email, brief link and actual send status.
+
 Mark missing details [MISSING]. Do not invent claims or ask follow-up questions.
 {%</prompt>%}
 
@@ -111,11 +115,13 @@ Paste the prompt into your agent and supply the launch link, creator brief list 
 {%<prompt>%}
 Use [BRIEF LIST], with each creator's email.
 Launch: [DATE], [LAUNCH TIME], [TIME ZONE]. Link: [LAUNCH LINK].
+
 1. Assign half the creators to Wave 1 and half to Wave 2. If the total is odd, put the extra creator in Wave 1.
 2. Set Wave 1 for 15 minutes after launch and Wave 2 for 4 hours after launch.
 3. Create a Google Calendar link for each creator's assigned posting time.
 4. Email each creator their calendar link. Email [INVESTORS + FRIENDS & FAMILY] the launch link and both wave times so they can join the conversation.
 5. Return a tracker: creator, wave, posting time, calendar link and actual email status.
+
 Use the existing briefs. Do not create or resend them. If email tools are unavailable, return drafts. Mark missing details [MISSING]; do not ask follow-up questions.
 {%</prompt>%}
 

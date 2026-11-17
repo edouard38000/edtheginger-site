@@ -41,6 +41,18 @@ Find the best coffee in [YOUR CITY] & tell me "why", under [A PRICE] <today>.
 Open the app so I can pair my phone.
 {%</prompt>%}
 
+{%<prompt label="PROMPT 3" dest="paste in Claude Code" logos="claude">%}
+Plan [MY LAUNCH] for <Friday> & "after".
+
+1. List the steps.
+2. Mark [MISSING] facts.
+
+  Keep this indented line.
+**not bold**, # not a heading
+{%</prompt>%}
+
+{%<step n={3}>%}No title: the number sits beside this **text**.{%</step>%}
+
 {{<step_image src="covers/fixture-cover.png" label="WHAT IT LOOKED LIKE" alt="Fixture: the wide screenshot." caption="Fixture caption." />}}
 
 {%<note>%}Fixture note.{%</note>%}
@@ -52,3 +64,11 @@ The intro of part 2.
 {{<shots srcs={["covers/fixture-cover.png", "covers/fixture-cover.png"]} labels={["01 ONE", "02 TWO"]} alts={["Fixture: the first phone screen.", "Fixture: the second phone screen."]} />}}
 
 {{<skill name="no-link-skill" />}}
+
+{{<subhead text="Fixture timing" icon="clock" />}}
+
+{%<beside srcs={["covers/fixture-cover.png"]} labels={["03 BESIDE"]} alts={["Fixture: the screen beside the steps."]}>%}
+{%<step n={1} title="Beside one">%}First step beside the screen.{%</step>%}
+
+{%<step n={2} title="Beside two">%}Second step beside the screen.{%</step>%}
+{%</beside>%}
