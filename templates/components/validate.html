@@ -74,10 +74,13 @@
 
 {% component validate.playbook(page) %}
 {% set extra = page.extra %}
-{% if extra.pdf is undefined %}
-{{<validate.refuse page={page} problem={"the Playbook has no PDF: set `pdf` to the https address of its PDF."} />}}
+{# A Playbook is a page (its Markdown body), a PDF, or both. #}
+{% if extra.pdf is undefined and page.content | trim == "" %}
+{{<validate.refuse page={page} problem={"the Playbook has no page and no PDF: write the Playbook below the front matter, or set `pdf` to the https address of its PDF."} />}}
 {% endif %}
+{% if extra.pdf is defined %}
 {{<validate.https page={page} field="pdf" value={extra.pdf} />}}
+{% endif %}
 {% if extra.cover is defined %}
 {{<validate.cover page={page} />}}
 {% endif %}

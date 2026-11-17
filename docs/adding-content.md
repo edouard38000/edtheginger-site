@@ -4,14 +4,16 @@ How to put a new Video or Playbook on the site. Written for an editing session: 
 end of an edit, without asking. The words used here are defined in [`GLOSSARY.md`](../GLOSSARY.md).
 
 One Video or one Playbook is one Entry: a Markdown file with TOML front matter between two `+++`
-lines and nothing after them. Adding the Entry and its cover is the whole job. The Tally, the
+lines. A Video and a PDF-only Playbook have nothing after them; a Playbook page has its whole
+Playbook written after them, in Markdown (see [Template 4](#template-4-a-playbook-page)). Adding the
+Entry and its cover is the whole job. The Tally, the
 numbering of the REAL list and the latest Video on the home page are computed from the Entries at
 build time. Never type them anywhere.
 
 ## Steps
 
 1. Put the cover in `static/covers/`.
-2. Add the Entry: copy one of the three templates below and change the values.
+2. Add the Entry: copy one of the four templates below and change the values.
 3. Run `just check`. If it refuses the Entry, fix what the message says and run it again.
 4. Commit and push straight to `main` (see [Push](#push)).
 
@@ -89,9 +91,10 @@ playbook = "playbooks/phone-use.md"
 - `playbook` is the file of the Playbook Entry, as a path under `content/`. Leave the line out when
   the Video has no Playbook. Add the Playbook Entry (template 3) in the same commit, or before.
 
-## Template 3: a Playbook
+## Template 3: a PDF-only Playbook
 
-File: `content/playbooks/phone-use.md`.
+For a Playbook that is only a PDF on the playbook site. Its card links to the PDF. New Playbooks
+are pages: see [Template 4](#template-4-a-playbook-page). File: `content/playbooks/phone-use.md`.
 
 ```toml
 +++
@@ -109,6 +112,76 @@ cover = "covers/phone-use-playbook.png"
 - `pdf` is the https address where the PDF already is on the playbook site. The PDF is never copied
   or moved into this repo.
 - `cover` is optional: leave the line out when there is none.
+
+## Template 4: a Playbook page
+
+A Playbook page is a page of the site, at `/playbooks/<name>/`, written in Markdown below the front
+matter. Its card on the Playbooks page and on the home shelf links to it. Leave `pdf` out unless the
+page should also keep an old PDF; the page never links to it. File: `content/playbooks/voice-notes.md`.
+
+```toml
++++
+title = "Turn your voice notes into a to-do list"
+date = 2026-11-20
+description = "Send a voice note, get a to-do list back."
+
+[extra]
+cover = "covers/voice-notes-playbook.png"
++++
+One short paragraph: what the reader gets at the end.
+
+{{<subhead text="What you need" icon="check" level={2} />}}
+
+{%<row key="A paid Claude plan">%}Claude Code does the work.{%</row>%}
+
+{{<subhead text="The two parts" level={2} />}}
+
+1. [**Record the note.**](#part-1) Ten seconds is enough.
+2. [**Let Claude sort it.**](#part-2) One prompt.
+
+{%<part n={1} id="part-1" title="Record the note">%}
+The intro of the part.
+{%</part>%}
+
+{%<step n={1} title="Open Voice Memos">%}It is already on your iPhone.{%</step>%}
+
+{%<part n={2} id="part-2" title="Let Claude sort it">%}
+The intro of the part.
+{%</part>%}
+
+{%<prompt label="PROMPT" dest="paste in Claude Code" logos="claude">%}
+Turn this voice note into a to-do list for [YOUR WEEK].
+{%</prompt>%}
+```
+
+The page puts "by edouardtheginger" and the title in the orange box at the top; write everything
+else in the body. Plain Markdown works as usual: paragraphs, **bold**, links, and numbered lists
+(shown with orange number stickers, used for the list of parts). The blocks of a Playbook are
+components, written `{{<name ... />}}`, or `{%<name ...>%}...{%</name>%}` when they have a body.
+Text goes in quotes, and numbers and lists go in braces: `n={3}`, `srcs={["a.jpg", "b.jpg"]}`. Use
+single quotes around text that holds double quotes: `title='Say "Hey Claude" three times'`.
+
+| Component | What it shows | Arguments |
+| --- | --- | --- |
+| `part` | A part: its number sticker, its title in the orange box, its intro (the body). | `n` (1 to 8, the sticker), `id` (the anchor the list of parts links to, like `part-3`), `title`; `label=""` for a part that is not numbered, like "The result". |
+| `subhead` | A heading with an optional sticker before it. | `text`; `icon` = `"check"`, `"lightbulb"` or `"exclamation"`; `level={2}` at the top of the page (default 3, inside a part). |
+| `step` | A numbered step: "01" in an orange tag, the step in bold, then what to do (the body, Markdown). | `n`, `title`. |
+| `row` | A key in an orange tag and its explanation (the body), like the "What you need" list. | `key`. |
+| `label` | A small orange label on its own line, like "THIS ERASES THE WHOLE PC". | `text`. |
+| `note` | A small grey note (the body). | none. |
+| `prompt` | A prompt box: the label, where to paste it, the exact text (the body) and a Copy button. Placeholders in square brackets, like `[YOUR CITY]`, are shown in orange. | `label` (default `PROMPT`), `dest` (default `paste in ChatGPT or Claude`), `logos` (`"chatgpt,claude"` by default, `"claude"`, `"chatgpt"` or `""`), `example_label` and `example` for an example under the text (not copied). |
+| `skill` | Under a prompt that uses a skill: a plus, SKILL, and a box with the skill's name and GRAB IT HERE. | `name`; `url` only when the skill has a real public address. |
+| `step_image` | One screenshot as wide as the text, with rounded corners. | `src` (a path under `static/`), `alt` (what the image shows), `label`, `caption`. |
+| `shots` | Phone screenshots side by side, each under its label. | `srcs`, `alts`, `labels`: lists of the same length. |
+| `buttons` | Orange pill links, then the crayon arrow and CLICK HERE. | `texts`, `urls`: lists of the same length. |
+
+- The prompt text is copied exactly as written in the body: write it on its own lines between the
+  two tags, with no blank line inside.
+- Screenshots go in `static/playbooks/<name>/`, as JPEG or PNG; the site resizes them. Every image
+  needs an `alt` saying what it shows.
+- A component prints one block: leave a blank line before and after it.
+- The components are in `templates/components/playbook-page.html`, their styles in
+  `sass/pages/_playbook.scss`.
 
 ## Check locally
 
@@ -128,13 +201,13 @@ Links are checked for their shape only. Nothing is fetched, so open each link yo
 
 ## Push
 
-A content-only change touches nothing but `content/videos/`, `content/playbooks/` and
-`static/covers/`. Commit it and push it straight to `main`, with no pull request:
+A content-only change touches nothing but `content/videos/`, `content/playbooks/`,
+`static/covers/` and the screenshots of a Playbook page in `static/playbooks/<name>/`. Commit it and push it straight to `main`, with no pull request:
 
 ```sh
 git pull --rebase
 just check
-git add content static/covers
+git add content static/covers static/playbooks
 git commit -m "Add the Video real-or-bs-02-phone-use"
 git push
 ```
@@ -166,7 +239,7 @@ Each message starts with `Entry content/<file> refused:` and names the file to f
 | `` a Real or BS Video needs `tested` `` | `tested` is missing or empty. | Say in one line what was tested. |
 | `is only for Real or BS Videos` | `verdict`, `episode` or `tested` is on a Video of another Format. | Remove the line, or set `format = "Real or BS"`. |
 | `matches no Playbook Entry` | `playbook` names a file that is not in `content/playbooks/`. | Write it like `playbooks/<name>.md`, and add that Playbook Entry. |
-| `the Playbook has no PDF` | `pdf` is missing. | Set `pdf` to the https address of the PDF. |
+| `the Playbook has no page and no PDF` | The Playbook has nothing below its front matter and no `pdf`. | Write the Playbook below the front matter (template 4), or set `pdf` to the https address of the PDF (template 3). |
 
 Two things look different:
 

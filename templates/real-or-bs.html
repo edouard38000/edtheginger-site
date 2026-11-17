@@ -48,7 +48,7 @@
         <p class="real-list__description">{{ video.description }}</p>
         {% if video.extra.playbook %}
         {% set playbook = get_page(path=video.extra.playbook) %}
-        <a class="real-list__playbook" href="{{ playbook.extra.pdf | safe }}">Grab the Playbook<span class="visually-hidden">: {{ playbook.title }} (PDF)</span></a>
+        {% if playbook.content | trim %}<a class="real-list__playbook" href="{{ playbook.permalink | safe }}">Grab the Playbook<span class="visually-hidden">: {{ playbook.title }}</span></a>{% else %}<a class="real-list__playbook" href="{{ playbook.extra.pdf | safe }}">Grab the Playbook<span class="visually-hidden">: {{ playbook.title }} (PDF)</span></a>{% endif %}
         {% endif %}
       </div>
     </li>

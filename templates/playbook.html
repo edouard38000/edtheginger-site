@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{# A Playbook Entry. With a body it is a Playbook page: the by-line, the title in the orange box,
+   then the body, written in Markdown with the components of templates/components/playbook-page.html.
+   With no body (a PDF-only Playbook) it has no page of its own: like every other Entry, its address
+   sends the visitor to the Playbooks page, where its card links to the PDF. #}
+{% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
+{% block description %}{% if page.description %}{{ page.description }}{% else %}{{ config.description }}{% endif %}{% endblock description %}
+{% block head %}
+{# A broken Entry stops the build here, before anything deploys. #}
+{{<validate.entry page={page} formats={config.extra.formats} />}}
+{% if page.content | trim %}
+<link rel="canonical" href="{{ page.permalink | safe }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="{{ config.title }}">
+<meta property="og:title" content="{{ page.title }}">
+<meta property="og:description" content="{{ page.description }}">
+<meta property="og:url" content="{{ page.permalink | safe }}">
+{% if page.extra.cover %}<meta property="og:image" content="{{ get_url(path=page.extra.cover) }}">
+<meta name="twitter:card" content="summary_large_image">{% endif %}
+<script src="{{ get_url(path='js/playbook.js', cachebust=true) }}" defer></script>
+{% else %}
+<meta http-equiv="refresh" content="0; url={{ get_url(path='@/playbooks/_index.md') | safe }}">
+<link rel="canonical" href="{{ get_url(path='@/playbooks/_index.md') | safe }}">
+<meta name="robots" content="noindex">
+{% endif %}
+{% endblock head %}
+{% block body_class %}{% if page.content | trim %}page-playbook{% endif %}{% endblock body_class %}
+{% block content %}
+{% if page.content | trim %}
+{% set bubble = resize_image(path="playbooks/stickers/speech-bubble.png", width=128, op="fit_width", format="webp", quality=85) %}
+<article class="pb" aria-labelledby="pb-title">
+  <header class="pb__header">
+    <p class="pb__top"><a class="pb__back" href="{{ get_url(path='@/playbooks/_index.md') }}"><span aria-hidden="true">&larr;</span> All Playbooks</a><span class="pb__by">by edouardtheginger</span></p>
+    <div class="pb__heading">
+      <img class="pb__bubble" src="{{ bubble.url }}" width="56" height="{{ (bubble.height * 56 / bubble.width) | round | int }}" alt="" aria-hidden="true">
+      <h1 class="pb__title" id="pb-title"><span class="pb-box">{{ page.title }}</span></h1>
+    </div>
+  </header>
+  <div class="pb__body">
+{{ page.content | safe }}
+  </div>
+</article>
+{% else %}
+<section class="entry-redirect">
+  <h1>{{ page.title }}</h1>
+  <p><a href="{{ get_url(path='@/playbooks/_index.md') | safe }}">See it on the Playbooks page</a></p>
+</section>
+{% endif %}
+{% endblock content %}

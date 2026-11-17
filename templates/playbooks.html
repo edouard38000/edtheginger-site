@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{# Playbooks page: every Playbook, newest first, each with a button to its PDF.
-   The Playbook Entries are section.pages. A PDF address is used exactly as the Entry gives it. #}
+{# Playbooks page: every Playbook, newest first, each with a button to its page (a Playbook with a
+   body) or to its PDF (a PDF-only Playbook). The Playbook Entries are section.pages. A PDF address
+   is used exactly as the Entry gives it. #}
 {% block title %}{{ section.title }} | {{ config.title }}{% endblock title %}
-{% block description %}Every Playbook by Edouard the Ginger: step-by-step PDF guides to do what the Videos show.{% endblock description %}
+{% block description %}Every Playbook by Edouard the Ginger: step-by-step guides to do what the Videos show.{% endblock description %}
 {% block body_class %}page-playbooks{% endblock body_class %}
 {% block content %}
 {# Refuse a broken Entry before this page reads the Entries. #}
@@ -13,7 +14,7 @@
   <header class="playbooks__header">
     <h1 class="playbooks__title" id="playbooks-title">{{ section.title }}</h1>
     <p class="playbooks__tagline">Do it yourself, step by step</p>
-    <p class="playbooks__intro">The guides behind the Videos, each one a PDF. Pick a Playbook and grab it.</p>
+    <p class="playbooks__intro">The guides behind the Videos. Pick a Playbook and grab it.</p>
   </header>
   {% if playbooks | length == 0 %}
   <p class="playbooks__empty">The first Playbook is on its way.</p>
@@ -42,12 +43,16 @@
         <div class="playbook-card__body">
           <ul class="playbook-card__tags" aria-label="Tags">
             <li class="playbook-card__tag playbook-card__tag--yellow">Playbook</li>
-            <li class="playbook-card__tag">PDF</li>
+            <li class="playbook-card__tag">{% if playbook.content | trim %}Online{% else %}PDF{% endif %}</li>
             <li class="playbook-card__tag playbook-card__tag--pale"><time datetime="{{ playbook.date }}">{{ playbook.date | date(format="%b %Y") }}</time></li>
           </ul>
           <h2 class="playbook-card__title">{{ playbook.title }}</h2>
           <p class="playbook-card__description">{{ playbook.description }}</p>
+          {% if playbook.content | trim %}
+          <a class="playbook-card__button" href="{{ playbook.permalink | safe }}">Grab it here<span class="playbooks__sr-only">: the {{ playbook.title }} Playbook</span><span class="playbook-card__arrow" aria-hidden="true">&rarr;</span></a>
+          {% else %}
           <a class="playbook-card__button" href="{{ playbook.extra.pdf | safe }}" rel="external">Grab it here<span class="playbooks__sr-only">: the {{ playbook.title }} Playbook (PDF)</span><span class="playbook-card__arrow" aria-hidden="true">&rarr;</span></a>
+          {% endif %}
         </div>
       </article>
     </li>

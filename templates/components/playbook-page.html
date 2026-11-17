@@ -1,0 +1,95 @@
+{# The building blocks of a Playbook page, used in the Markdown body of a Playbook Entry.
+   Zola 0.23 has no shortcodes: these are Tera components, called from the Markdown like
+   {{<label text="THIS ERASES THE WHOLE PC" />}} or, with a body,
+   {%<step n={1} title="Open the terminal">%}The terminal is a window ...{%</step>%}.
+   Numbers, arrays and booleans go in braces: n={1}, srcs={["a.jpg", "b.jpg"]}.
+   Each component prints one HTML block with no blank line in it, so Markdown leaves it whole.
+   docs/adding-content.md shows every one of them. The styles are in sass/pages/_playbook.scss. #}
+
+{# One part of the Playbook: its number sticker, its title in the orange box and a short intro.
+   `n` picks the badge (1 to 8). `id` is the anchor the list of parts links to. `label` is what a
+   screen reader hears before the title ("Part 3" by default); "" for none. Body: the intro. #}
+{% component part(n, id, title, label="part") %}
+{%- set badge = resize_image(path="playbooks/stickers/badge-" ~ n ~ ".png", width=112, op="fit_width", format="webp", quality=85) -%}
+<header class="pb-part" id="{{ id | escape }}">
+<div class="pb-part__head"><img class="pb-part__badge" src="{{ badge.url }}" width="56" height="{{ (badge.height * 56 / badge.width) | round | int }}" alt="" aria-hidden="true" loading="lazy" decoding="async"><h2 class="pb-part__title"><span class="pb-box">{% if label == "part" %}<span class="pb-sr-only">Part {{ n }}: </span>{% elif label %}<span class="pb-sr-only">{{ label | escape }}: </span>{% endif %}{{ title | escape }}</span></h2></div>
+{%- if body | trim %}
+<div class="pb-part__intro">{{ body | trim | markdown | safe }}</div>
+{%- endif %}
+</header>
+{% endcomponent part %}
+
+{# A heading inside a part (level 3) or at the top of the page (level={2}), with an optional
+   sticker before it: icon="check", "lightbulb" or "exclamation". #}
+{% component subhead(text, icon="", level=3) %}
+<h{{ level }} class="pb-subhead">{% if icon %}{% set sticker = resize_image(path="playbooks/stickers/" ~ icon ~ ".png", width=64, op="fit_width", format="webp", quality=85) %}<img class="pb-subhead__icon" src="{{ sticker.url }}" width="{{ (sticker.width * 26 / sticker.height) | round | int }}" height="26" alt="" aria-hidden="true" loading="lazy" decoding="async">{% endif %}<span>{{ text | escape }}</span></h{{ level }}>
+{% endcomponent subhead %}
+
+{# A numbered step: the number in an orange tag, the step in bold, then what to do (Markdown). #}
+{% component step(n, title) %}
+<div class="pb-step"><p class="pb-step__head"><span class="pb-step__n" aria-hidden="true">{% if n < 10 %}0{% endif %}{{ n }}</span><span class="pb-sr-only">Step {{ n }}: </span><strong>{{ title | escape }}</strong></p>
+<div class="pb-step__body">{{ body | trim | markdown | safe }}</div></div>
+{% endcomponent step %}
+
+{# One line of a key and its explanation, like the "What you need" list: the key in an orange
+   tag, the explanation in Markdown. #}
+{% component row(key) %}
+<dl class="pb-row"><dt class="pb-row__key">{{ key | escape }}</dt><dd class="pb-row__value">{{ body | trim | markdown(inline=true) | safe }}</dd></dl>
+{% endcomponent row %}
+
+{# A small orange label on its own line, like "THIS ERASES THE WHOLE PC". #}
+{% component label(text) %}
+<p class="pb-label pb-label--block">{{ text | escape }}</p>
+{% endcomponent label %}
+
+{# A small grey note (Markdown). #}
+{% component note() %}
+<div class="pb-note">{{ body | trim | markdown | safe }}</div>
+{% endcomponent note %}
+
+{# A prompt to paste: the label outside the box (top left), where it goes and the logos (top
+   right), the exact text as selectable preformatted text, and a Copy button that copies exactly
+   that text. static/js/playbook.js shows the button; without JavaScript it stays hidden and the
+   text can still be selected. Bracketed placeholders like [YOUR CITY] are wrapped in .pb-hot and
+   shown in orange; the text is unchanged. `logos`: "chatgpt,claude", "claude", "chatgpt" or "".
+   `example` (with `example_label`) is shown under the text and is not copied. #}
+{% component prompt(label="PROMPT", dest="paste in ChatGPT or Claude", logos="chatgpt,claude", example_label="Example:", example="") %}
+{%- set text = body | trim -%}
+<figure class="pb-prompt">
+<figcaption class="pb-prompt__bar"><span class="pb-label">{{ label | escape }}</span><span class="pb-prompt__dest">{{ dest | escape }}{% if logos %}<span class="pb-prompt__logos">{% for logo in logos | split(pat=",") %}<img class="pb-prompt__logo" src="{{ get_url(path='home/logos/' ~ logo | trim ~ '.svg') }}" width="16" height="16" alt="" aria-hidden="true">{% endfor %}</span>{% endif %}</span></figcaption>
+<div class="pb-prompt__box">
+<pre class="pb-prompt__text">{% for chunk in text | split(pat="[") %}{% if loop.first %}{{ chunk | escape }}{% else %}{% set parts = chunk | split(pat="]") %}{% if parts | length > 1 %}<span class="pb-hot">[{{ parts | first | escape }}]</span>{{ parts[1:] | join(sep="]") | escape }}{% else %}[{{ chunk | escape }}{% endif %}{% endif %}{% endfor %}</pre>
+{%- if example %}
+<p class="pb-prompt__example"><strong>{{ example_label | escape }}</strong> {{ example | escape }}</p>
+{%- endif %}
+<button class="pb-prompt__copy" type="button" hidden data-copy>Copy</button>
+</div>
+</figure>
+{% endcomponent prompt %}
+
+{# Under a prompt that uses a skill: a centred orange plus, the label SKILL, and a box with the
+   skill's name and, when it has a real public address, a GRAB IT HERE link to download it. #}
+{% component skill(name, url="") %}
+<div class="pb-skill"><p class="pb-skill__plus" aria-hidden="true">+</p><p class="pb-skill__label">SKILL</p>
+<p class="pb-skill__box"><strong class="pb-skill__name">{{ name | escape }}</strong>{% if url %}<span class="pb-skill__dot" aria-hidden="true">&middot;</span><a class="pb-skill__grab" href="{{ url | escape }}" rel="external noopener">GRAB IT HERE<span class="pb-sr-only">: the {{ name | escape }} skill</span></a>{% endif %}</p></div>
+{% endcomponent skill %}
+
+{# One screenshot, as wide as the text: rounded corners, a label above it, an optional caption
+   under it, resized at build time and loaded lazily. `src` is a path under static/. #}
+{% component step_image(src, alt, label="", caption="", width=1100) %}
+{%- set image = resize_image(path=src, width=width, op="fit_width", format="webp", quality=82) -%}
+<figure class="pb-figure">{% if label %}<p class="pb-label">{{ label | escape }}</p>{% endif %}<img class="pb-figure__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alt | escape }}" loading="lazy" decoding="async">{% if caption %}<figcaption class="pb-figure__caption">{{ caption | escape }}</figcaption>{% endif %}</figure>
+{% endcomponent step_image %}
+
+{# Phone screenshots side by side, each under its own label. `srcs`, `alts` and `labels` are
+   arrays of the same length; `srcs` are paths under static/. #}
+{% component shots(srcs, alts, labels=[]) %}
+<div class="pb-shots">{% for src in srcs %}{% set image = resize_image(path=src, width=480, op="fit_width", format="webp", quality=80) %}<figure class="pb-shot">{% if labels | length >= loop.index %}<figcaption class="pb-label">{{ labels[loop.index0] | escape }}</figcaption>{% endif %}<img class="pb-shot__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alts[loop.index0] | escape }}" loading="lazy" decoding="async"></figure>{% endfor %}</div>
+{% endcomponent shots %}
+
+{# Orange pill links, like "FREE WEEK OF CLAUDE CODE ->", then the crayon arrow and CLICK HERE.
+   `texts` and `urls` are arrays of the same length. #}
+{% component buttons(texts, urls) %}
+{%- set arrow = resize_image(path="playbooks/stickers/arrow-click-left.png", width=64, op="fit_width", format="webp", quality=85) -%}
+<div class="pb-buttons"><ul class="pb-buttons__list">{% for text in texts %}<li><a class="pb-button" href="{{ urls[loop.index0] | escape }}" rel="external noopener">{{ text | escape }}<span class="pb-button__arrow" aria-hidden="true">&rarr;</span></a></li>{% endfor %}</ul><span class="pb-buttons__click" aria-hidden="true"><img src="{{ arrow.url }}" width="28" height="{{ (arrow.height * 28 / arrow.width) | round | int }}" alt="" loading="lazy" decoding="async">CLICK HERE</span></div>
+{% endcomponent buttons %}
