@@ -5,4 +5,5 @@ description = "Take a viral product launch apart and reuse what made it work."
 
 [extra]
 pdf = "https://edouard38000.github.io/edtheginger-playbook/playbook.pdf"
+cover = "covers/viral-launches-playbook.jpg"
 +++

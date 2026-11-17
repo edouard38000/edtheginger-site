@@ -5,4 +5,5 @@ description = "Use AI for each step of a job search, from the CV to the intervie
 
 [extra]
 pdf = "https://edouard38000.github.io/edtheginger-playbook/ai-job-search-playbook.pdf"
+cover = "covers/ai-job-search-playbook.jpg"
 +++

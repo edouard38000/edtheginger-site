@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {# Home page: the Poster, the two entry points (the REAL list with its Tally, the Playbooks),
-   then the latest Video. The Tally, the counts and the latest Video are computed from the
-   Entries; the Poster's captions and its list of tools are held in content/_index.md. #}
+   the Playbook shelf, then the latest Video. The Tally, the counts, the shelf and the latest Video
+   are computed from the Entries; the Poster's captions and its list of tools are held in content/_index.md. #}
 {% block body_class %}page-home{% endblock body_class %}
 {# The Poster owns the top of the page, so the shared header is left out here. #}
 {% block header %}{% endblock header %}
@@ -119,6 +119,48 @@
     <span class="entry-card__go">Open the Playbooks <span aria-hidden="true">&rarr;</span></span>
   </a>
 </section>
+
+{#- The Playbook shelf: the newest Playbooks (at most six), each with its cover and its PDF button.
+    The cards are the Playbooks page's cards, cut down; a Playbook with no cover gets the title
+    block. No Playbooks, no shelf. #}
+{% if playbooks | length > 0 -%}
+{%- set shelf = playbooks | sort(attribute="date") | reverse -%}
+<section class="shelf" aria-labelledby="shelf-heading">
+  <header class="shelf__header">
+    <h2 class="shelf__title" id="shelf-heading">Latest Playbooks</h2>
+    <p class="shelf__tagline">Do it yourself, step by step</p>
+  </header>
+  <ul class="shelf__list">
+    {%- for playbook in shelf %}{% if loop.index <= 6 %}
+    <li class="shelf__item">
+      <article class="playbook-card shelf__card">
+        {%- if playbook.extra.cover %}
+        {%- set shelf_cover = resize_image(path=playbook.extra.cover, width=480, height=600, op="fit", format="webp", quality=80) %}
+        <div class="playbook-card__cover shelf__cover">
+          <img class="sticker playbook-card__tape" src="{{ tape.url }}" width="104" height="{{ (tape.height * 104 / tape.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+          <img class="playbook-card__image" src="{{ shelf_cover.url }}" width="{{ shelf_cover.width }}" height="{{ shelf_cover.height }}" alt="Cover of the {{ playbook.title }} Playbook" loading="lazy" decoding="async">
+        </div>
+        {%- else %}
+        <div class="playbook-card__cover playbook-card__cover--title shelf__cover" aria-hidden="true">
+          <img class="sticker playbook-card__tape" src="{{ tape.url }}" width="104" height="{{ (tape.height * 104 / tape.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+          <span class="playbook-card__block-label">Playbook</span>
+          <span class="playbook-card__block-title">{{ playbook.title }}</span>
+        </div>
+        {%- endif %}
+        {%- if loop.first and shelf | length > 1 %}
+        <img class="sticker playbook-card__new" src="{{ pill_new.url }}" width="88" height="{{ (pill_new.height * 88 / pill_new.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
+        {%- endif %}
+        <div class="playbook-card__body">
+          <h3 class="playbook-card__title shelf__card-title">{{ playbook.title }}</h3>
+          <a class="playbook-card__button" href="{{ playbook.extra.pdf | safe }}" rel="external">Grab it here<span class="playbooks__sr-only">: the {{ playbook.title }} Playbook (PDF)</span><span class="playbook-card__arrow" aria-hidden="true">&rarr;</span></a>
+        </div>
+      </article>
+    </li>
+    {%- endif %}{% endfor %}
+  </ul>
+  <a class="shelf__all" href="{{ playbooks_url }}">All Playbooks <span aria-hidden="true">&rarr;</span></a>
+</section>
+{%- endif %}
 
 {% if latest -%}
 {%- set cover = resize_image(path=latest.extra.cover, width=270, height=480, op="fill", format="webp", quality=80) -%}
