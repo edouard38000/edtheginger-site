@@ -1,11 +1,59 @@
 {% extends "base.html" %}
-{# Real or BS page. Stub: ticket #3 builds the Tally, the REAL list and the teaser.
-   The Video Entries are at get_section(path="videos/_index.md").pages. #}
+{# Real or BS page: the Tally and the REAL list, both computed from the Verdicts in the Video Entries. #}
 {% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
+{% block description %}Every viral AI claim edouardtheginger tested in Real or BS that turned out to be real, each with its Playbook.{% endblock description %}
 {% block body_class %}page-real-or-bs{% endblock body_class %}
 {% block content %}
+{# The Videos, newest first by posting date. #}
+{% set videos_section = get_section(path="videos/_index.md") %}
+{% set videos = videos_section.pages | sort(attribute="date") | reverse %}
+{# The Tally: one count per Verdict. #}
+{% set real_count = 0 %}
+{% set bs_count = 0 %}
+{% for video in videos %}
+  {% if video.extra.verdict and video.extra.verdict == "real" %}{% set_global real_count = real_count + 1 %}{% endif %}
+  {% if video.extra.verdict and video.extra.verdict == "bs" %}{% set_global bs_count = bs_count + 1 %}{% endif %}
+{% endfor %}
+{# Stickers are served at twice their shown size, for sharp screens. #}
+{% set check = resize_image(path="real-or-bs/check.png", width=160, op="fit_width") %}
+{% set magnifier = resize_image(path="real-or-bs/magnifier.png", width=112, op="fit_width") %}
 <section class="real-or-bs">
-  <h1>{{ page.title }}</h1>
-  <p>The REAL list is coming soon.</p>
+  <p class="real-or-bs__credit">by edouardtheginger</p>
+  <div class="real-or-bs__title">
+    <h1><span>Real</span> <span>or BS</span></h1>
+    <img class="real-or-bs__check" src="{{ check.url | safe }}" width="80" height="67" alt="">
+  </div>
+  <p class="real-or-bs__intro">In Real or BS I test viral AI claims on camera and say if they are real or bullshit. This is the list of the ones that worked, newest first, each with the Playbook to do it yourself.</p>
+  <p class="tally" aria-label="Tally: {{ real_count }} real, {{ bs_count }} BS"><span class="tally__real">REAL: {{ real_count }}</span><span class="tally__bs">BS: {{ bs_count }}</span></p>
+
+  <h2 class="real-or-bs__heading">The REAL list</h2>
+  {# A Video's number is its place among the real Verdicts in posting order; the newest is shown first. #}
+  <ol class="real-list" role="list">
+    <li class="real-list__item real-list__item--teaser">
+      <span class="real-list__number">{{ real_count + 1 }}</span>
+      <p class="real-list__teaser">To be found...</p>
+      <img class="real-list__magnifier" src="{{ magnifier.url | safe }}" width="56" height="57" alt="">
+    </li>
+    {% set shown = 0 %}
+    {% for video in videos %}
+    {% if video.extra.verdict and video.extra.verdict == "real" %}
+    <li class="real-list__item">
+      <span class="real-list__number">{{ real_count - shown }}</span>
+      {% set_global shown = shown + 1 %}
+      <div class="real-list__body">
+        <h3 class="real-list__tested">{{ video.extra.tested }}</h3>
+        <p class="real-list__episode">Episode {{ video.extra.episode }}, {{ video.title }}</p>
+        <p class="real-list__description">{{ video.description }}</p>
+        {% if video.extra.playbook %}
+        {% set playbook = get_page(path=video.extra.playbook) %}
+        <a class="real-list__playbook" href="{{ playbook.extra.pdf | safe }}">Grab the Playbook<span class="visually-hidden">: {{ playbook.title }} (PDF)</span></a>
+        {% endif %}
+      </div>
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ol>
+
+  <p class="real-or-bs__invite">Seen a video you want tested? Tag <strong>@edouardtheginger</strong> in its comments.</p>
 </section>
 {% endblock content %}
