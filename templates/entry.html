@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{# An Entry has no page of its own: Videos link out and Playbooks link to their PDF.
+   Zola still writes one address per Entry, so it sends the visitor to the page that lists it. #}
+{% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
+{% block head %}
+{% set listing = get_section(path=page.ancestors | last) %}
+<meta http-equiv="refresh" content="0; url={{ listing.permalink | safe }}">
+<link rel="canonical" href="{{ listing.permalink | safe }}">
+<meta name="robots" content="noindex">
+{% endblock head %}
+{% block content %}
+{% set listing = get_section(path=page.ancestors | last) %}
+<section class="entry-redirect">
+  <h1>{{ page.title }}</h1>
+  <p><a href="{{ listing.permalink | safe }}">See it on the {{ listing.title }} page</a></p>
+</section>
+{% endblock content %}

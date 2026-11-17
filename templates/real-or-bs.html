@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{# Real or BS page. Stub: ticket #3 builds the Tally, the REAL list and the teaser.
+   The Video Entries are at get_section(path="videos/_index.md").pages. #}
+{% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
+{% block body_class %}page-real-or-bs{% endblock body_class %}
+{% block content %}
+<section class="real-or-bs">
+  <h1>{{ page.title }}</h1>
+  <p>The REAL list is coming soon.</p>
+</section>
+{% endblock content %}

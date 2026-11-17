@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+  <meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
+  <link rel="preload" href="{{ get_url(path='fonts/Montserrat-Black.ttf') }}" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="{{ get_url(path='main.css', cachebust=true) }}">
+  {% block head %}{% endblock head %}
+</head>
+<body class="{% block body_class %}{% endblock body_class %}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  {% block header %}
+  <header class="site-header">
+    <a class="site-header__title" href="{{ get_url(path='@/_index.md') }}">Edouard the Ginger</a>
+  </header>
+  {% endblock header %}
+  <main id="main">
+    {% block content %}{% endblock content %}
+  </main>
+  {% include "partials/dock.html" %}
+</body>
+</html>

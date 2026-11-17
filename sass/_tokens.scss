@@ -1,0 +1,18 @@
+// Brand tokens, shared by every page as CSS custom properties.
+:root {
+  --color-background: #faf8f5;
+  --color-orange: #c63b00;
+  --color-yellow: #ffb926;
+  --color-charcoal: #191919;
+  --color-muted: #665f58;
+  --color-border: #d6cdc3;
+  --color-pale-fill: #f3f0eb;
+
+  --font-display: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --gutter: 16px;
+  --content-width: 72rem;
+  --dock-height: 56px;
+  --dock-gap: 12px;
+}

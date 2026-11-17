@@ -1,0 +1,25 @@
+# The one base URL setting. Every internal link and asset is built from it,
+# so the site works under this sub-path now and at https://edtheginger.com later.
+base_url = "https://edouard38000.github.io/edtheginger-site"
+
+title = "Edouard the Ginger"
+description = "Edouard the Ginger: the Real or BS list, the Playbooks and the Videos."
+default_language = "en"
+
+compile_sass = true
+build_search_index = false
+generate_feeds = false
+
+[link_checker]
+internal_level = "error"
+
+[extra]
+# The fixed set of Formats a Video can belong to.
+formats = ["Real or BS", "GitHub tools", "Storytelling", "Talking head"]
+
+# The Dock: the one place its three links are held.
+[extra.dock]
+instagram = "https://www.instagram.com/edouardtheginger/"
+# TODO: confirm TikTok handle
+tiktok = "https://www.tiktok.com/@edouardtheginger"
+email = "edouard@vesara.ai"

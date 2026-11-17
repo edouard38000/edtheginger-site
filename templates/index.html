@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{# Home page. Stub: ticket #6 builds the Poster, the latest Video and the entry points. #}
+{% block body_class %}page-home{% endblock body_class %}
+{% block content %}
+<section class="home">
+  <h1>Edouard the Ginger</h1>
+  <ul class="home__links">
+    <li><a href="{{ get_url(path='@/real-or-bs.md') }}">Real or BS</a></li>
+    <li><a href="{{ get_url(path='@/playbooks/_index.md') }}">Playbooks</a></li>
+    <li><a href="{{ get_url(path='@/videos/_index.md') }}">Videos</a></li>
+  </ul>
+</section>
+{% endblock content %}
