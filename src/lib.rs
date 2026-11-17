@@ -1,0 +1,243 @@
+//! Checks for edtheginger-site.
+//!
+//! One seam: Entries in, built pages out. [`Site::build`] puts the real templates, styles,
+//! static files and page stubs next to the fixture Entries from `tests/fixtures`, runs
+//! `zola build` on the result and gives the generated pages back. The real Entries in
+//! `content/` are never read, so a check never depends on real content.
+
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+use scraper::{Html, Selector};
+use tempfile::TempDir;
+
+/// The address the fixture site is built for by default: a sub-path, like the GitHub Pages one.
+pub const SUB_PATH_BASE_URL: &str = "https://example.github.io/fixture-site";
+
+/// The four pages of the site, as paths under the base URL.
+pub const PAGES: [&str; 4] = ["", "real-or-bs/", "playbooks/", "videos/"];
+
+/// Where the Dock links are on a page.
+pub const DOCK_SELECTOR: &str = "nav.dock a";
+
+/// A site built from the fixture Entries.
+pub struct Site {
+    dir: TempDir,
+    base_url: String,
+}
+
+impl Site {
+    /// Builds the fixture site for [`SUB_PATH_BASE_URL`].
+    pub fn build() -> Site {
+        Site::build_at(SUB_PATH_BASE_URL)
+    }
+
+    /// Builds the fixture site for the given base URL (no trailing slash).
+    pub fn build_at(base_url: &str) -> Site {
+        let dir = tempfile::tempdir().expect("create a temporary directory");
+        assemble(repo_root(), dir.path());
+        run_zola(dir.path(), base_url).unwrap_or_else(|message| panic!("{message}"));
+        Site {
+            dir,
+            base_url: base_url.to_owned(),
+        }
+    }
+
+    /// The base URL this site was built for.
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    /// The folder holding the generated site.
+    pub fn output(&self) -> PathBuf {
+        self.dir.path().join("public")
+    }
+
+    /// Whether a generated file exists, e.g. `fonts/Montserrat-Bold.ttf`.
+    pub fn has_file(&self, path: &str) -> bool {
+        self.output().join(path).is_file()
+    }
+
+    /// The text of a generated file, e.g. `main.css`.
+    pub fn file(&self, path: &str) -> String {
+        let full = self.output().join(path);
+        fs::read_to_string(&full).unwrap_or_else(|e| panic!("read {}: {e}", full.display()))
+    }
+
+    /// The generated page at a path under the base URL: `""` is home, `"videos/"` the Videos page.
+    pub fn page(&self, path: &str) -> Page {
+        let file = format!("{path}index.html");
+        Page {
+            path: path.to_owned(),
+            html: Html::parse_document(&self.file(&file)),
+        }
+    }
+
+    /// Every generated HTML page, as paths relative to the output folder.
+    pub fn html_files(&self) -> Vec<String> {
+        let mut found = Vec::new();
+        collect_html(&self.output(), &self.output(), &mut found);
+        found.sort();
+        found
+    }
+}
+
+/// One generated page.
+pub struct Page {
+    path: String,
+    html: Html,
+}
+
+impl Page {
+    /// Parses a generated HTML file of the site.
+    pub fn from_file(site: &Site, file: &str) -> Page {
+        Page {
+            path: file.to_owned(),
+            html: Html::parse_document(&site.file(file)),
+        }
+    }
+
+    /// The page's path, for messages.
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    /// The text of every element matching a CSS selector, trimmed.
+    pub fn texts(&self, selector: &str) -> Vec<String> {
+        let selector = parse_selector(selector);
+        self.html
+            .select(&selector)
+            .map(|element| element.text().collect::<String>().trim().to_owned())
+            .collect()
+    }
+
+    /// The value of an attribute on every element matching a CSS selector that has it.
+    pub fn attributes(&self, selector: &str, attribute: &str) -> Vec<String> {
+        let selector = parse_selector(selector);
+        self.html
+            .select(&selector)
+            .filter_map(|element| element.value().attr(attribute))
+            .map(str::to_owned)
+            .collect()
+    }
+
+    /// How many elements match a CSS selector.
+    pub fn count(&self, selector: &str) -> usize {
+        let selector = parse_selector(selector);
+        self.html.select(&selector).count()
+    }
+
+    /// The Dock links on this page, as (address, accessible label) pairs, in order.
+    pub fn dock_links(&self) -> Vec<(String, String)> {
+        let selector = parse_selector(DOCK_SELECTOR);
+        self.html
+            .select(&selector)
+            .map(|link| {
+                (
+                    link.value().attr("href").unwrap_or_default().to_owned(),
+                    link.value()
+                        .attr("aria-label")
+                        .unwrap_or_default()
+                        .to_owned(),
+                )
+            })
+            .collect()
+    }
+}
+
+fn parse_selector(selector: &str) -> Selector {
+    Selector::parse(selector).unwrap_or_else(|e| panic!("bad selector {selector:?}: {e}"))
+}
+
+fn repo_root() -> &'static Path {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+}
+
+/// Lays out a Zola project in `site`: the real skeleton plus the fixture Entries.
+fn assemble(root: &Path, site: &Path) {
+    fs::copy(root.join("config.toml"), site.join("config.toml")).expect("copy config.toml");
+    copy_tree(&root.join("templates"), &site.join("templates"), &|_| true);
+    copy_tree(&root.join("sass"), &site.join("sass"), &|_| true);
+    // Static files without the real covers.
+    let real_covers = root.join("static").join("covers");
+    copy_tree(&root.join("static"), &site.join("static"), &|path| {
+        !path.starts_with(&real_covers)
+    });
+    // The page stubs and section files, without the real Entries.
+    copy_tree(&root.join("content"), &site.join("content"), &|path| {
+        !is_entry(&root.join("content"), path)
+    });
+
+    let fixtures = root.join("tests").join("fixtures");
+    for section in ["videos", "playbooks"] {
+        copy_tree(
+            &fixtures.join(section),
+            &site.join("content").join(section),
+            &|_| true,
+        );
+    }
+    copy_tree(
+        &fixtures.join("covers"),
+        &site.join("static").join("covers"),
+        &|_| true,
+    );
+}
+
+/// An Entry is a content file in `videos/` or `playbooks/` other than the section's own `_index.md`.
+fn is_entry(content: &Path, path: &Path) -> bool {
+    let in_entry_folder = ["videos", "playbooks"]
+        .iter()
+        .any(|section| path.starts_with(content.join(section)));
+    in_entry_folder
+        && path.is_file()
+        && path.file_name().and_then(|name| name.to_str()) != Some("_index.md")
+}
+
+fn copy_tree(from: &Path, to: &Path, keep: &dyn Fn(&Path) -> bool) {
+    fs::create_dir_all(to).unwrap_or_else(|e| panic!("create {}: {e}", to.display()));
+    let entries = fs::read_dir(from).unwrap_or_else(|e| panic!("read {}: {e}", from.display()));
+    for entry in entries {
+        let path = entry.expect("read a directory entry").path();
+        if !keep(&path) {
+            continue;
+        }
+        let target = to.join(path.file_name().expect("a file name"));
+        if path.is_dir() {
+            copy_tree(&path, &target, keep);
+        } else {
+            fs::copy(&path, &target).unwrap_or_else(|e| panic!("copy {}: {e}", path.display()));
+        }
+    }
+}
+
+fn collect_html(root: &Path, dir: &Path, found: &mut Vec<String>) {
+    for entry in fs::read_dir(dir).unwrap_or_else(|e| panic!("read {}: {e}", dir.display())) {
+        let path = entry.expect("read a directory entry").path();
+        if path.is_dir() {
+            collect_html(root, &path, found);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
+            let relative = path.strip_prefix(root).expect("a path inside the output");
+            found.push(relative.to_string_lossy().replace('\\', "/"));
+        }
+    }
+}
+
+/// Runs `zola build` in `site`. The binary is `zola` on the PATH, or the one named by `ZOLA`.
+fn run_zola(site: &Path, base_url: &str) -> Result<(), String> {
+    let zola = std::env::var("ZOLA").unwrap_or_else(|_| "zola".to_owned());
+    let output = Command::new(&zola)
+        .current_dir(site)
+        .args(["build", "--base-url", base_url])
+        .output()
+        .map_err(|e| format!("could not run `{zola}` (is Zola installed and on the PATH?): {e}"))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "zola build failed:\n{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ))
+    }
+}

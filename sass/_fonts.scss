@@ -1,0 +1,17 @@
+// Montserrat, self-hosted from static/fonts (copied from brand-assets/fonts).
+// The addresses are relative to main.css, so they follow the base URL.
+@font-face {
+  font-family: "Montserrat";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/Montserrat-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Montserrat";
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/Montserrat-Black.ttf") format("truetype");
+}
