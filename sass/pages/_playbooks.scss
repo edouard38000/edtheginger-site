@@ -1,1 +1,268 @@
 // Playbooks page. Owned by ticket #4.
+// The playbook look: cream page, title in orange boxes, white cards with a thin border,
+// sticker tags and an orange button. Phone width first: one column, more on wide screens.
+
+.playbooks__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.playbooks__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-block: 8px 28px;
+}
+
+// The page title: yellow capitals in an orange box, like a playbook's first page.
+.playbooks__title {
+  margin: 0;
+  padding: 0.14em 0.3em 0.12em;
+  background: var(--color-orange);
+  color: var(--color-yellow);
+  font-size: clamp(2.25rem, 12vw, 4.5rem);
+  letter-spacing: -0.01em;
+  transform: rotate(-1.5deg);
+}
+
+// The second box: white capitals, set a little to the right of the first.
+.playbooks__tagline {
+  margin: -2px 0 0 12px;
+  padding: 0.4em 0.7em;
+  background: var(--color-orange);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(0.8125rem, 3.6vw, 1.125rem);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transform: rotate(0.8deg);
+}
+
+.playbooks__intro {
+  max-width: 34rem;
+  margin: 20px 0 0;
+  font-size: 1.0625rem;
+}
+
+.playbooks__empty {
+  color: var(--color-muted);
+}
+
+.playbooks__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.playbooks__item {
+  display: flex;
+  min-width: 0;
+}
+
+.playbook-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 2px 0 var(--color-border);
+}
+
+// The top of a card: the cover as a taped photo, or an orange title block when there is none.
+.playbook-card__cover {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 5 / 4;
+  margin: 12px 12px 0;
+  background: var(--color-pale-fill);
+  border-radius: 8px;
+}
+
+// The cover keeps its own shape inside the frame, whatever its proportions.
+.playbook-card__image {
+  position: absolute;
+  inset: 8px 0 0;
+  width: auto;
+  max-width: calc(100% - 48px);
+  height: auto;
+  max-height: calc(100% - 52px);
+  margin: auto;
+  border: 6px solid #fff;
+  box-shadow: 0 4px 14px rgb(25 25 25 / 18%);
+  transform: rotate(-2deg);
+}
+
+.playbook-card__tape {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  z-index: 1;
+  width: 104px;
+  transform: translateX(-50%) rotate(-3deg);
+  pointer-events: none;
+}
+
+.playbook-card__cover--title {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 20px;
+  background: var(--color-orange);
+}
+
+.playbook-card__block-label {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.playbook-card__block-title {
+  max-width: 100%;
+  color: var(--color-yellow);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.75rem, 9vw, 2.5rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+// The crayon "NEW!" pill on the newest Playbook.
+.playbook-card__new {
+  position: absolute;
+  top: -12px;
+  right: 6px;
+  z-index: 2;
+  width: 88px;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+
+.playbook-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.playbook-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+// Sticker tags: small pills with a white edge and a soft shadow, each a little askew.
+.playbook-card__tag {
+  padding: 3px 10px;
+  background: var(--color-orange);
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgb(25 25 25 / 28%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.playbook-card__tag:nth-child(even) {
+  transform: rotate(1.5deg);
+}
+
+.playbook-card__tag--yellow {
+  background: var(--color-yellow);
+  color: var(--color-charcoal);
+}
+
+.playbook-card__tag--pale {
+  background: var(--color-pale-fill);
+  color: var(--color-charcoal);
+}
+
+.playbook-card__title {
+  margin: 0 0 6px;
+  color: var(--color-charcoal);
+  font-size: 1.375rem;
+}
+
+.playbook-card__description {
+  margin: 0 0 16px;
+  color: var(--color-charcoal);
+}
+
+.playbook-card__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  align-self: stretch;
+  min-height: 48px;
+  margin-top: auto;
+  padding: 12px 18px;
+  background: var(--color-orange);
+  color: #fff;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.playbook-card__button:hover {
+  background: var(--color-charcoal);
+}
+
+.playbook-card__arrow {
+  transition: transform 0.15s ease;
+}
+
+.playbook-card__button:hover .playbook-card__arrow {
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playbook-card__arrow {
+    transition: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .playbooks__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .playbooks__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 28px;
+  }
+}
