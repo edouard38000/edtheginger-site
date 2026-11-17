@@ -6,6 +6,7 @@
 {# The Poster owns the top of the page, so the shared header is left out here. #}
 {% block header %}{% endblock header %}
 {% block content %}
+{{<validate.entries formats={config.extra.formats} />}}
 {%- set videos_section = get_section(path="videos/_index.md") -%}
 {%- set videos = videos_section.pages -%}
 {%- set playbooks_section = get_section(path="playbooks/_index.md") -%}
