@@ -1,4 +1,5 @@
-//! The home page: the Poster, the two entry points and the latest Video.
+//! The home page: the Poster (portrait, tool tiles, captions, title), the two entry points and the
+//! latest Video.
 //! Built from the fixture Entries, where the newest Video is "Voice Clone" (2026-01-19, Real or BS,
 //! Instagram only), the Verdicts are two `real` and one `bs`, and there are two Playbooks.
 
@@ -32,9 +33,9 @@ fn the_poster_title_is_the_one_h1() {
 }
 
 #[test]
-fn the_poster_shows_the_portrait_resized_with_alt_text() {
+fn the_poster_shows_the_cut_out_portrait_resized_with_alt_text() {
     let home = home();
-    let portraits = home.attributes(".poster__photo img[alt]:not([alt=''])", "src");
+    let portraits = home.attributes(".poster img.poster__portrait[alt]:not([alt=''])", "src");
     assert_eq!(portraits.len(), 1, "one portrait on the Poster");
     let file = built_file(&portraits[0]);
     assert!(
@@ -44,6 +45,11 @@ fn the_poster_shows_the_portrait_resized_with_alt_text() {
     assert!(site().has_file(file), "{file} is in the built site");
     let size = std::fs::metadata(site().output().join(file)).unwrap().len();
     assert!(size < 150_000, "the portrait served first is {size} bytes");
+    assert_eq!(
+        home.count(".poster__photo, .poster__frame, .poster__tape"),
+        0,
+        "the taped photo frame is gone from the Poster"
+    );
 }
 
 #[test]
@@ -63,6 +69,89 @@ fn the_poster_captions_come_from_the_home_page_front_matter() {
             !template.contains(&caption),
             "{caption:?} is not typed in the template"
         );
+    }
+}
+
+#[test]
+fn the_poster_keeps_its_corner_mark_and_thin_lines() {
+    let home = home();
+    // The fixtures hold five Videos.
+    assert_eq!(home.texts(".poster__mark-number"), ["05"]);
+    assert!(home.count(".poster svg.poster__lines line") >= 3);
+}
+
+/// The tools of the one list in `content/_index.md`, as (name, logo file) pairs, in order.
+fn listed_tools() -> Vec<(String, String)> {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let front_matter = std::fs::read_to_string(format!("{root}/content/_index.md")).unwrap();
+    let value = |line: &str| line.split('"').nth(1).unwrap().to_owned();
+    let mut tools = Vec::new();
+    let mut lines = front_matter.lines();
+    while let Some(line) = lines.next() {
+        if line.trim() == "[[extra.tools]]" {
+            let name = value(lines.next().expect("a tool has a name"));
+            let logo = value(lines.next().expect("a tool has a logo"));
+            tools.push((name, logo));
+        }
+    }
+    tools
+}
+
+#[test]
+fn the_tool_tiles_come_from_the_one_list_and_each_has_a_name() {
+    let home = home();
+    let tools = listed_tools();
+    assert!(tools.len() >= 8, "at least the 8 tools a phone shows");
+
+    let names: Vec<String> = tools.iter().map(|(name, _)| name.clone()).collect();
+    assert_eq!(
+        home.texts(".poster__tools .tool .tool__name"),
+        names,
+        "one tile per listed tool, in the list's order, each with its name"
+    );
+    assert_eq!(home.count(".poster__tools .tool"), tools.len());
+    assert_eq!(
+        home.count(".poster__tools[aria-label]"),
+        1,
+        "the group of tiles is named"
+    );
+
+    let logos = home.attributes(".poster__tools .tool img", "src");
+    assert_eq!(logos.len(), tools.len(), "one logo per tile");
+    for (address, (name, logo)) in logos.iter().zip(&tools) {
+        let file = built_file(address);
+        assert_eq!(file, format!("home/logos/{logo}"), "the logo of {name}");
+        assert!(site().has_file(file), "{file} is in the built site");
+        assert!(
+            site().file(file).contains("<svg") && !site().file(file).contains("<script"),
+            "{file} is a plain SVG"
+        );
+    }
+
+    let template = std::fs::read_to_string(format!(
+        "{}/templates/index.html",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+    for name in &names {
+        assert!(
+            !template.contains(name.as_str()),
+            "{name} is not typed in the template"
+        );
+    }
+}
+
+#[test]
+fn the_tool_tiles_are_not_links() {
+    assert_eq!(home().count(".poster__tools a"), 0);
+}
+
+#[test]
+fn the_home_page_links_to_the_three_other_pages() {
+    let hrefs = home().attributes("main a", "href");
+    for path in ["real-or-bs/", "playbooks/", "videos/"] {
+        let expected = format!("{SUB_PATH_BASE_URL}/{path}");
+        assert!(hrefs.contains(&expected), "home links to {expected}");
     }
 }
 

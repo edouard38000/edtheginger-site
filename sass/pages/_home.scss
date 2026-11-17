@@ -13,74 +13,218 @@
 }
 
 // ---------------------------------------------------------------------------
-// The Poster: portrait, title and small captions, about one phone screen tall.
+// The Poster: the cut-out portrait on a faded orange background, tool tiles around
+// the head, captions, the corner mark, thin lines and the title. Full width, about
+// one phone screen tall.
 // ---------------------------------------------------------------------------
+.page-home main {
+  max-width: none;
+  padding-inline: 0;
+}
+
+.home-body {
+  width: min(100% - var(--gutter) * 2, var(--content-width) - var(--gutter) * 2);
+  margin-inline: auto;
+}
+
 .poster {
   // The Dock is fixed over the bottom of the first screen: the Poster ends above it.
   --poster-dock: calc(var(--dock-height) + var(--dock-gap) * 2 + env(safe-area-inset-bottom, 0px));
   --poster-height: clamp(34rem, calc(100svh - var(--poster-dock)), 52rem);
+  // The stage is the box of the portrait (3:4). Tiles are placed in its coordinates,
+  // so they keep their distance from the face at every screen size.
+  --stage-width: min(128vw, calc(var(--poster-height) * 0.69));
+  --poster-ink: #faf8f5;
+  --poster-dark: #150a05;
 
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1fr auto;
-  column-gap: 12px;
-  min-height: var(--poster-height);
-  padding-block: 16px 14px;
+  height: var(--poster-height);
+  overflow: hidden;
   isolation: isolate;
+  border-radius: 0 0 28px 28px;
+  color: var(--poster-ink);
+  // Dark at the top and in the corners, burnt orange lower down.
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgb(21 10 5 / 85%) 0%, rgb(21 10 5 / 0%) 70%),
+    linear-gradient(180deg, #1d0c04 0%, #4a1602 34%, #8f2b00 72%, #a53100 100%);
+}
+
+// A shade at the foot, so the title reads over the jumper and the Poster ends dark.
+.poster::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  height: 38%;
+  background: linear-gradient(to top, rgb(21 10 5 / 88%) 0%, rgb(21 10 5 / 55%) 38%, rgb(21 10 5 / 0%) 100%);
+  pointer-events: none;
+}
+
+.poster__stage {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--stage-width) * -0.14);
+  width: var(--stage-width);
+  aspect-ratio: 3 / 4;
+  margin-left: calc(var(--stage-width) / -2);
+}
+
+// The glow behind the head and shoulders: cream at the head, then yellow, then orange.
+.poster__stage::before {
+  content: "";
+  position: absolute;
+  left: 51%;
+  top: 33%;
+  z-index: 0;
+  width: 250%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    closest-side,
+    rgb(255 244 214 / 98%) 0%,
+    rgb(255 214 110 / 95%) 13%,
+    rgb(255 185 38 / 88%) 24%,
+    rgb(232 104 10 / 78%) 42%,
+    rgb(198 59 0 / 55%) 62%,
+    rgb(198 59 0 / 0%) 100%
+  );
+  pointer-events: none;
+}
+
+.poster__portrait {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  filter: drop-shadow(0 0 28px rgb(21 10 5 / 28%));
 }
 
 // Thin lines across the Poster: two straight, two diagonal.
 .poster__lines {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: -200%;
   z-index: 2;
-  width: 100%;
+  width: 500%;
   height: 100%;
   max-width: none;
+  overflow: visible;
   pointer-events: none;
 }
 
 .poster__lines line {
-  stroke: var(--color-orange);
+  stroke: var(--poster-ink);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
-  opacity: 0.55;
+  opacity: 0.42;
 }
 
-.poster__caption {
+// --- Tool tiles -------------------------------------------------------------
+// Rounded cream squares with each tool's logo. Each tile sits at (--x, --y): --x is
+// its distance from the middle of the stage and --y its distance from the top, both
+// in hundredths of the stage. The face is the area --x -14..16, --y 16..47.
+.poster__tools {
+  position: absolute;
+  inset: 0;
   z-index: 3;
-  max-width: 11.5em;
   margin: 0;
-  color: var(--color-charcoal);
+  padding: 0;
+  list-style: none;
+}
+
+.tool {
+  --size: 44px;
+  --r: 0deg;
+
+  position: absolute;
+  left: calc(50% + var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  display: none;
+  width: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+}
+
+.tool__tile {
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  background: #faf8f5;
+  border-radius: 27%;
+  box-shadow: 0 6px 14px rgb(21 10 5 / 30%), 0 1px 2px rgb(21 10 5 / 30%);
+  transform: rotate(var(--r));
+}
+
+.tool__tile img {
+  display: block;
+  width: 58%;
+  height: 58%;
+  object-fit: contain;
+}
+
+// The name is read by screen readers at every size and shown under the tile on wide screens.
+.tool__name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// A phone shows the first 8 tools, four on each side of the head.
+.tool:nth-child(-n + 8) {
+  display: block;
+}
+
+.tool:nth-child(1) { --x: -22.5; --y: 26; --r: -4deg; }
+.tool:nth-child(2) { --x: 24; --y: 28; --r: 5deg; }
+.tool:nth-child(3) { --x: -32; --y: 17; --r: 6deg; }
+.tool:nth-child(4) { --x: 32; --y: 19; --r: -5deg; }
+.tool:nth-child(5) { --x: -32; --y: 34.5; --r: 3deg; }
+.tool:nth-child(6) { --x: 32; --y: 37; --r: -3deg; }
+.tool:nth-child(7) { --x: -23; --y: 43; --r: -6deg; }
+.tool:nth-child(8) { --x: 24.5; --y: 45.5; --r: 4deg; }
+
+// --- Captions, mark, title --------------------------------------------------
+.poster__inner {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr;
+  width: min(100%, var(--content-width));
+  margin-inline: auto;
+  padding: 16px var(--gutter) 16px;
+  pointer-events: none;
+}
+
+.poster__inner a {
+  pointer-events: auto;
+}
+
+.poster__captions {
+  grid-area: 1 / 1;
+  display: grid;
+  gap: 0.55em;
+  max-width: 9.5em;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.6875rem;
-  line-height: 1.25;
+  line-height: 1.2;
   letter-spacing: 0.01em;
 }
 
-.poster__caption--top {
-  grid-area: 1 / 1;
-  align-self: start;
-}
-
-.poster__caption--left {
-  grid-area: 3 / 1;
-  align-self: end;
-}
-
-.poster__caption--right {
-  grid-area: 3 / 2;
-  align-self: end;
-  justify-self: end;
-  text-align: right;
+.poster__caption {
+  margin: 0;
 }
 
 // The large number in the corner: how many Videos there are, counted from the Entries.
 .poster__mark {
   grid-area: 1 / 2;
-  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -90,7 +234,6 @@
 }
 
 .poster__mark-number {
-  color: var(--color-orange);
   font-weight: 900;
   font-size: clamp(3.25rem, 17vw, 7rem);
   letter-spacing: -0.04em;
@@ -99,104 +242,60 @@
 
 .poster__mark-label {
   margin-top: 8px;
-  color: var(--color-charcoal);
   font-weight: 700;
   font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-// The portrait as a taped photo: the white wall stays inside its own white frame.
-.poster__subject {
+.poster__foot {
   grid-area: 2 / 1 / 3 / 3;
-  place-self: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  padding-block: 30px 10px;
+  align-self: end;
 }
 
-.poster__photo {
-  position: relative;
-  z-index: 1;
-  width: min(84%, calc((var(--poster-height) - 17.5rem) * 0.8));
-  margin: 0;
-  padding: 7px 7px 26px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 14px 30px rgb(25 25 25 / 16%), 0 2px 4px rgb(25 25 25 / 10%);
-  transform: rotate(-1.6deg);
-}
-
-.poster__frame {
-  display: block;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: var(--color-pale-fill);
-}
-
-.poster__frame img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 58%;
-  // The flash leaves the white wall a little grey: lift it.
-  filter: brightness(1.07) contrast(1.03);
-  transform: scale(1.14);
-  transform-origin: 50% 42%;
-}
-
-.poster__tape {
-  position: absolute;
-  z-index: 2;
-  top: -15px;
-}
-
-.poster__tape--left {
-  left: -30px;
-  transform: rotate(-34deg);
-}
-
-.poster__tape--right {
-  right: -30px;
-  transform: rotate(38deg) scaleX(-1);
-}
-
-// The title, in orange boxes like the videos' hook boxes, set over the foot of the photo.
 .poster__title {
-  position: relative;
-  z-index: 4;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  // Pulled up over the foot of the photo.
-  margin: -1.15em 0 0;
-  font-size: clamp(2.2rem, 11.4vw, 5.75rem);
-  line-height: 1;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  transform: rotate(-2.5deg);
-}
-
-.poster__box {
-  display: block;
-  padding: 0.14em 0.26em 0.12em;
-  background: var(--color-orange);
-  border-radius: 0.1em;
-  box-shadow: 0 6px 16px rgb(25 25 25 / 22%);
-}
-
-.poster__box--white {
+  margin: 0 0 12px;
   color: #fff;
-  transform: translateX(-0.5em);
+  font-size: clamp(2.6rem, 13.2vw, 4.75rem);
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  text-shadow: 0 2px 18px rgb(21 10 5 / 55%);
 }
 
-.poster__box--yellow {
+.poster__name--yellow {
   color: var(--color-yellow);
-  transform: translateX(0.12em);
+}
+
+// The small words along the bottom: the three other pages.
+.poster__words {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.poster__words a {
+  display: inline-block;
+  padding-block: 6px;
+  color: var(--poster-ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(250 248 245 / 45%);
+  text-underline-offset: 0.3em;
+}
+
+.poster__words a:hover {
+  color: var(--color-yellow);
+}
+
+.poster__words a:focus-visible {
+  outline-color: var(--poster-ink);
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +310,7 @@
 
 .entry-points__arrow {
   position: absolute;
-  top: -56px;
+  top: -46px;
   right: 22px;
   z-index: 2;
   transform: rotate(8deg);
@@ -431,10 +530,14 @@
 // ---------------------------------------------------------------------------
 @media (min-width: 44rem) {
   .poster {
-    padding-block: 28px 22px;
+    --stage-width: calc(var(--poster-height) * 0.69);
   }
 
-  .poster__caption {
+  .poster__inner {
+    padding-block: 26px 22px;
+  }
+
+  .poster__captions {
     font-size: 0.8125rem;
   }
 
@@ -442,9 +545,8 @@
     font-size: 0.75rem;
   }
 
-  .poster__photo {
-    width: min(50%, calc((var(--poster-height) - 24rem) * 0.8));
-    padding: 10px 10px 36px;
+  .tool {
+    --size: 56px;
   }
 
   .entry-points {
@@ -481,16 +583,73 @@
   }
 }
 
-// Wide screens: the corners are far from the photo, so it takes the Poster's full height.
+// Wide screens: every tool, larger, scattered like desktop icons with its name under it.
 @media (min-width: 64rem) {
-  .poster__subject {
-    grid-row: 1 / 4;
-    padding-block: 20px 0;
+  .poster__foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
   }
 
-  .poster__photo {
-    width: min(46%, calc((var(--poster-height) - 21rem) * 0.8));
+  .poster__title {
+    margin-bottom: 0;
   }
+
+  .poster__words {
+    gap: 40px;
+    padding-bottom: 4px;
+    font-size: 0.8125rem;
+  }
+
+  .tool {
+    --size: 68px;
+  }
+
+  .tool:nth-child(-n + 14) {
+    display: block;
+  }
+
+  .tool:nth-child(3n) {
+    --size: 60px;
+  }
+
+  .tool:nth-child(4n + 1) {
+    --size: 76px;
+  }
+
+  .tool__name {
+    position: static;
+    display: block;
+    width: 9em;
+    height: auto;
+    margin: 8px 0 0 calc(var(--size) / 2 - 4.5em);
+    overflow: visible;
+    clip-path: none;
+    color: var(--poster-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-shadow: 0 1px 6px rgb(21 10 5 / 70%);
+    text-transform: uppercase;
+  }
+
+  .tool:nth-child(1) { --x: -40; --y: 32; }
+  .tool:nth-child(2) { --x: 42; --y: 34; }
+  .tool:nth-child(3) { --x: -46; --y: 11; }
+  .tool:nth-child(4) { --x: 45; --y: 13; }
+  .tool:nth-child(5) { --x: -78; --y: 22; }
+  .tool:nth-child(6) { --x: 79; --y: 21; }
+  .tool:nth-child(7) { --x: -71; --y: 44; }
+  .tool:nth-child(8) { --x: 73; --y: 45; }
+  .tool:nth-child(9) { --x: -47; --y: 54; }
+  .tool:nth-child(10) { --x: 51; --y: 57; }
+  .tool:nth-child(11) { --x: -95; --y: 57; }
+  .tool:nth-child(12) { --x: 95; --y: 62; }
+  .tool:nth-child(13) { --x: -106; --y: 37; }
+  .tool:nth-child(14) { --x: 107; --y: 35; }
 }
 
 @media (prefers-reduced-motion: reduce) {
