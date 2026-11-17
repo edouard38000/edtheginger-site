@@ -156,7 +156,7 @@ fn the_beam_lines_are_drawn_from_the_beam_that_lit_the_portrait() {
         &[number(&frame, "eyes"), number(&frame, "nose")],
         "the straight lines at eye and nose height",
     );
-    let stage = home.attributes(".poster__stage", "style").join("");
+    let stage = home.attributes(".poster", "style").join("");
     assert!(
         stage.contains(&format!("--face-x: {}", x / w)),
         "the face is placed from the beam: {stage}"
@@ -187,6 +187,17 @@ fn the_published_portrait_was_lit_with_the_current_beam() {
         published as f64,
         "static/home/portrait-lit.webp is not the file scripts/light-portrait wrote"
     );
+}
+
+/// `decoding="async"` on the portrait let Chromium paint the Poster without it and add it in a
+/// later raster; with the software renderer that raster could be missed and the Poster showed no
+/// face (PR #20 review). The portrait must decode with the page.
+#[test]
+fn the_portrait_is_not_decoded_asynchronously() {
+    let home = home();
+    assert_eq!(home.count("img.poster__portrait"), 1);
+    assert_eq!(home.count("img.poster__portrait[decoding=async]"), 0);
+    assert_eq!(home.count("img.poster__portrait[loading=lazy]"), 0);
 }
 
 #[test]

@@ -45,9 +45,42 @@
   isolation: isolate;
   border-radius: 0 0 28px 28px;
   color: var(--poster-ink);
-  // Near-black, a little warmer lower down. Grain on top so the dark gradient never bands.
+  // Where the glow is centred: just below the eyes, in the middle (the face is centred).
+  --glow-y: calc(var(--poster-height) * var(--eyes-at) + var(--stage-width) * var(--ratio) * 0.04);
+
+  // The background, painted in the Poster's own box: grain on top so nothing bands, then the
+  // glow behind the head and shoulders as in the spotlight reference (a tight yellow-orange glow
+  // behind the head inside a wide orange one around the shoulders), on near-black. The sizes
+  // follow the portrait, so the glow stays behind the head at every width.
   background:
     var(--grain) 0 0 / 160px 160px repeat,
+    radial-gradient(
+      circle calc(var(--stage-width) * 1.6) at 50% var(--glow-y),
+      rgb(255 214 128 / 100%) 0%,
+      rgb(255 200 104 / 98%) 3%,
+      rgb(255 184 76 / 95%) 6%,
+      rgb(250 162 50 / 90%) 9.5%,
+      rgb(240 138 32 / 83%) 13.5%,
+      rgb(224 114 20 / 74%) 18%,
+      rgb(204 92 12 / 63%) 23%,
+      rgb(180 72 6 / 50%) 28.5%,
+      rgb(152 54 3 / 37%) 34.5%,
+      rgb(122 40 2 / 24%) 41%,
+      rgb(92 28 1 / 13%) 48%,
+      rgb(66 18 0 / 5%) 56%,
+      rgb(48 12 0 / 0%) 65%
+    ),
+    radial-gradient(
+      calc(var(--stage-width) * 1.984) calc(var(--stage-width) * 1.472) at 50% calc(var(--glow-y) + var(--stage-width) * 0.512),
+      rgb(206 66 0 / 75%) 0%,
+      rgb(198 60 0 / 66%) 9%,
+      rgb(184 52 0 / 54%) 18%,
+      rgb(164 44 0 / 40%) 28%,
+      rgb(136 34 0 / 26%) 39%,
+      rgb(104 24 0 / 13%) 51%,
+      rgb(72 16 0 / 4%) 63%,
+      rgb(50 12 0 / 0%) 74%
+    ),
     linear-gradient(180deg, #0c0502 0%, #160904 45%, #2a0e03 100%);
 }
 
@@ -68,50 +101,6 @@
   top: calc(var(--poster-height) * var(--eyes-at) - var(--stage-width) * var(--ratio) * var(--eye-y));
   width: var(--stage-width);
   height: calc(var(--stage-width) * var(--ratio));
-}
-
-// The glow behind the head and shoulders, as in the spotlight reference: a tight
-// yellow-orange glow behind the head inside a wide orange one around the shoulders. Many
-// eased stops and the grain layer keep it smooth.
-.poster__stage::before {
-  content: "";
-  position: absolute;
-  left: calc(var(--face-x) * 100%);
-  top: calc(var(--eye-y) * 100% + 4%);
-  z-index: 0;
-  width: 320%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  background:
-    var(--grain) 0 0 / 160px 160px repeat,
-    radial-gradient(
-      closest-side,
-      rgb(255 214 128 / 100%) 0%,
-      rgb(255 200 104 / 98%) 3%,
-      rgb(255 184 76 / 95%) 6%,
-      rgb(250 162 50 / 90%) 9.5%,
-      rgb(240 138 32 / 83%) 13.5%,
-      rgb(224 114 20 / 74%) 18%,
-      rgb(204 92 12 / 63%) 23%,
-      rgb(180 72 6 / 50%) 28.5%,
-      rgb(152 54 3 / 37%) 34.5%,
-      rgb(122 40 2 / 24%) 41%,
-      rgb(92 28 1 / 13%) 48%,
-      rgb(66 18 0 / 5%) 56%,
-      rgb(48 12 0 / 0%) 65%
-    ),
-    radial-gradient(
-      62% 46% at 50% 66%,
-      rgb(206 66 0 / 75%) 0%,
-      rgb(198 60 0 / 66%) 9%,
-      rgb(184 52 0 / 54%) 18%,
-      rgb(164 44 0 / 40%) 28%,
-      rgb(136 34 0 / 26%) 39%,
-      rgb(104 24 0 / 13%) 51%,
-      rgb(72 16 0 / 4%) 63%,
-      rgb(50 12 0 / 0%) 74%
-    );
-  pointer-events: none;
 }
 
 // The beam in the background: faint, so it reads across the Poster without competing with the face.

@@ -46,25 +46,27 @@
 {%- set bottom_left = top_left + beam.width -%}
 {%- set bottom_right = top_right + beam.width -%}
 
-<section class="poster" aria-label="Poster">
-  <div class="poster__stage" style="--face-x: {{ beam.x / w }}; --eye-y: {{ beam.y / h }}; --ratio: {{ h / w }}">
+<section class="poster" aria-label="Poster" style="--face-x: {{ beam.x / w }}; --eye-y: {{ beam.y / h }}; --ratio: {{ h / w }}">
+  <div class="poster__stage">
     {#- A faint glow in the background between the lines, so the beam reads across the Poster. #}
     <svg class="poster__beam" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
       <defs>
-        <filter id="beam-soft" x="0" y="-1" width="1" height="3"><feGaussianBlur stdDeviation="{{ beam.soft * 2 }}"/></filter>
-        {#- Brightest at the face, fading towards the ends of the beam. #}
+        {#- Brightest at the face, fading towards the ends of the beam. Its edges sit under the lines,
+            so it needs no blur (a blur over a polygon this long is very slow to raster). #}
         <radialGradient id="beam-fade" gradientUnits="userSpaceOnUse" cx="{{ beam.x }}" cy="{{ beam.y }}" r="{{ 1.6 * w }}">
           <stop offset="0" stop-color="#ffe2a8" stop-opacity="0.30"/>
           <stop offset="0.35" stop-color="#ffd08a" stop-opacity="0.16"/>
           <stop offset="1" stop-color="#ffc070" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <polygon points="{{ left }},{{ top_left }} {{ right }},{{ top_right }} {{ right }},{{ bottom_right }} {{ left }},{{ bottom_left }}" filter="url(#beam-soft)"/>
+      <polygon points="{{ left }},{{ top_left }} {{ right }},{{ top_right }} {{ right }},{{ bottom_right }} {{ left }},{{ bottom_left }}"/>
     </svg>
+    {#- No decoding="async" here: it lets Chromium paint the Poster first and add the portrait in a
+        later raster, which can be missed (a faceless Poster), see tests/home.rs. #}
     <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} 675w, {{ portrait_2x.url }} 1350w"
          sizes="(min-width: 44rem) 52rem, 175vw"
          width="{{ portrait.width }}" height="{{ portrait.height }}"
-         alt="{{ section.extra.portrait_alt }}" fetchpriority="high" decoding="async">
+         alt="{{ section.extra.portrait_alt }}" fetchpriority="high">
     {#- Thin white lines: the two edges of the beam, and two straight lines at eye and nose height. #}
     <svg class="poster__lines" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
       <defs>
