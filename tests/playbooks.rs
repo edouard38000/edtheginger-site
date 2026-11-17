@@ -291,15 +291,19 @@ fn every_prompt_box_holds_the_exact_text_and_a_copy_button() {
         page.texts(".pb-prompt__text"),
         [
             "Find the best coffee in [YOUR CITY] & tell me \"why\", under [A PRICE] <today>.",
-            "Open the app so I can pair my phone."
+            "Open the app so I can pair my phone.",
+            MULTI_PARAGRAPH_PROMPT
         ]
     );
-    assert_eq!(page.texts(".pb-prompt .pb-label"), ["PROMPT 1", "PROMPT 2"]);
-    assert_eq!(page.count(".pb-prompt"), 2);
-    assert_eq!(page.count(".pb-prompt button[data-copy][type=button]"), 2);
+    assert_eq!(
+        page.texts(".pb-prompt .pb-label"),
+        ["PROMPT 1", "PROMPT 2", "PROMPT 3"]
+    );
+    assert_eq!(page.count(".pb-prompt"), 3);
+    assert_eq!(page.count(".pb-prompt button[data-copy][type=button]"), 3);
     // Hidden until the script shows it, so it is harmless without JavaScript.
-    assert_eq!(page.count(".pb-prompt button[data-copy][hidden]"), 2);
-    assert_eq!(page.texts(".pb-prompt button"), ["Copy", "Copy"]);
+    assert_eq!(page.count(".pb-prompt button[data-copy][hidden]"), 3);
+    assert_eq!(page.texts(".pb-prompt button"), ["Copy", "Copy", "Copy"]);
     let scripts = page.attributes("script[src]", "src");
     assert_eq!(scripts.len(), 1);
     assert!(
@@ -309,12 +313,39 @@ fn every_prompt_box_holds_the_exact_text_and_a_copy_button() {
     assert!(page_site().has_file("js/playbook.js"));
 }
 
+/// The third fixture prompt, exactly as written in its body: blank lines, numbered lines, an
+/// indented line, Markdown-looking text, `<`, `&` and quotes.
+const MULTI_PARAGRAPH_PROMPT: &str = "Plan [MY LAUNCH] for <Friday> & \"after\".\n\n1. List the steps.\n2. Mark [MISSING] facts.\n\n  Keep this indented line.\n**not bold**, # not a heading";
+
+#[test]
+fn a_prompt_with_blank_lines_stays_one_box_with_its_exact_text() {
+    let page = playbook_page();
+    // One <pre> per prompt, holding the whole text: Markdown did not split it into paragraphs,
+    // a list or bold text, so the Copy button copies every line.
+    assert_eq!(page.count(".pb-prompt__text"), 3);
+    assert_eq!(
+        page.count(
+            ".pb-prompt__text *:not(.pb-hot), .pb-prompt__box > :is(p:not(.pb-prompt__example), ol, ul, h1)"
+        ),
+        0
+    );
+    assert_eq!(page.texts(".pb-prompt__text")[2], MULTI_PARAGRAPH_PROMPT);
+    assert_eq!(
+        page.texts(".pb-prompt__box")[2],
+        format!("{MULTI_PARAGRAPH_PROMPT}\nCopy")
+    );
+}
+
 #[test]
 fn a_prompt_says_where_to_paste_it_and_shows_its_example_apart() {
     let page = playbook_page();
     assert_eq!(
         page.texts(".pb-prompt__dest"),
-        ["paste in ChatGPT or Claude", "paste in Claude Code"]
+        [
+            "paste in ChatGPT or Claude",
+            "paste in Claude Code",
+            "paste in Claude Code"
+        ]
     );
     assert_eq!(page.count(".pb-prompt:nth-of-type(1) .pb-prompt__logo"), 2);
     assert_eq!(
@@ -327,7 +358,7 @@ fn a_prompt_says_where_to_paste_it_and_shows_its_example_apart() {
 fn the_placeholders_of_a_prompt_are_wrapped_to_show_in_orange() {
     assert_eq!(
         playbook_page().texts(".pb-prompt__text .pb-hot"),
-        ["[YOUR CITY]", "[A PRICE]"]
+        ["[YOUR CITY]", "[A PRICE]", "[MY LAUNCH]", "[MISSING]"]
     );
 }
 
@@ -349,14 +380,15 @@ fn a_skill_shows_its_name_and_a_link_only_when_it_has_one() {
 fn the_screenshots_are_resized_described_and_lazy() {
     let page = playbook_page();
     let images = ".pb-figure__image, .pb-shot__image";
-    assert_eq!(page.count(images), 3);
-    assert_eq!(page.count(&format!(":is({images})[loading=lazy]")), 3);
+    assert_eq!(page.count(images), 4);
+    assert_eq!(page.count(&format!(":is({images})[loading=lazy]")), 4);
     assert_eq!(
         page.attributes(images, "alt"),
         [
             "Fixture: the wide screenshot.",
             "Fixture: the first phone screen.",
-            "Fixture: the second phone screen."
+            "Fixture: the second phone screen.",
+            "Fixture: the screen beside the steps."
         ]
     );
     for source in page.attributes(images, "src") {
@@ -366,7 +398,10 @@ fn the_screenshots_are_resized_described_and_lazy() {
         assert!(file.starts_with("processed_images/"), "{source} is resized");
         assert!(page_site().has_file(file), "{file} is in the built site");
     }
-    assert_eq!(page.texts(".pb-shot .pb-label"), ["01 ONE", "02 TWO"]);
+    assert_eq!(
+        page.texts(".pb-shot .pb-label"),
+        ["01 ONE", "02 TWO", "03 BESIDE"]
+    );
     assert_eq!(page.texts(".pb-figure__caption"), ["Fixture caption."]);
     // Every image has an alt; the stickers are decoration.
     assert_eq!(page.count("main img"), page.count("main img[alt]"));
@@ -392,18 +427,26 @@ fn the_parts_are_headings_with_the_anchors_the_list_links_to() {
         page.texts("h2.pb-subhead"),
         ["What you need", "The two parts"]
     );
-    assert_eq!(page.texts("h3.pb-subhead"), ["On your computer"]);
+    assert_eq!(
+        page.texts("h3.pb-subhead"),
+        ["On your computer", "Fixture timing"]
+    );
 }
 
 #[test]
 fn steps_rows_labels_and_link_buttons_are_shown() {
     let page = playbook_page();
-    assert_eq!(page.texts(".pb-step__n"), ["01", "02"]);
+    assert_eq!(page.texts(".pb-step__n"), ["01", "02", "03", "01", "02"]);
     assert_eq!(
         page.texts(".pb-step__head strong"),
-        ["Say \"hello\"", "Paste the prompt"]
+        [
+            "Say \"hello\"",
+            "Paste the prompt",
+            "Beside one",
+            "Beside two"
+        ]
     );
-    assert_eq!(page.texts(".pb-step__body strong"), ["hello"]);
+    assert_eq!(page.texts(".pb-step__body strong"), ["hello", "text"]);
     assert_eq!(page.texts(".pb-row__key"), ["A phone"]);
     assert_eq!(page.texts(".pb-label--block"), ["THIS ERASES EVERYTHING"]);
     assert_eq!(
@@ -480,4 +523,54 @@ fn pdf_only_playbooks_and_videos_still_send_the_visitor_to_their_listing() {
         );
         assert_eq!(page.count("article.pb"), 0, "{entry}");
     }
+}
+
+#[test]
+fn a_step_without_a_title_puts_its_number_beside_its_text() {
+    let page = playbook_page();
+    assert_eq!(page.count(".pb-step--plain"), 1);
+    assert_eq!(page.count(".pb-step--plain .pb-step__head"), 0);
+    assert_eq!(page.texts(".pb-step--plain > .pb-step__n"), ["03"]);
+    assert_eq!(
+        page.texts(".pb-step--plain .pb-step__body"),
+        ["Step 3: No title: the number sits beside this text."]
+    );
+}
+
+#[test]
+fn a_screenshot_carries_its_shape_so_wide_screens_can_cap_its_width() {
+    let styles = playbook_page().attributes(".pb-figure", "style");
+    let [style] = styles.as_slice() else {
+        panic!("one screenshot: {styles:?}");
+    };
+    let ratio: f64 = style
+        .strip_prefix("--pb-ratio: ")
+        .unwrap_or_else(|| panic!("{style:?}"))
+        .parse()
+        .unwrap_or_else(|_| panic!("{style:?}"));
+    // The fixture cover is portrait 9:16.
+    assert!((ratio - 0.5625).abs() < 0.01, "{ratio}");
+}
+
+#[test]
+fn screenshots_beside_their_steps_hold_both() {
+    let page = playbook_page();
+    assert_eq!(page.count(".pb-beside"), 1);
+    assert_eq!(page.attributes(".pb-beside", "style"), ["--pb-count: 1"]);
+    assert_eq!(
+        page.count(".pb-beside > .pb-beside__shots .pb-shot__image"),
+        1
+    );
+    assert_eq!(
+        page.texts(".pb-beside__text .pb-step__head strong"),
+        ["Beside one", "Beside two"]
+    );
+}
+
+#[test]
+fn a_subhead_can_take_the_clock_sticker() {
+    let page = playbook_page();
+    let icons = page.attributes("h3.pb-subhead img.pb-subhead__icon", "src");
+    assert_eq!(icons.len(), 2, "lightbulb and clock");
+    assert!(icons[1].contains("processed_images/clock."), "{icons:?}");
 }

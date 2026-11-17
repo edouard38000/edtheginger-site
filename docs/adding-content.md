@@ -164,19 +164,32 @@ single quotes around text that holds double quotes: `title='Say "Hey Claude" thr
 | Component | What it shows | Arguments |
 | --- | --- | --- |
 | `part` | A part: its number sticker, its title in the orange box, its intro (the body). | `n` (1 to 8, the sticker), `id` (the anchor the list of parts links to, like `part-3`), `title`; `label=""` for a part that is not numbered, like "The result". |
-| `subhead` | A heading with an optional sticker before it. | `text`; `icon` = `"check"`, `"lightbulb"` or `"exclamation"`; `level={2}` at the top of the page (default 3, inside a part). |
-| `step` | A numbered step: "01" in an orange tag, the step in bold, then what to do (the body, Markdown). | `n`, `title`. |
+| `subhead` | A heading with an optional sticker before it. | `text`; `icon` = `"check"`, `"lightbulb"`, `"exclamation"` or `"clock"`; `level={2}` at the top of the page (default 3, inside a part). |
+| `step` | A numbered step: "01" in an orange tag, the step in bold, then what to do (the body, Markdown). Without a title, the "01" sits beside the text, like a numbered line of the PDF. | `n`; `title` (optional). |
 | `row` | A key in an orange tag and its explanation (the body), like the "What you need" list. | `key`. |
 | `label` | A small orange label on its own line, like "THIS ERASES THE WHOLE PC". | `text`. |
 | `note` | A small grey note (the body). | none. |
-| `prompt` | A prompt box: the label, where to paste it, the exact text (the body) and a Copy button. Placeholders in square brackets, like `[YOUR CITY]`, are shown in orange. | `label` (default `PROMPT`), `dest` (default `paste in ChatGPT or Claude`), `logos` (`"chatgpt,claude"` by default, `"claude"`, `"chatgpt"` or `""`), `example_label` and `example` for an example under the text (not copied). |
+| `prompt` | A prompt box: the label, where to paste it, the exact text (the body, raw text: never Markdown) and a Copy button. Placeholders in square brackets, like `[YOUR CITY]`, are shown in orange. | `label` (default `PROMPT`), `dest` (default `paste in ChatGPT or Claude`), `logos` (`"chatgpt,claude"` by default, `"claude"`, `"chatgpt"` or `""`), `example_label` and `example` for an example under the text (not copied). |
 | `skill` | Under a prompt that uses a skill: a plus, SKILL, and a box with the skill's name and GRAB IT HERE. | `name`; `url` only when the skill has a real public address. |
-| `step_image` | One screenshot as wide as the text, with rounded corners. | `src` (a path under `static/`), `alt` (what the image shows), `label`, `caption`. |
+| `step_image` | One screenshot with rounded corners: as wide as the text on phones; on wide screens centred and capped by its shape (a phone screenshot stays narrow, a slide wider). | `src` (a path under `static/`), `alt` (what the image shows), `label`, `caption`. |
 | `shots` | Phone screenshots side by side, each under its label. | `srcs`, `alts`, `labels`: lists of the same length. |
+| `beside` | Screenshots beside the steps they go with (the body: steps, rows, text). From 60rem wide the screenshots sit on the left of the body; on phones they come first, like `shots`. Best with one or two phone screenshots. | `srcs`, `alts`, `labels`, as for `shots`. |
 | `buttons` | Orange pill links, then the crayon arrow and CLICK HERE. | `texts`, `urls`: lists of the same length. |
 
-- The prompt text is copied exactly as written in the body: write it on its own lines between the
-  two tags, with no blank line inside.
+- The prompt text is shown and copied exactly as written in the body, between the two tags on
+  their own lines: blank lines, numbered lines, `<`, `&`, quotes and `[PLACEHOLDERS]` all stay as
+  they are. Markdown is not applied to it.
+- A step with no title, for a numbered line like "01  Write a short company brief":
+  `{%<step n={1}>%}Write a short company brief.{%</step>%}`.
+- Screenshots beside their steps:
+
+  ```
+  {%<beside srcs={["playbooks/<name>/app.jpg"]} labels={["THE RIGHT APP"]} alts={["What it shows."]}>%}
+  {%<step n={1} title="Install the app">%}...{%</step>%}
+
+  {%<step n={2} title="Scan the QR code">%}...{%</step>%}
+  {%</beside>%}
+  ```
 - Screenshots go in `static/playbooks/<name>/`, as JPEG or PNG; the site resizes them. Every image
   needs an `alt` saying what it shows.
 - A component prints one block: leave a blank line before and after it.

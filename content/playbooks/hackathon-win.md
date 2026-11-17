@@ -128,7 +128,7 @@ People spend the least time on the pitch, and they shouldn't. The judges only se
 
 {%<step n={4} title="Make it simple">%}Everyone in the room should understand what you built, including people outside tech. Say the one-sentence promise, and let three slides carry the rest.{%</step>%}
 
-{{<subhead text="A 3-minute pitch, in five beats" />}}
+{{<subhead text="A 3-minute pitch, in five beats" icon="clock" />}}
 
 {%<row key="The problem">%}A moment everyone in the room has lived, told in 20 seconds. Mine: the recipe videos we all save and never cook.{%</row>%}
 
@@ -154,7 +154,7 @@ Small tip: if you have time to work on the design and the user experience, it gi
 
 {%<step n={4} title="Check it on the device you demo on">%}If you present from a phone, test every screen on that phone, at the size the room will see it.{%</step>%}
 
-{{<subhead text="A simple plan for the day" />}}
+{{<subhead text="A simple plan for the day" icon="clock" />}}
 
 {%<row key="Before you arrive">%}Pick the idea, research it and write the one-sentence promise. Install Claude Code and the planning skills.{%</row>%}
 

@@ -20,15 +20,21 @@
 {% endcomponent part %}
 
 {# A heading inside a part (level 3) or at the top of the page (level={2}), with an optional
-   sticker before it: icon="check", "lightbulb" or "exclamation". #}
+   sticker before it: icon="check", "lightbulb", "exclamation" or "clock" (any PNG in
+   static/playbooks/stickers/, by its name). #}
 {% component subhead(text, icon="", level=3) %}
 <h{{ level }} class="pb-subhead">{% if icon %}{% set sticker = resize_image(path="playbooks/stickers/" ~ icon ~ ".png", width=64, op="fit_width", format="webp", quality=85) %}<img class="pb-subhead__icon" src="{{ sticker.url }}" width="{{ (sticker.width * 26 / sticker.height) | round | int }}" height="26" alt="" aria-hidden="true" loading="lazy" decoding="async">{% endif %}<span>{{ text | escape }}</span></h{{ level }}>
 {% endcomponent subhead %}
 
-{# A numbered step: the number in an orange tag, the step in bold, then what to do (Markdown). #}
-{% component step(n, title) %}
+{# A numbered step: the number in an orange tag, the step in bold, then what to do (Markdown).
+   Without a title, the number sits beside what to do, like "01  Write a short company brief". #}
+{% component step(n, title="") %}
+{%- if not title %}
+<div class="pb-step pb-step--plain"><span class="pb-step__n" aria-hidden="true">{% if n < 10 %}0{% endif %}{{ n }}</span><div class="pb-step__body"><span class="pb-sr-only">Step {{ n }}: </span>{{ body | trim | markdown | safe }}</div></div>
+{%- else %}
 <div class="pb-step"><p class="pb-step__head"><span class="pb-step__n" aria-hidden="true">{% if n < 10 %}0{% endif %}{{ n }}</span><span class="pb-sr-only">Step {{ n }}: </span><strong>{{ title | escape }}</strong></p>
 <div class="pb-step__body">{{ body | trim | markdown | safe }}</div></div>
+{%- endif %}
 {% endcomponent step %}
 
 {# One line of a key and its explanation, like the "What you need" list: the key in an orange
@@ -49,16 +55,18 @@
 
 {# A prompt to paste: the label outside the box (top left), where it goes and the logos (top
    right), the exact text as selectable preformatted text, and a Copy button that copies exactly
-   that text. static/js/playbook.js shows the button; without JavaScript it stays hidden and the
+   that text. The body is raw text, never Markdown: blank lines, numbered lines, <, & and quotes
+   stay as written. Its line breaks are printed as &#10; so the HTML block has no blank line in it
+   and Markdown leaves it whole (the <pre> still shows and copies real line breaks). static/js/playbook.js shows the button; without JavaScript it stays hidden and the
    text can still be selected. Bracketed placeholders like [YOUR CITY] are wrapped in .pb-hot and
    shown in orange; the text is unchanged. `logos`: "chatgpt,claude", "claude", "chatgpt" or "".
    `example` (with `example_label`) is shown under the text and is not copied. #}
 {% component prompt(label="PROMPT", dest="paste in ChatGPT or Claude", logos="chatgpt,claude", example_label="Example:", example="") %}
-{%- set text = body | trim -%}
+{%- set text = body | trim | escape | replace(from="\n", to="&#10;") -%}
 <figure class="pb-prompt">
 <figcaption class="pb-prompt__bar"><span class="pb-label">{{ label | escape }}</span><span class="pb-prompt__dest">{{ dest | escape }}{% if logos %}<span class="pb-prompt__logos">{% for logo in logos | split(pat=",") %}<img class="pb-prompt__logo" src="{{ get_url(path='home/logos/' ~ logo | trim ~ '.svg') }}" width="16" height="16" alt="" aria-hidden="true">{% endfor %}</span>{% endif %}</span></figcaption>
 <div class="pb-prompt__box">
-<pre class="pb-prompt__text">{% for chunk in text | split(pat="[") %}{% if loop.first %}{{ chunk | escape }}{% else %}{% set parts = chunk | split(pat="]") %}{% if parts | length > 1 %}<span class="pb-hot">[{{ parts | first | escape }}]</span>{{ parts[1:] | join(sep="]") | escape }}{% else %}[{{ chunk | escape }}{% endif %}{% endif %}{% endfor %}</pre>
+<pre class="pb-prompt__text">{% for chunk in text | split(pat="[") %}{% if loop.first %}{{ chunk | safe }}{% else %}{% set parts = chunk | split(pat="]") %}{% if parts | length > 1 %}<span class="pb-hot">[{{ parts | first | safe }}]</span>{{ parts[1:] | join(sep="]") | safe }}{% else %}[{{ chunk | safe }}{% endif %}{% endif %}{% endfor %}</pre>
 {%- if example %}
 <p class="pb-prompt__example"><strong>{{ example_label | escape }}</strong> {{ example | escape }}</p>
 {%- endif %}
@@ -74,12 +82,24 @@
 <p class="pb-skill__box"><strong class="pb-skill__name">{{ name | escape }}</strong>{% if url %}<span class="pb-skill__dot" aria-hidden="true">&middot;</span><a class="pb-skill__grab" href="{{ url | escape }}" rel="external noopener">GRAB IT HERE<span class="pb-sr-only">: the {{ name | escape }} skill</span></a>{% endif %}</p></div>
 {% endcomponent skill %}
 
-{# One screenshot, as wide as the text: rounded corners, a label above it, an optional caption
-   under it, resized at build time and loaded lazily. `src` is a path under static/. #}
+{# One screenshot: rounded corners, a label above it, an optional caption under it, resized at
+   build time and loaded lazily. `src` is a path under static/. On phones it is as wide as the
+   text; on wide screens its width is capped by its shape (--pb-ratio, width / height) so every
+   image covers about the same area, centred: a phone screenshot stays narrow, a slide wider. #}
 {% component step_image(src, alt, label="", caption="", width=1100) %}
 {%- set image = resize_image(path=src, width=width, op="fit_width", format="webp", quality=82) -%}
-<figure class="pb-figure">{% if label %}<p class="pb-label">{{ label | escape }}</p>{% endif %}<img class="pb-figure__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alt | escape }}" loading="lazy" decoding="async">{% if caption %}<figcaption class="pb-figure__caption">{{ caption | escape }}</figcaption>{% endif %}</figure>
+<figure class="pb-figure" style="--pb-ratio: {{ (image.width / image.height) | round(precision=3) }}">{% if label %}<p class="pb-label">{{ label | escape }}</p>{% endif %}<img class="pb-figure__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alt | escape }}" loading="lazy" decoding="async">{% if caption %}<figcaption class="pb-figure__caption">{{ caption | escape }}</figcaption>{% endif %}</figure>
 {% endcomponent step_image %}
+
+{# Screenshots beside the steps they go with (the body: steps, rows, text, any components). From
+   60rem the screenshots sit on the left and the body on the right; on phones the screenshots come
+   first, as with `shots`. `srcs`, `alts` and `labels` as for `shots`; best with one or two phone
+   screenshots. #}
+{% component beside(srcs, alts, labels=[]) %}
+{%- set text = body | trim | markdown | safe | replace(from="\n\n", to="\n") | replace(from="\n\n", to="\n") -%}
+<div class="pb-beside" style="--pb-count: {{ srcs | length }}"><div class="pb-shots pb-beside__shots">{% for src in srcs %}{% set image = resize_image(path=src, width=480, op="fit_width", format="webp", quality=80) %}<figure class="pb-shot">{% if labels | length >= loop.index %}<figcaption class="pb-label">{{ labels[loop.index0] | escape }}</figcaption>{% endif %}<img class="pb-shot__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alts[loop.index0] | escape }}" loading="lazy" decoding="async"></figure>{% endfor %}</div>
+<div class="pb-beside__text">{{ text | safe }}</div></div>
+{% endcomponent beside %}
 
 {# Phone screenshots side by side, each under its own label. `srcs`, `alts` and `labels` are
    arrays of the same length; `srcs` are paths under static/. #}

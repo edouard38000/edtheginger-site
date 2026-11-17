@@ -98,8 +98,7 @@ I stayed on my Mac. In the Claude desktop app I chose my Linux PC as the compute
 Pairing tells the PC and the iPhone that they belong together. Check first that the iPhone is on the same Wi-Fi as the PC, not on mobile data or a guest network.
 {%</part>%}
 
-{{<shots srcs={["playbooks/phone-use/ip_appstore.jpg"]} labels={["THE RIGHT APP"]} alts={["The Phone Use app in the App Store, by Aleksey Smolenchuk, with a pink cloud holding a phone as its icon."]} />}}
-
+{%<beside srcs={["playbooks/phone-use/ip_appstore.jpg"]} labels={["THE RIGHT APP"]} alts={["The Phone Use app in the App Store, by Aleksey Smolenchuk, with a pink cloud holding a phone as its icon."]}>%}
 {%<step n={1} title="Install the Phone Use app">%}On the iPhone, open the App Store and search for Phone Use. Take the one by Aleksey Smolenchuk, with the pink cloud holding a phone.{%</step>%}
 
 {%<step n={2} title="Scan the QR code">%}Open the app and point the iPhone at the QR code in the Phone Use window on the PC.{%</step>%}
@@ -107,6 +106,7 @@ Pairing tells the PC and the iPhone that they belong together. Check first that 
 {%<step n={3} title="If the phone says it can't reach the PC">%}This happened to me. The PC's firewall, the part that blocks outside connections, was blocking the iPhone, and the app did not say so. Paste the prompt below.{%</step>%}
 
 {%<step n={4} title="Type your PC password when asked">%}Claude prepares the fix but cannot type your password. It shows you where to type it. Type it, press Enter, then scan the QR code again.{%</step>%}
+{%</beside>%}
 
 {%<prompt label="PROMPT" dest="paste in Claude Code" logos="claude">%}
 On my phone it says it can't reach this computer. Check that Phone Use is running, and open what the firewall is blocking for it, only for my home network.
@@ -126,8 +126,7 @@ On my phone it says it can't reach this computer. Check that Phone Use is runnin
 The PC sees the iPhone through Screen Mirroring and taps on it through Bluetooth, as if it were a mouse and a keyboard. Keep the iPhone unlocked while you do this.
 {%</part>%}
 
-{{<shots srcs={["playbooks/phone-use/ip_mirroring.jpg", "playbooks/phone-use/ip_bluetooth.jpg"]} labels={["01 SCREEN MIRRORING", "02 BLUETOOTH"]} alts={["The iPhone Control Center, with the Screen Mirroring button, two rectangles, highlighted.", "The iPhone Bluetooth settings, with Phone Use connected."]} />}}
-
+{%<beside srcs={["playbooks/phone-use/ip_mirroring.jpg", "playbooks/phone-use/ip_bluetooth.jpg"]} labels={["01 SCREEN MIRRORING", "02 BLUETOOTH"]} alts={["The iPhone Control Center, with the Screen Mirroring button, two rectangles, highlighted.", "The iPhone Bluetooth settings, with Phone Use connected."]}>%}
 {%<step n={1} title="Start Screen Mirroring">%}Swipe down from the top right corner, tap the two rectangles, and choose "Phone Use on" followed by your PC's name.{%</step>%}
 
 {%<step n={2} title="Connect Bluetooth">%}Settings, Bluetooth, tap Phone Use and accept. It has to say Connected.{%</step>%}
@@ -135,6 +134,7 @@ The PC sees the iPhone through Screen Mirroring and taps on it through Bluetooth
 {%<step n={3} title="Turn on AssistiveTouch">%}Settings, Accessibility, Touch, AssistiveTouch: on. On the same page, Dwell Control: off. A round button appears on screen. Without it Claude can type but not tap.{%</step>%}
 
 {%<step n={4} title="Make the pointer orange">%}Settings, Accessibility, Pointer Control, Colour: Orange.{%</step>%}
+{%</beside>%}
 
 {{<subhead text="If Bluetooth will not stay connected" icon="exclamation" />}}
 
