@@ -122,11 +122,18 @@ fn montserrat_is_self_hosted() {
 }
 
 #[test]
-fn pages_load_no_script_and_nothing_from_other_hosts() {
+fn pages_load_no_inline_script_and_nothing_from_other_hosts() {
     for page in every_html_page(site()) {
-        assert_eq!(page.count("script"), 0, "no script on {:?}", page.path());
+        // A script is allowed only as a file served by the site itself: never inline.
+        let mut loaded = page.attributes("script", "src");
+        assert_eq!(
+            page.count("script"),
+            loaded.len(),
+            "no inline script on {:?}",
+            page.path()
+        );
         assert_eq!(page.count("iframe"), 0, "no iframe on {:?}", page.path());
-        let mut loaded = page.attributes("link[rel=stylesheet], link[rel=preload]", "href");
+        loaded.extend(page.attributes("link[rel=stylesheet], link[rel=preload]", "href"));
         loaded.extend(page.attributes("img, source, video, audio", "src"));
         for address in loaded {
             assert!(
