@@ -84,15 +84,35 @@ fn number(values: &[(String, f64)], key: &str) -> f64 {
         .1
 }
 
-/// The width and height of a WebP file with an alpha channel (a VP8X canvas).
+/// The width and height of a WebP file: lossy (VP8), lossless (VP8L) or extended (VP8X).
 fn webp_size(bytes: &[u8]) -> (f64, f64) {
     assert_eq!(&bytes[0..4], b"RIFF");
     assert_eq!(&bytes[8..12], b"WEBP");
-    assert_eq!(&bytes[12..16], b"VP8X", "an extended WebP, with alpha");
-    let u24 = |at: usize| {
-        u32::from(bytes[at]) | u32::from(bytes[at + 1]) << 8 | u32::from(bytes[at + 2]) << 16
-    };
-    (f64::from(u24(24) + 1), f64::from(u24(27) + 1))
+    let u16le = |at: usize| u32::from(bytes[at]) | u32::from(bytes[at + 1]) << 8;
+    let u24 = |at: usize| u16le(at) | u32::from(bytes[at + 2]) << 16;
+    match &bytes[12..16] {
+        b"VP8X" => (f64::from(u24(24) + 1), f64::from(u24(27) + 1)),
+        b"VP8 " => (f64::from(u16le(26) & 0x3fff), f64::from(u16le(28) & 0x3fff)),
+        b"VP8L" => {
+            let bits = u32::from_le_bytes([bytes[21], bytes[22], bytes[23], bytes[24]]);
+            (
+                f64::from((bits & 0x3fff) + 1),
+                f64::from(((bits >> 14) & 0x3fff) + 1),
+            )
+        }
+        other => panic!("unknown WebP chunk {other:?}"),
+    }
+}
+
+/// The portrait the Poster shows: `portrait` in the home page's front matter, a path under static/.
+fn portrait_file() -> String {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let text = std::fs::read_to_string(format!("{root}/content/_index.md")).unwrap();
+    let line = text
+        .lines()
+        .find(|line| line.trim_start().starts_with("portrait ="))
+        .expect("portrait = \"...\" in content/_index.md");
+    line.split('"').nth(1).unwrap().to_owned()
 }
 
 fn attribute_numbers(home: &Page, selector: &str, attribute: &str) -> Vec<f64> {
@@ -116,10 +136,10 @@ fn assert_close(found: &[f64], expected: &[f64], what: &str) {
     }
 }
 
-/// The lines are the edges of the light: the template draws them from `[extra.beam]`, in the
-/// pixels of the published portrait, so they sit on the lit strip at every width.
+/// The lines are the edges of the light: the template draws them from `[extra.beam]`, measured
+/// in the pixels of the portrait the Poster shows, so they sit on the light at every width.
 #[test]
-fn the_beam_lines_are_drawn_from_the_beam_that_lit_the_portrait() {
+fn the_lines_are_the_edges_of_the_light_on_the_portrait() {
     let root = env!("CARGO_MANIFEST_DIR");
     let beam = front_matter_numbers("extra.beam");
     let (x, y, slope, width) = (
@@ -128,7 +148,7 @@ fn the_beam_lines_are_drawn_from_the_beam_that_lit_the_portrait() {
         number(&beam, "slope"),
         number(&beam, "width"),
     );
-    let image = std::fs::read(format!("{root}/static/home/portrait-lit.webp")).unwrap();
+    let image = std::fs::read(format!("{root}/static/{}", portrait_file())).unwrap();
     let (w, h) = webp_size(&image);
 
     let home = home();
@@ -150,11 +170,10 @@ fn the_beam_lines_are_drawn_from_the_beam_that_lit_the_portrait() {
         &[edge(-width / 2.0, right), edge(width / 2.0, right)],
         "where the beam's edges end",
     );
-    let frame = front_matter_numbers("extra.frame_lines");
-    assert_close(
-        &attribute_numbers(&home, ".poster__lines line:not(.poster__line--beam)", "y1"),
-        &[number(&frame, "eyes"), number(&frame, "nose")],
-        "the straight lines at eye and nose height",
+    assert_eq!(
+        home.count(".poster__lines line"),
+        2,
+        "two lines, the edges of the light"
     );
     let stage = home.attributes(".poster", "style").join("");
     assert!(
@@ -163,11 +182,22 @@ fn the_beam_lines_are_drawn_from_the_beam_that_lit_the_portrait() {
     );
 }
 
-/// The published portrait was lit with the beam in `content/_index.md`: run
-/// `scripts/light-portrait` again whenever the beam or the cut-out changes.
+/// The scripted light is only ever the portrait itself: with the AI relight in use, the page adds
+/// no light of its own and does not publish the scripted image. With the scripted portrait in use,
+/// it must have been lit with the current beam: run `scripts/light-portrait` after any change.
 #[test]
-fn the_published_portrait_was_lit_with_the_current_beam() {
+fn the_scripted_light_is_used_only_with_the_scripted_portrait() {
     let root = env!("CARGO_MANIFEST_DIR");
+    let scripted = "home/portrait-lit.webp";
+    if portrait_file() != scripted {
+        assert!(!site().has_file(scripted), "{scripted} is not published");
+        assert_eq!(
+            home().count(".poster__beam"),
+            0,
+            "no light added on the page"
+        );
+        return;
+    }
     let used =
         std::fs::read_to_string(format!("{root}/scripts/light-portrait/beam-used.toml")).unwrap();
     let used = numbers_after(&used, "");
@@ -179,13 +209,13 @@ fn the_published_portrait_was_lit_with_the_current_beam() {
             "{key}: the portrait was lit with another beam; run scripts/light-portrait"
         );
     }
-    let published = std::fs::metadata(format!("{root}/static/home/portrait-lit.webp"))
+    let published = std::fs::metadata(format!("{root}/static/{scripted}"))
         .unwrap()
         .len();
     assert_eq!(
         number(&used, "image_bytes"),
         published as f64,
-        "static/home/portrait-lit.webp is not the file scripts/light-portrait wrote"
+        "static/{scripted} is not the file scripts/light-portrait wrote"
     );
 }
 
@@ -225,7 +255,7 @@ fn the_poster_keeps_its_corner_mark_and_thin_lines() {
     let home = home();
     // The fixtures hold five Videos.
     assert_eq!(home.texts(".poster__mark-number"), ["05"]);
-    assert!(home.count(".poster svg.poster__lines line") >= 3);
+    assert_eq!(home.count(".poster svg.poster__lines line"), 2);
 }
 
 /// The tools of the one list in `content/_index.md`, as (name, logo file) pairs, in order.

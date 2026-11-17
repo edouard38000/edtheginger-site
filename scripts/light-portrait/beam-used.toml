@@ -1,8 +1,0 @@
-# Written by scripts/light-portrait: the beam static/home/portrait-lit.webp was lit with.
-# tests/home.rs checks it matches [extra.beam] in content/_index.md and the published file.
-x = 684
-y = 582
-slope = 0.36
-width = 100
-soft = 5
-image_bytes = 43392

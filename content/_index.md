@@ -10,23 +10,24 @@ captions = [
   "real or bullshit, with the playbook",
   "short AI and tech videos",
 ]
+# The portrait on the Poster, a file under static/. Now the AI relight of Edouard's photo
+# (source: brand-assets/portrait/portrait-relit-ai.png). To go back to the scripted light, run
+# scripts/light-portrait and set this to "home/portrait-lit.webp".
+portrait = "home/portrait-relit-ai.webp"
 # Alt text of the portrait on the Poster.
-portrait_alt = "Edouard the Ginger in shadow, a band of light across his eyes, arms crossed"
+portrait_alt = "Edouard the Ginger in the dark, warm light falling across his forehead and eyes"
 
-# The beam of light across the face: the strip between the two white diagonal lines. The same
-# numbers light the portrait (scripts/light-portrait, run it again after a change) and draw the
-# lines in the template. In pixels of brand-assets/portrait/portrait-cutout.png (1350 x 1800).
+# The light across the face, in pixels of the portrait above (1350 x 1693): a broad, soft diagonal
+# band over the forehead, eyes and nose, falling towards the lower right. The two white lines
+# are its upper and lower edges, placed where the light visibly starts and ends (measured on the
+# image). scripts/light-portrait lights the cut-out with the same numbers when the scripted
+# portrait is in use (they must then be measured on that one).
 [extra.beam]
-x = 684       # a point on the middle of the beam, between the eyes
-y = 582
-slope = 0.36  # how far the lines drop per pixel to the right
-width = 100   # vertical distance between the two lines
-soft = 5      # pixels the light takes to fade out at each line
-
-# The two straight lines framing the face, at eye and nose height (same pixels).
-[extra.frame_lines]
-eyes = 582
-nose = 645
+x = 675       # a point on the middle of the band, between the eyes
+y = 664
+slope = 0.55  # how far the lines drop per pixel to the right
+width = 231   # vertical distance between the two lines
+soft = 5      # used by scripts/light-portrait only
 
 # The tools shown as tiles around the portrait: the one list, most important first.
 # A phone shows the first 8. `logo` is a file in static/home/logos/ (sources: brand-assets/logos/README.md).

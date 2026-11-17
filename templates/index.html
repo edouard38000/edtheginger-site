@@ -26,16 +26,14 @@
 {%- set tape = resize_image(path="home/tape-strip.png", width=184, op="fit_width") -%}
 {%- set arrow = resize_image(path="home/arrow-down-curve.png", width=96, op="fit_width") -%}
 {%- set pill_new = resize_image(path="home/pill-new.png", width=176, op="fit_width") -%}
-{#- The lit portrait: static/home/portrait-lit.webp, made by scripts/light-portrait from
-    brand-assets/portrait/portrait-cutout.png. It is lit only between the two diagonal lines of
-    the beam ([extra.beam] in content/_index.md); the lines below are drawn from the same numbers,
-    in the image's own pixels, so they sit on the edges of the light at every width. -#}
-{%- set portrait_file = "home/portrait-lit.webp" -%}
+{#- The portrait ([extra] portrait in content/_index.md) fills the Poster; its edges fade into the
+    Poster's background, which continues the image's own dark-to-orange glow. The two white lines
+    are the top and bottom edges of the band of light across the eyes ([extra.beam]); they are
+    drawn in the image's own pixels, so they sit on the edges of the light at every width. -#}
+{%- set portrait_file = section.extra.portrait -%}
 {%- set image = get_image_metadata(path="static/" ~ portrait_file) -%}
 {%- set portrait = resize_image(path=portrait_file, width=675, op="fit_width", format="webp", quality=82) -%}
-{%- set portrait_2x = resize_image(path=portrait_file, width=1350, op="fit_width", format="webp", quality=80) -%}
 {%- set beam = section.extra.beam -%}
-{%- set frame = section.extra.frame_lines -%}
 {%- set w = image.width -%}
 {%- set h = image.height -%}
 {#- The lines run across five widths of the image: two to the left, two to the right. -#}
@@ -48,29 +46,17 @@
 
 <section class="poster" aria-label="Poster" style="--face-x: {{ beam.x / w }}; --eye-y: {{ beam.y / h }}; --ratio: {{ h / w }}">
   <div class="poster__stage">
-    {#- A faint glow in the background between the lines, so the beam reads across the Poster. #}
-    <svg class="poster__beam" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <defs>
-        {#- Brightest at the face, fading towards the ends of the beam. Its edges sit under the lines,
-            so it needs no blur (a blur over a polygon this long is very slow to raster). #}
-        <radialGradient id="beam-fade" gradientUnits="userSpaceOnUse" cx="{{ beam.x }}" cy="{{ beam.y }}" r="{{ 1.6 * w }}">
-          <stop offset="0" stop-color="#ffe2a8" stop-opacity="0.30"/>
-          <stop offset="0.35" stop-color="#ffd08a" stop-opacity="0.16"/>
-          <stop offset="1" stop-color="#ffc070" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <polygon points="{{ left }},{{ top_left }} {{ right }},{{ top_right }} {{ right }},{{ bottom_right }} {{ left }},{{ bottom_left }}"/>
-    </svg>
     {#- No decoding="async" here: it lets Chromium paint the Poster first and add the portrait in a
-        later raster, which can be missed (a faceless Poster), see tests/home.rs. #}
-    <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} 675w, {{ portrait_2x.url }} 1350w"
-         sizes="(min-width: 44rem) 52rem, 175vw"
+        later raster, which can be missed (a faceless Poster), see tests/home.rs. The 2x version is
+        the published file itself, so it is not compressed twice. #}
+    <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} {{ portrait.width }}w, {{ get_url(path=portrait_file) }} {{ w }}w"
+         sizes="(min-width: 44rem) 52rem, 140vw"
          width="{{ portrait.width }}" height="{{ portrait.height }}"
          alt="{{ section.extra.portrait_alt }}" fetchpriority="high">
-    {#- Thin white lines: the two edges of the beam, and two straight lines at eye and nose height. #}
+    {#- Thin white lines: the top and bottom edges of the band of light. #}
     <svg class="poster__lines" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
       <defs>
-        {#- The edges of the beam are brightest across the face. #}
+        {#- Brightest across the face. #}
         <linearGradient id="beam-line" gradientUnits="userSpaceOnUse" x1="{{ beam.x - 1.6 * w }}" y1="0" x2="{{ beam.x + 1.6 * w }}" y2="0">
           <stop offset="0" stop-color="#fff" stop-opacity="0.3"/>
           <stop offset="0.5" stop-color="#fff" stop-opacity="0.75"/>
@@ -79,8 +65,6 @@
       </defs>
       <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ top_left }}" x2="{{ right }}" y2="{{ top_right }}"/>
       <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ bottom_left }}" x2="{{ right }}" y2="{{ bottom_right }}"/>
-      <line class="poster__line" x1="{{ left }}" y1="{{ frame.eyes }}" x2="{{ right }}" y2="{{ frame.eyes }}"/>
-      <line class="poster__line" x1="{{ left }}" y1="{{ frame.nose }}" x2="{{ right }}" y2="{{ frame.nose }}"/>
     </svg>
     {#- The tool tiles: one per tool of the list, placed by rank in the stylesheet. Not links. #}
     <ul class="poster__tools" aria-label="Tools Edouard uses">

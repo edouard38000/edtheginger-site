@@ -33,7 +33,7 @@
   --poster-height: clamp(34rem, calc(100svh - var(--poster-dock)), 52rem);
   // The stage is the box of the portrait. Its width sets the size of the face; the eyes sit
   // at --eyes-at of the Poster's height and the face in the middle, at every screen size.
-  --stage-width: min(175vw, calc(var(--poster-height) * 0.96));
+  --stage-width: calc(var(--poster-height) * 0.72);
   --eyes-at: 0.4;
   --poster-ink: #faf8f5;
   --poster-dark: #0f0603;
@@ -45,43 +45,35 @@
   isolation: isolate;
   border-radius: 0 0 28px 28px;
   color: var(--poster-ink);
-  // Where the glow is centred: just below the eyes, in the middle (the face is centred).
-  --glow-y: calc(var(--poster-height) * var(--eyes-at) + var(--stage-width) * var(--ratio) * 0.04);
+  // The portrait's own background, continued past its edges: it darkens to the top and warms
+  // to burnt orange lower down, then to the black of the jumper, nearly the same across its
+  // width. Colours sampled down the image's left edge (portrait-relit-ai), placed at the same
+  // heights as in the image, so its faded edges, and the strip below it on short phones, never
+  // show.
+  --stage-height: calc(var(--stage-width) * var(--ratio));
+  --stage-top: calc(var(--poster-height) * var(--eyes-at) - var(--stage-height) * var(--eye-y));
 
-  // The background, painted in the Poster's own box: grain on top so nothing bands, then the
-  // glow behind the head and shoulders as in the spotlight reference (a tight yellow-orange glow
-  // behind the head inside a wide orange one around the shoulders), on near-black. The sizes
-  // follow the portrait, so the glow stays behind the head at every width.
+  // Grain on top, as in the image, so the gradient never bands.
   background:
     var(--grain) 0 0 / 160px 160px repeat,
-    radial-gradient(
-      circle calc(var(--stage-width) * 1.6) at 50% var(--glow-y),
-      rgb(255 214 128 / 100%) 0%,
-      rgb(255 200 104 / 98%) 3%,
-      rgb(255 184 76 / 95%) 6%,
-      rgb(250 162 50 / 90%) 9.5%,
-      rgb(240 138 32 / 83%) 13.5%,
-      rgb(224 114 20 / 74%) 18%,
-      rgb(204 92 12 / 63%) 23%,
-      rgb(180 72 6 / 50%) 28.5%,
-      rgb(152 54 3 / 37%) 34.5%,
-      rgb(122 40 2 / 24%) 41%,
-      rgb(92 28 1 / 13%) 48%,
-      rgb(66 18 0 / 5%) 56%,
-      rgb(48 12 0 / 0%) 65%
-    ),
-    radial-gradient(
-      calc(var(--stage-width) * 1.984) calc(var(--stage-width) * 1.472) at 50% calc(var(--glow-y) + var(--stage-width) * 0.512),
-      rgb(206 66 0 / 75%) 0%,
-      rgb(198 60 0 / 66%) 9%,
-      rgb(184 52 0 / 54%) 18%,
-      rgb(164 44 0 / 40%) 28%,
-      rgb(136 34 0 / 26%) 39%,
-      rgb(104 24 0 / 13%) 51%,
-      rgb(72 16 0 / 4%) 63%,
-      rgb(50 12 0 / 0%) 74%
-    ),
-    linear-gradient(180deg, #0c0502 0%, #160904 45%, #2a0e03 100%);
+    linear-gradient(
+      to bottom,
+      #0f0f0e calc(var(--stage-top) + var(--stage-height) * 0.017),
+      #131210 calc(var(--stage-top) + var(--stage-height) * 0.122),
+      #1b1712 calc(var(--stage-top) + var(--stage-height) * 0.227),
+      #271c12 calc(var(--stage-top) + var(--stage-height) * 0.332),
+      #321d0e calc(var(--stage-top) + var(--stage-height) * 0.437),
+      #3c1e0c calc(var(--stage-top) + var(--stage-height) * 0.49),
+      #46200a calc(var(--stage-top) + var(--stage-height) * 0.542),
+      #562309 calc(var(--stage-top) + var(--stage-height) * 0.594),
+      #6d2807 calc(var(--stage-top) + var(--stage-height) * 0.647),
+      #802a06 calc(var(--stage-top) + var(--stage-height) * 0.699),
+      #8f2e05 calc(var(--stage-top) + var(--stage-height) * 0.752),
+      #892f08 calc(var(--stage-top) + var(--stage-height) * 0.804),
+      #3c1b0c calc(var(--stage-top) + var(--stage-height) * 0.857),
+      #080a0a calc(var(--stage-top) + var(--stage-height) * 0.909),
+      #070a09 calc(var(--stage-top) + var(--stage-height) * 0.96)
+    );
 }
 
 // A shade at the foot, so the title reads over the jumper and the Poster ends dark.
@@ -98,27 +90,9 @@
 .poster__stage {
   position: absolute;
   left: calc(50% - var(--stage-width) * var(--face-x));
-  top: calc(var(--poster-height) * var(--eyes-at) - var(--stage-width) * var(--ratio) * var(--eye-y));
+  top: var(--stage-top);
   width: var(--stage-width);
-  height: calc(var(--stage-width) * var(--ratio));
-}
-
-// The beam in the background: faint, so it reads across the Poster without competing with the face.
-.poster__beam {
-  position: absolute;
-  top: 0;
-  left: -200%;
-  z-index: 0;
-  width: 500%;
-  height: 100%;
-  max-width: none;
-  overflow: visible;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-.poster__beam polygon {
-  fill: url("#beam-fade");
+  height: var(--stage-height);
 }
 
 .poster__portrait {
@@ -128,9 +102,13 @@
   width: 100%;
   max-width: none;
   height: auto;
+  // Its left and right edges fade into the Poster's background (which continues the image's
+  // own background), so no edge shows where the Poster is wider than the image.
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
 }
 
-// Thin white lines: the edges of the beam and the two straight lines at eye and nose height.
+// Thin white lines: the top and bottom edges of the band of light across the eyes.
 .poster__lines {
   position: absolute;
   top: 0;
@@ -155,16 +133,17 @@
   opacity: 1;
 }
 
-// The captions stay readable where a line crosses them.
+// The captions and links stay readable where a line crosses them.
 .poster__captions,
-.poster__mark {
+.poster__mark,
+.poster__words {
   text-shadow: 0 0 6px rgb(12 5 2 / 85%), 0 0 2px rgb(12 5 2 / 70%);
 }
 
 // --- Tool tiles -------------------------------------------------------------
 // Rounded cream squares with each tool's logo. Each tile sits at (--x, --y): --x is
 // its distance from the middle of the face and --y its distance from the top of the
-// stage, both in hundredths of the stage. The head is the area --x -14..15, --y 18..45.
+// stage, both in hundredths of the stage. The head is the area --x -22..25, --y 13..62.
 .poster__tools {
   position: absolute;
   inset: 0;
@@ -175,7 +154,8 @@
 }
 
 .tool {
-  --size: 44px;
+  // 44 px, a little smaller on the shortest phones so the columns never touch.
+  --size: clamp(36px, calc(var(--stage-width) * 0.084), 44px);
   --r: 0deg;
 
   position: absolute;
@@ -225,14 +205,14 @@
   display: block;
 }
 
-.tool:nth-child(1) { --x: -21.5; --y: 33; --r: -4deg; }
-.tool:nth-child(2) { --x: 21.5; --y: 30; --r: 5deg; }
-.tool:nth-child(3) { --x: -23; --y: 24; --r: 6deg; }
-.tool:nth-child(4) { --x: 23; --y: 23; --r: -5deg; }
-.tool:nth-child(5) { --x: -23; --y: 42.5; --r: 3deg; }
-.tool:nth-child(6) { --x: 23; --y: 39; --r: -3deg; }
-.tool:nth-child(7) { --x: -22; --y: 51.5; --r: -6deg; }
-.tool:nth-child(8) { --x: 22; --y: 48; --r: 4deg; }
+.tool:nth-child(1) { --x: -30; --y: 36; --r: -4deg; }
+.tool:nth-child(2) { --x: 30; --y: 40; --r: 5deg; }
+.tool:nth-child(3) { --x: -30; --y: 45.5; --r: 6deg; }
+.tool:nth-child(4) { --x: 30; --y: 49.5; --r: -5deg; }
+.tool:nth-child(5) { --x: -30; --y: 55; --r: 3deg; }
+.tool:nth-child(6) { --x: 30; --y: 59; --r: -3deg; }
+.tool:nth-child(7) { --x: -30; --y: 64.5; --r: -6deg; }
+.tool:nth-child(8) { --x: 30; --y: 68.5; --r: 4deg; }
 
 // --- Captions, mark, title --------------------------------------------------
 .poster__inner {
@@ -575,6 +555,10 @@
 // Wider screens.
 // ---------------------------------------------------------------------------
 @media (min-width: 44rem) {
+  .poster {
+    --stage-width: calc(var(--poster-height) * 0.96);
+  }
+
   .poster__inner {
     padding-block: 26px 22px;
   }
@@ -590,6 +574,12 @@
   .tool {
     --size: 56px;
   }
+
+  // Tablets: the left column ends above the title.
+  .tool:nth-child(5) { --y: 52; }
+  .tool:nth-child(6) { --y: 56; }
+  .tool:nth-child(7) { --y: 60; }
+  .tool:nth-child(8) { --y: 63; }
 
   .entry-points {
     grid-template-columns: 1fr 1fr;
@@ -678,20 +668,20 @@
     text-transform: uppercase;
   }
 
-  .tool:nth-child(1) { --x: -26; --y: 40.5; }
-  .tool:nth-child(2) { --x: 27.3; --y: 29.6; }
-  .tool:nth-child(3) { --x: -38.1; --y: 11.5; }
-  .tool:nth-child(4) { --x: 34.3; --y: 17.7; }
-  .tool:nth-child(5) { --x: -54.6; --y: 24.9; }
-  .tool:nth-child(6) { --x: 54.6; --y: 25.8; }
-  .tool:nth-child(7) { --x: -49.6; --y: 43.9; }
-  .tool:nth-child(8) { --x: 50.8; --y: 37.3; }
-  .tool:nth-child(9) { --x: -73.7; --y: 37.3; }
-  .tool:nth-child(10) { --x: 75; --y: 38.2; }
-  .tool:nth-child(11) { --x: 35; --y: 53; }
-  .tool:nth-child(12) { --x: 33; --y: 53.5; }
-  .tool:nth-child(13) { --x: -76.2; --y: 54.4; }
-  .tool:nth-child(14) { --x: 76.2; --y: 56.3; }
+  .tool:nth-child(1) { --x: -34.3; --y: 39.4; }
+  .tool:nth-child(2) { --x: 35.6; --y: 36.4; }
+  .tool:nth-child(3) { --x: -38.1; --y: 20.2; }
+  .tool:nth-child(4) { --x: 38.1; --y: 22.2; }
+  .tool:nth-child(5) { --x: -57.2; --y: 32.3; }
+  .tool:nth-child(6) { --x: 55.9; --y: 31.3; }
+  .tool:nth-child(7) { --x: -50.8; --y: 52.6; }
+  .tool:nth-child(8) { --x: 53.4; --y: 46.5; }
+  .tool:nth-child(9) { --x: -75; --y: 48; }
+  .tool:nth-child(10) { --x: 76.2; --y: 44.5; }
+  .tool:nth-child(11) { --x: 38.1; --y: 62.7; }
+  .tool:nth-child(12) { --x: -33; --y: 62.7; }
+  .tool:nth-child(13) { --x: -76.2; --y: 58.7; }
+  .tool:nth-child(14) { --x: 76.2; --y: 62.7; }
 }
 
 @media (prefers-reduced-motion: reduce) {
