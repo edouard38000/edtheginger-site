@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{# An Entry has no page of its own: Videos link out and Playbooks link to their PDF.
-   Zola still writes one address per Entry, so it sends the visitor to the page that lists it. #}
+{# A Video Entry has no page of its own: Videos link out to TikTok and Instagram. Zola still writes
+   one address per Entry, so it sends the visitor to the page that lists it. Playbook Entries use
+   templates/playbook.html, which does the same for a PDF-only Playbook. #}
 {% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
 {% block head %}
 {# A broken Entry stops the build here, before anything deploys. #}

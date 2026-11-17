@@ -135,3 +135,34 @@ fn stickers_are_decoration_and_served_resized() {
         assert!(src.contains("/processed_images/"), "{src} is not resized");
     }
 }
+
+#[test]
+fn an_item_links_to_the_page_of_its_playbook_when_the_playbook_is_a_page() {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let video = "videos/real-or-bs-02-inbox-zero.md";
+    let text = std::fs::read_to_string(format!("{root}/tests/fixtures/{video}")).unwrap();
+    let pointing_at_the_page = text.replace(
+        "playbook = \"playbooks/inbox-zero.md\"",
+        "playbook = \"playbooks/field-guide.md\"",
+    );
+    let page_entry = std::fs::read(format!(
+        "{root}/tests/fixtures/playbook-pages/field-guide.md"
+    ))
+    .unwrap();
+    let site = Site::try_build_with(&[
+        (&format!("content/{video}"), pointing_at_the_page.as_bytes()),
+        ("content/playbooks/field-guide.md", &page_entry),
+    ])
+    .unwrap_or_else(|message| panic!("{message}"));
+    let page = site.page("real-or-bs/");
+    assert_eq!(
+        page.attributes("ol.real-list a", "href"),
+        [format!(
+            "{}/playbooks/field-guide/",
+            site_checks::SUB_PATH_BASE_URL
+        )]
+    );
+    let label = page.texts("ol.real-list a").join("");
+    assert!(label.starts_with("Grab the Playbook"), "{label}");
+    assert!(!label.contains("PDF"), "{label}");
+}

@@ -4,7 +4,8 @@ Personal website of edouardtheginger: the Real or BS list, the Playbooks and the
 Served first at <https://edouard38000.github.io/edtheginger-site/>, later at edtheginger.com.
 
 Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS, plus one small self-hosted
-script on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without it):
+script on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without it)
+and one on the Playbook pages (`static/js/playbook.js`, for the Copy buttons; hidden without it):
 no third-party scripts, fonts self-hosted. The words used here are defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 ## Build and check
@@ -34,12 +35,15 @@ itself is a Rust tool.
 | `static/fonts/` | Montserrat, copied from `brand-assets/fonts/` |
 | `templates/base.html`, `templates/partials/dock.html` | Base layout and the Dock, shared by every page |
 | `templates/{index,real-or-bs,playbooks,videos}.html` | One template per page |
+| `templates/playbook.html`, `templates/components/playbook-page.html` | A Playbook page, and the components its Markdown is written with |
+| `static/playbooks/<name>/`, `static/playbooks/stickers/` | Screenshots of a Playbook page; the stickers the Playbook pages share |
 | `sass/_tokens.scss`, `_fonts.scss`, `_base.scss`, `_dock.scss` | Shared styles; brand tokens are CSS custom properties |
 | `sass/pages/_{home,real-or-bs,playbooks,videos}.scss` | One stylesheet partial per page |
+| `sass/pages/_playbook.scss` | The Playbook pages |
 | `src/lib.rs` | The check harness: fixture Entries in, built pages out |
 | `tests/skeleton.rs` | Checks on what every page shares |
 | `tests/{home,real_or_bs,playbooks,videos}.rs` | One test file per page |
-| `tests/fixtures/` | Fixture Entries and covers; the checks on the pages never build the real Entries |
+| `tests/fixtures/` | Fixture Entries and covers; the checks on the pages never build the real Entries. The fixture Playbook page (`tests/fixtures/playbook-pages/`) is added only by the checks that use it |
 | `tests/adding_content.rs`, `tests/bad-entries/` | Checks that a broken Entry is refused, with one bad Entry per refusal; one check reads the real Entries for a missing date |
 | `templates/components/validate.html` | The refusals; `templates/entry.html` and every page that lists Entries use them |
 | `docs/adding-content.md` | The guide to adding a Video or a Playbook |
@@ -53,9 +57,12 @@ to `main.css` in styles. Never write a link starting with `/`.
 
 ## Entries
 
-An Entry is one Markdown file with TOML front matter and no body: a Video in
-`content/videos/<name>.md`, a Playbook in `content/playbooks/<name>.md`. Adding the file (and its
-cover in `static/covers/`) is the only step needed.
+An Entry is one Markdown file with TOML front matter: a Video in `content/videos/<name>.md`, a
+Playbook in `content/playbooks/<name>.md`. A Video has no body. A Playbook page has its whole
+Playbook as the body, in Markdown with the components of `templates/components/playbook-page.html`;
+a PDF-only Playbook has no body and a `pdf` address. Adding the file (and its cover in
+`static/covers/`, and a Playbook page's screenshots in `static/playbooks/<name>/`) is the only step
+needed.
 
 [`docs/adding-content.md`](docs/adding-content.md) is the guide: copy-paste templates, naming, the
 cover, and what each refusal message means. A broken Entry is refused by `just check` and by CI, so
@@ -65,9 +72,10 @@ through `templates/entry.html`, and a page that reads the Entries starts with
 Zola renders first), plus one Rust check for a missing date in `src/lib.rs`; their
 tests are `tests/adding_content.rs` with one bad Entry each in `tests/bad-entries/`.
 
-An Entry has no page of its own: Videos link out to TikTok and Instagram, Playbooks to their PDF.
-Zola still writes an address per Entry (`/videos/<name>/`), which sends the visitor to the page
-that lists it.
+A Playbook with a body is a page of its own, at `/playbooks/<name>/` (`templates/playbook.html`), and
+its cards link to it. Every other Entry has no page of its own: Videos link out to TikTok and
+Instagram, PDF-only Playbooks to their PDF. Zola still writes an address per Entry
+(`/videos/<name>/`), which sends the visitor to the page that lists it.
 
 ## Deploy
 

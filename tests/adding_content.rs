@@ -182,8 +182,11 @@ fn a_link_that_is_not_a_well_formed_https_address_is_refused() {
 }
 
 #[test]
-fn a_playbook_with_no_pdf_is_refused() {
-    assert_refused("playbooks/no-pdf.md", "the Playbook has no PDF:");
+fn a_playbook_with_no_page_and_no_pdf_is_refused() {
+    assert_refused(
+        "playbooks/no-page-no-pdf.md",
+        "the Playbook has no page and no PDF:",
+    );
 }
 
 #[test]
@@ -245,8 +248,8 @@ fn without_comments(template: &str) -> String {
     kept + rest
 }
 
-/// The three copy-paste templates of the guide, in order: a Video with no Verdict, a Real or BS
-/// Video with a Verdict and a Playbook, and that Playbook.
+/// The four copy-paste templates of the guide, in order: a Video with no Verdict, a Real or BS
+/// Video with a Verdict and a Playbook, that Playbook (PDF only), and a Playbook page.
 fn guide_templates() -> Vec<String> {
     let guide = std::fs::read_to_string(format!("{ROOT}/docs/adding-content.md")).unwrap();
     guide
@@ -259,7 +262,7 @@ fn guide_templates() -> Vec<String> {
 #[test]
 fn the_templates_of_the_guide_are_accepted() {
     let templates = guide_templates();
-    assert_eq!(templates.len(), 3, "the guide holds three templates");
+    assert_eq!(templates.len(), 4, "the guide holds four templates");
     let cover = std::fs::read(format!("{ROOT}/tests/fixtures/covers/fixture-cover.png")).unwrap();
     let site = Site::try_build_with(&[
         (
@@ -271,18 +274,27 @@ fn the_templates_of_the_guide_are_accepted() {
             templates[1].as_bytes(),
         ),
         ("content/playbooks/phone-use.md", templates[2].as_bytes()),
+        ("content/playbooks/voice-notes.md", templates[3].as_bytes()),
         ("static/covers/github-tools-repo-radar.png", &cover),
         ("static/covers/real-or-bs-02-phone-use.png", &cover),
         ("static/covers/phone-use-playbook.png", &cover),
+        ("static/covers/voice-notes-playbook.png", &cover),
     ])
     .unwrap_or_else(|message| panic!("the guide's templates were refused:\n{message}"));
     for entry in [
         "videos/github-tools-repo-radar/index.html",
         "videos/real-or-bs-02-phone-use/index.html",
         "playbooks/phone-use/index.html",
+        "playbooks/voice-notes/index.html",
     ] {
         assert!(site.has_file(entry), "{entry} was built");
     }
+    let page = site_checks::Page::from_file(&site, "playbooks/voice-notes/index.html");
+    assert_eq!(
+        page.count(".pb-prompt"),
+        1,
+        "the Playbook page template is a page"
+    );
 }
 
 /// The guide explains every refusal: each message a session can meet is quoted in it.
@@ -306,7 +318,7 @@ fn the_guide_explains_every_refusal() {
         "has no date",
         "matches no Playbook Entry",
         "is not a well-formed https address",
-        "has no PDF",
+        "has no page and no PDF",
     ] {
         assert!(checks.contains(phrase), "{phrase:?} is a refusal message");
         assert!(guide.contains(phrase), "the guide explains {phrase:?}");
