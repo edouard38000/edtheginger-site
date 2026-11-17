@@ -1,9 +1,169 @@
-//! The home page. Owned by ticket #6: add its checks here.
+//! The home page: the Poster, the two entry points and the latest Video.
+//! Built from the fixture Entries, where the newest Video is "Voice Clone" (2026-01-19, Real or BS,
+//! Instagram only), the Verdicts are two `real` and one `bs`, and there are two Playbooks.
 
-use site_checks::Site;
+use std::sync::OnceLock;
+
+use site_checks::{Page, Site, SUB_PATH_BASE_URL};
+
+fn site() -> &'static Site {
+    static SITE: OnceLock<Site> = OnceLock::new();
+    SITE.get_or_init(Site::build)
+}
+
+fn home() -> Page {
+    site().page("")
+}
+
+/// The path of a file of the built site, from its address.
+fn built_file(address: &str) -> &str {
+    address
+        .strip_prefix(&format!("{SUB_PATH_BASE_URL}/"))
+        .unwrap_or_else(|| panic!("{address} is not served by the site itself"))
+}
 
 #[test]
-fn the_home_page_has_its_heading() {
-    let site = Site::build();
-    assert_eq!(site.page("").texts("main h1"), ["Edouard the Ginger"]);
+fn the_poster_title_is_the_one_h1() {
+    let home = home();
+    assert_eq!(home.count("h1"), 1);
+    let title = home.texts(".poster h1").join(" ");
+    let words: Vec<&str> = title.split_whitespace().collect();
+    assert_eq!(words.join(" ").to_uppercase(), "EDOUARD THE GINGER");
+}
+
+#[test]
+fn the_poster_shows_the_portrait_resized_with_alt_text() {
+    let home = home();
+    let portraits = home.attributes(".poster__photo img[alt]:not([alt=''])", "src");
+    assert_eq!(portraits.len(), 1, "one portrait on the Poster");
+    let file = built_file(&portraits[0]);
+    assert!(
+        file.starts_with("processed_images/"),
+        "the portrait is resized at build time, not the original: {file}"
+    );
+    assert!(site().has_file(file), "{file} is in the built site");
+    let size = std::fs::metadata(site().output().join(file)).unwrap().len();
+    assert!(size < 150_000, "the portrait served first is {size} bytes");
+}
+
+#[test]
+fn the_poster_captions_come_from_the_home_page_front_matter() {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let front_matter = std::fs::read_to_string(format!("{root}/content/_index.md")).unwrap();
+    let template = std::fs::read_to_string(format!("{root}/templates/index.html")).unwrap();
+    let captions = home().texts(".poster__caption");
+    assert_eq!(captions.len(), 3, "three captions on the Poster");
+    for caption in captions {
+        assert!(!caption.is_empty());
+        assert!(
+            front_matter.contains(&format!("\"{caption}\"")),
+            "{caption:?} is held in content/_index.md"
+        );
+        assert!(
+            !template.contains(&caption),
+            "{caption:?} is not typed in the template"
+        );
+    }
+}
+
+#[test]
+fn the_real_list_entry_point_shows_the_tally_and_links_to_real_or_bs() {
+    let home = home();
+    let real_or_bs = format!("{SUB_PATH_BASE_URL}/real-or-bs/");
+    assert_eq!(
+        home.attributes("a.entry-card--real", "href"),
+        [real_or_bs],
+        "the REAL list entry point"
+    );
+    assert_eq!(
+        home.texts("a.entry-card--real .tally__count"),
+        ["REAL: 2", "BS: 1"],
+        "the Tally counts the fixture Verdicts"
+    );
+}
+
+#[test]
+fn the_playbooks_entry_point_counts_the_playbooks_and_links_to_them() {
+    let home = home();
+    let playbooks = format!("{SUB_PATH_BASE_URL}/playbooks/");
+    assert_eq!(
+        home.attributes("a.entry-card--playbooks", "href"),
+        [playbooks],
+        "the Playbooks entry point"
+    );
+    let count = home.texts("a.entry-card--playbooks .entry-card__count");
+    let words: Vec<&str> = count[0].split_whitespace().collect();
+    assert_eq!(words, ["2", "Playbooks"]);
+}
+
+#[test]
+fn the_latest_video_is_the_newest_entry() {
+    let home = home();
+    assert_eq!(home.texts(".latest__title"), ["Voice Clone"]);
+    assert_eq!(home.texts(".latest__format"), ["Real or BS"]);
+    assert_eq!(
+        home.texts(".latest__description"),
+        ["Fixture: a Real or BS Video with the Verdict real and no Playbook."]
+    );
+    // No other Video is shown on the home page.
+    let main_text = home.texts("main").join(" ");
+    for older in [
+        "Repo Radar",
+        "Inbox Zero",
+        "Robot Barista",
+        "First Hackathon",
+    ] {
+        assert!(
+            !main_text.contains(older),
+            "{older} is not the latest Video"
+        );
+    }
+}
+
+#[test]
+fn the_latest_video_links_only_where_it_was_posted() {
+    // The newest fixture Video has an Instagram link and no TikTok link.
+    assert_eq!(
+        home().attributes(".latest__links a", "href"),
+        ["https://www.instagram.com/reel/FIXTURE0003/"]
+    );
+    assert_eq!(home().texts(".latest__links a"), ["Watch on Instagram"]);
+}
+
+#[test]
+fn the_latest_video_cover_is_resized_and_described() {
+    let home = home();
+    assert_eq!(
+        home.attributes(".latest__cover img[alt]:not([alt=''])", "alt"),
+        ["Cover of the Video Voice Clone"]
+    );
+    let covers = home.attributes(".latest__cover img[alt]:not([alt=''])", "src");
+    let file = built_file(&covers[0]);
+    assert!(file.starts_with("processed_images/"), "{file}");
+    assert!(site().has_file(file), "{file} is in the built site");
+}
+
+#[test]
+fn the_home_page_links_to_all_videos() {
+    assert_eq!(
+        home().attributes("a.latest__all", "href"),
+        [format!("{SUB_PATH_BASE_URL}/videos/")]
+    );
+}
+
+#[test]
+fn stickers_are_decoration_and_come_resized_from_the_site_itself() {
+    let home = home();
+    let stickers = home.attributes("img.sticker", "src");
+    assert!(!stickers.is_empty(), "taped-photo and sticker details");
+    assert_eq!(
+        home.count("img.sticker"),
+        home.count("img.sticker[alt=''][aria-hidden=true]"),
+        "stickers are hidden from screen readers"
+    );
+    for sticker in stickers {
+        let file = built_file(&sticker);
+        assert!(file.starts_with("processed_images/"), "{file}");
+        assert!(site().has_file(file), "{file} is in the built site");
+    }
 }

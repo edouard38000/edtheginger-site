@@ -1,13 +1,500 @@
 // Home page. Owned by ticket #6.
-.home__links {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.25rem;
+// Phone width first: the Poster, the two entry points, then the latest Video.
+
+.page-home main {
+  padding-top: 0;
 }
 
-.home__links li + li {
+.page-home .sticker {
+  display: block;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+// ---------------------------------------------------------------------------
+// The Poster: portrait, title and small captions, about one phone screen tall.
+// ---------------------------------------------------------------------------
+.poster {
+  // The Dock is fixed over the bottom of the first screen: the Poster ends above it.
+  --poster-dock: calc(var(--dock-height) + var(--dock-gap) * 2 + env(safe-area-inset-bottom, 0px));
+  --poster-height: clamp(34rem, calc(100svh - var(--poster-dock)), 52rem);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  column-gap: 12px;
+  min-height: var(--poster-height);
+  padding-block: 16px 14px;
+  isolation: isolate;
+}
+
+// Thin lines across the Poster: two straight, two diagonal.
+.poster__lines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  pointer-events: none;
+}
+
+.poster__lines line {
+  stroke: var(--color-orange);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.55;
+}
+
+.poster__caption {
+  z-index: 3;
+  max-width: 11.5em;
+  margin: 0;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.poster__caption--top {
+  grid-area: 1 / 1;
+  align-self: start;
+}
+
+.poster__caption--left {
+  grid-area: 3 / 1;
+  align-self: end;
+}
+
+.poster__caption--right {
+  grid-area: 3 / 2;
+  align-self: end;
+  justify-self: end;
+  text-align: right;
+}
+
+// The large number in the corner: how many Videos there are, counted from the Entries.
+.poster__mark {
+  grid-area: 1 / 2;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+.poster__mark-number {
+  color: var(--color-orange);
+  font-weight: 900;
+  font-size: clamp(3.25rem, 17vw, 7rem);
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+}
+
+.poster__mark-label {
   margin-top: 8px;
+  color: var(--color-charcoal);
+  font-weight: 700;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+// The portrait as a taped photo: the white wall stays inside its own white frame.
+.poster__subject {
+  grid-area: 2 / 1 / 3 / 3;
+  place-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-block: 30px 10px;
+}
+
+.poster__photo {
+  position: relative;
+  z-index: 1;
+  width: min(84%, calc((var(--poster-height) - 17.5rem) * 0.8));
+  margin: 0;
+  padding: 7px 7px 26px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 14px 30px rgb(25 25 25 / 16%), 0 2px 4px rgb(25 25 25 / 10%);
+  transform: rotate(-1.6deg);
+}
+
+.poster__frame {
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-pale-fill);
+}
+
+.poster__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 58%;
+  // The flash leaves the white wall a little grey: lift it.
+  filter: brightness(1.07) contrast(1.03);
+  transform: scale(1.14);
+  transform-origin: 50% 42%;
+}
+
+.poster__tape {
+  position: absolute;
+  z-index: 2;
+  top: -15px;
+}
+
+.poster__tape--left {
+  left: -30px;
+  transform: rotate(-34deg);
+}
+
+.poster__tape--right {
+  right: -30px;
+  transform: rotate(38deg) scaleX(-1);
+}
+
+// The title, in orange boxes like the videos' hook boxes, set over the foot of the photo.
+.poster__title {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  // Pulled up over the foot of the photo.
+  margin: -1.15em 0 0;
+  font-size: clamp(2.2rem, 11.4vw, 5.75rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transform: rotate(-2.5deg);
+}
+
+.poster__box {
+  display: block;
+  padding: 0.14em 0.26em 0.12em;
+  background: var(--color-orange);
+  border-radius: 0.1em;
+  box-shadow: 0 6px 16px rgb(25 25 25 / 22%);
+}
+
+.poster__box--white {
+  color: #fff;
+  transform: translateX(-0.5em);
+}
+
+.poster__box--yellow {
+  color: var(--color-yellow);
+  transform: translateX(0.12em);
+}
+
+// ---------------------------------------------------------------------------
+// The two entry points: the REAL list (with the Tally) and the Playbooks.
+// ---------------------------------------------------------------------------
+.entry-points {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  margin-top: 56px;
+}
+
+.entry-points__arrow {
+  position: absolute;
+  top: -56px;
+  right: 22px;
+  z-index: 2;
+  transform: rotate(8deg);
+}
+
+.entry-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px 20px 18px;
+  border-radius: 14px;
+  border: 2px solid var(--color-charcoal);
+  box-shadow: 5px 5px 0 var(--color-charcoal);
+  color: var(--color-charcoal);
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.entry-card:hover,
+.entry-card:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--color-charcoal);
+}
+
+.entry-card--real {
+  background: var(--color-orange);
+  color: #fff;
+}
+
+.entry-card--playbooks {
+  background: var(--color-yellow);
+}
+
+.entry-card__title {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+}
+
+.entry-card--real .entry-card__title {
+  color: var(--color-yellow);
+}
+
+.entry-card__tally,
+.entry-card__count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2rem, 10.5vw, 2.75rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.entry-card__tally b,
+.entry-card__count b {
+  font-weight: 900;
+}
+
+.tally__count--real b {
+  color: var(--color-yellow);
+}
+
+.entry-card__text {
+  margin: 0 0 16px;
+  max-width: 26em;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.entry-card__go {
+  margin-top: auto;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--color-charcoal);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.entry-card--real .entry-card__go {
+  background: var(--color-background);
+  color: var(--color-charcoal);
+}
+
+// ---------------------------------------------------------------------------
+// The latest Video: a taped cover, its Format as a sticker tag, its links.
+// ---------------------------------------------------------------------------
+.latest {
+  margin-top: 48px;
+}
+
+.latest__label {
+  margin: 0 0 22px;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.latest__body {
+  display: grid;
+  grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+
+.latest__cover {
+  position: relative;
+  margin: 0;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 24px rgb(25 25 25 / 14%);
+  transform: rotate(-2deg);
+}
+
+.latest__cover > img:not(.sticker) {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+}
+
+.latest__tape {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%) rotate(-5deg);
+}
+
+.latest__new {
+  position: absolute;
+  right: -18px;
+  bottom: 18px;
+  transform: rotate(-9deg);
+}
+
+.latest__format {
+  margin: 0 0 12px;
+}
+
+// A sticker tag: a small label stuck on at an angle.
+.sticker-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  background: var(--color-yellow);
+  border: 1.5px solid var(--color-charcoal);
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 var(--color-charcoal);
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.latest__title {
+  margin: 0 0 8px;
+  color: var(--color-orange);
+  font-size: clamp(1.5rem, 7.5vw, 2.5rem);
+}
+
+.latest__description {
+  margin: 0 0 14px;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.latest__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.latest__watch {
+  display: inline-block;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--color-orange);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.latest__watch:hover {
+  background: var(--color-charcoal);
+}
+
+.latest__all {
+  display: inline-block;
+  padding-block: 6px;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+// ---------------------------------------------------------------------------
+// Wider screens.
+// ---------------------------------------------------------------------------
+@media (min-width: 44rem) {
+  .poster {
+    padding-block: 28px 22px;
+  }
+
+  .poster__caption {
+    font-size: 0.8125rem;
+  }
+
+  .poster__mark-label {
+    font-size: 0.75rem;
+  }
+
+  .poster__photo {
+    width: min(50%, calc((var(--poster-height) - 24rem) * 0.8));
+    padding: 10px 10px 36px;
+  }
+
+  .entry-points {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 56px;
+  }
+
+  .entry-points__arrow {
+    right: auto;
+    left: 34%;
+  }
+
+  .entry-card {
+    padding: 28px 28px 24px;
+  }
+
+  .latest {
+    margin-top: 64px;
+    padding: 36px 44px 44px;
+    background: var(--color-pale-fill);
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+  }
+
+  .latest__label {
+    font-size: 1.75rem;
+  }
+
+  .latest__body {
+    grid-template-columns: 220px minmax(0, 30rem);
+    gap: 48px;
+    justify-content: center;
+  }
+}
+
+// Wide screens: the corners are far from the photo, so it takes the Poster's full height.
+@media (min-width: 64rem) {
+  .poster__subject {
+    grid-row: 1 / 4;
+    padding-block: 20px 0;
+  }
+
+  .poster__photo {
+    width: min(46%, calc((var(--poster-height) - 21rem) * 0.8));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-card {
+    transition: none;
+  }
 }
