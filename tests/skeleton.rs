@@ -149,9 +149,16 @@ fn internal_links_follow_the_base_url() {
             addresses.extend(page.attributes("link[href]", "href"));
             addresses.extend(page.attributes("img", "src"));
             assert!(!addresses.is_empty());
+            // The site's own host: the base URL up to its path.
+            let origin: String = base.splitn(4, '/').take(3).collect::<Vec<_>>().join("/");
             for address in addresses {
+                // Links out (Playbook PDFs, TikTok, Instagram) live on other hosts and are
+                // used exactly as the Entry gives them. Everything else must follow the base URL.
+                let links_out = address.starts_with("https://")
+                    && address != origin
+                    && !address.starts_with(&format!("{origin}/"));
                 assert!(
-                    address.starts_with(&base),
+                    address.starts_with(&base) || links_out,
                     "{address} on {:?} does not start with {base}",
                     page.path()
                 );
