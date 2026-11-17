@@ -1,7 +1,7 @@
 # edtheginger-site
 
 Personal website of edouardtheginger: the Real or BS list, the Playbooks and the Videos.
-Served first at <https://edouard38000.github.io/edtheginger-site/>, later at edtheginger.com.
+Served at <https://edtheginger.com/>.
 
 Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS, plus one small self-hosted
 script on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without it):
@@ -43,6 +43,8 @@ itself is a Rust tool.
 | `tests/adding_content.rs`, `tests/bad-entries/` | Checks that a broken Entry is refused, with one bad Entry per refusal; one check reads the real Entries for a missing date |
 | `templates/components/validate.html` | The refusals; `templates/entry.html` and every page that lists Entries use them |
 | `docs/adding-content.md` | The guide to adding a Video or a Playbook |
+| `docs/domain.md` | The DNS records for edtheginger.com and the switch-over steps |
+| `static/CNAME`, `tests/domain.rs` | The custom domain, and the checks that it matches `base_url` |
 | `brand-assets/` | Source files for the look. Read and copy only |
 
 A change to one page touches its template, its stylesheet partial and its test file.
@@ -75,4 +77,8 @@ that lists it.
 on `main` deploys `public/` to GitHub Pages. In the repo settings, Pages must have
 "GitHub Actions" as its source.
 
-To move to edtheginger.com, change `base_url` in `config.toml`; nothing else holds the address.
+The site is served at <https://edtheginger.com/>. Three things hold the address: `base_url` in
+`config.toml` (every link is built from it), `static/CNAME` (kept in step with it by
+`tests/domain.rs`) and the custom domain set in the repo's Pages settings. With a GitHub Actions
+deploy, the Pages settings are what actually serve the domain; GitHub ignores the CNAME file. The
+DNS records at Porkbun and the switch-over order are in [`docs/domain.md`](docs/domain.md).
