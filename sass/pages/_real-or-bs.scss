@@ -1,1 +1,239 @@
 // Real or BS page. Owned by ticket #3.
+// The playbook look: orange boxes, yellow and white Montserrat Black, white cards, round badges.
+.real-or-bs {
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-top: 8px;
+
+  // Only read by screen readers (the Playbook's name after the button's words).
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+// A sticker tag, a little crooked.
+.real-or-bs__credit {
+  display: inline-block;
+  margin: 0 0 18px;
+  padding: 4px 10px;
+  background: var(--color-yellow);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgb(25 25 25 / 18%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  transform: rotate(-2deg);
+}
+
+.real-or-bs__title {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  h1 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 0;
+    font-size: clamp(2.125rem, 10vw, 3.375rem);
+  }
+
+  h1 span {
+    padding: 8px 14px;
+    background: var(--color-orange);
+    border-radius: 6px;
+    color: var(--color-yellow);
+  }
+
+  h1 span + span {
+    color: #fff;
+  }
+}
+
+.real-or-bs__check {
+  flex: none;
+  width: 80px;
+  margin-bottom: 6px;
+  transform: rotate(-6deg);
+}
+
+.real-or-bs__intro {
+  margin-bottom: 22px;
+  font-size: 1.0625rem;
+}
+
+// The Tally: two touching orange boxes.
+.tally {
+  display: flex;
+  margin: 0 0 32px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.25rem;
+  line-height: 1.2;
+
+  span {
+    padding: 8px 14px;
+    background: var(--color-orange);
+  }
+}
+
+.tally__real {
+  border-radius: 6px 0 0 6px;
+  color: var(--color-yellow);
+}
+
+.tally__bs {
+  border-left: 2px solid var(--color-background);
+  border-radius: 0 6px 6px 0;
+  color: #fff;
+}
+
+.real-or-bs__heading {
+  margin-bottom: 14px;
+  font-size: 1.125rem;
+  letter-spacing: 0.02em;
+}
+
+.real-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.real-list__item {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+// A strip of tape holding each card of the list.
+.real-list__item:not(.real-list__item--teaser)::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  right: 22px;
+  width: 64px;
+  height: 18px;
+  background: rgb(255 185 38 / 75%);
+  box-shadow: 0 1px 2px rgb(25 25 25 / 12%);
+  transform: rotate(3deg);
+}
+
+.real-list__item:nth-child(odd):not(.real-list__item--teaser)::before {
+  right: auto;
+  left: 40%;
+  transform: rotate(-2deg);
+}
+
+.real-list__number {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--color-orange);
+  border-radius: 50%;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.25rem;
+}
+
+.real-list__body {
+  min-width: 0;
+}
+
+.real-list__tested {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+.real-list__episode {
+  margin: 0 0 8px;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.real-list__description {
+  margin: 0;
+}
+
+.real-list__playbook {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: var(--color-orange);
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.real-list__playbook:hover {
+  background: var(--color-charcoal);
+}
+
+// The teaser for the next number: muted, waiting to be filled.
+.real-list__item--teaser {
+  align-items: center;
+  background: var(--color-pale-fill);
+  border-style: dashed;
+  color: var(--color-muted);
+
+  .real-list__number {
+    background: var(--color-border);
+    color: var(--color-muted);
+  }
+}
+
+.real-list__teaser {
+  flex: 1;
+  margin: 0;
+  font-weight: 700;
+}
+
+.real-list__magnifier {
+  flex: none;
+  width: 56px;
+  margin-block: -6px;
+  opacity: 0.85;
+  transform: rotate(8deg);
+}
+
+.real-or-bs__invite {
+  margin: 30px 0 0;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+@media (min-width: 48rem) {
+  .real-or-bs {
+    padding-top: 24px;
+  }
+
+  .real-or-bs__check {
+    width: 96px;
+  }
+
+  .real-list__item {
+    padding: 20px;
+  }
+}
