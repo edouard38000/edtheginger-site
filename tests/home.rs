@@ -1,5 +1,5 @@
-//! The home page: the Poster (portrait, tool tiles, captions, title), the two entry points and the
-//! latest Video.
+//! The home page: the Poster (lit portrait, beam lines, tool tiles, captions, title), the two entry
+//! points and the latest Video.
 //! Built from the fixture Entries, where the newest Video is "Voice Clone" (2026-01-19, Real or BS,
 //! Instagram only), the Verdicts are two `real` and one `bs`, and there are two Playbooks.
 
@@ -33,7 +33,7 @@ fn the_poster_title_is_the_one_h1() {
 }
 
 #[test]
-fn the_poster_shows_the_cut_out_portrait_resized_with_alt_text() {
+fn the_poster_shows_the_lit_portrait_resized_with_alt_text() {
     let home = home();
     let portraits = home.attributes(".poster img.poster__portrait[alt]:not([alt=''])", "src");
     assert_eq!(portraits.len(), 1, "one portrait on the Poster");
@@ -50,6 +50,184 @@ fn the_poster_shows_the_cut_out_portrait_resized_with_alt_text() {
         0,
         "the taped photo frame is gone from the Poster"
     );
+}
+
+/// The number values of one table of the home page's front matter, e.g. `[extra.beam]`.
+fn front_matter_numbers(table: &str) -> Vec<(String, f64)> {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let text = std::fs::read_to_string(format!("{root}/content/_index.md")).unwrap();
+    numbers_after(&text, &format!("[{table}]"))
+}
+
+/// `key = number` lines after `header` (or from the start when it is empty), up to the next table.
+fn numbers_after(text: &str, header: &str) -> Vec<(String, f64)> {
+    let mut lines = text.lines();
+    if !header.is_empty() {
+        lines
+            .by_ref()
+            .find(|line| line.trim() == header)
+            .unwrap_or_else(|| panic!("{header} is in the file"));
+    }
+    lines
+        .map(|line| line.split('#').next().unwrap().trim())
+        .take_while(|line| !line.starts_with('['))
+        .filter_map(|line| line.split_once('='))
+        .filter_map(|(key, value)| Some((key.trim().to_owned(), value.trim().parse().ok()?)))
+        .collect()
+}
+
+fn number(values: &[(String, f64)], key: &str) -> f64 {
+    values
+        .iter()
+        .find(|(k, _)| k == key)
+        .unwrap_or_else(|| panic!("{key} is set"))
+        .1
+}
+
+/// The width and height of a WebP file: lossy (VP8), lossless (VP8L) or extended (VP8X).
+fn webp_size(bytes: &[u8]) -> (f64, f64) {
+    assert_eq!(&bytes[0..4], b"RIFF");
+    assert_eq!(&bytes[8..12], b"WEBP");
+    let u16le = |at: usize| u32::from(bytes[at]) | u32::from(bytes[at + 1]) << 8;
+    let u24 = |at: usize| u16le(at) | u32::from(bytes[at + 2]) << 16;
+    match &bytes[12..16] {
+        b"VP8X" => (f64::from(u24(24) + 1), f64::from(u24(27) + 1)),
+        b"VP8 " => (f64::from(u16le(26) & 0x3fff), f64::from(u16le(28) & 0x3fff)),
+        b"VP8L" => {
+            let bits = u32::from_le_bytes([bytes[21], bytes[22], bytes[23], bytes[24]]);
+            (
+                f64::from((bits & 0x3fff) + 1),
+                f64::from(((bits >> 14) & 0x3fff) + 1),
+            )
+        }
+        other => panic!("unknown WebP chunk {other:?}"),
+    }
+}
+
+/// The portrait the Poster shows: `portrait` in the home page's front matter, a path under static/.
+fn portrait_file() -> String {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let text = std::fs::read_to_string(format!("{root}/content/_index.md")).unwrap();
+    let line = text
+        .lines()
+        .find(|line| line.trim_start().starts_with("portrait ="))
+        .expect("portrait = \"...\" in content/_index.md");
+    line.split('"').nth(1).unwrap().to_owned()
+}
+
+fn attribute_numbers(home: &Page, selector: &str, attribute: &str) -> Vec<f64> {
+    home.attributes(selector, attribute)
+        .iter()
+        .map(|value| {
+            value
+                .parse()
+                .unwrap_or_else(|_| panic!("{value} is a number"))
+        })
+        .collect()
+}
+
+fn assert_close(found: &[f64], expected: &[f64], what: &str) {
+    assert_eq!(found.len(), expected.len(), "{what}");
+    for (f, e) in found.iter().zip(expected) {
+        assert!(
+            (f - e).abs() < 0.01,
+            "{what}: {found:?} is not {expected:?}"
+        );
+    }
+}
+
+/// The lines are the edges of the light: the template draws them from `[extra.beam]`, measured
+/// in the pixels of the portrait the Poster shows, so they sit on the light at every width.
+#[test]
+fn the_lines_are_the_edges_of_the_light_on_the_portrait() {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let beam = front_matter_numbers("extra.beam");
+    let (x, y, slope, width) = (
+        number(&beam, "x"),
+        number(&beam, "y"),
+        number(&beam, "slope"),
+        number(&beam, "width"),
+    );
+    let image = std::fs::read(format!("{root}/static/{}", portrait_file())).unwrap();
+    let (w, h) = webp_size(&image);
+
+    let home = home();
+    assert_eq!(
+        home.attributes(".poster__lines", "viewBox"),
+        [format!("{} 0 {} {}", -2.0 * w, 5.0 * w, h)],
+        "the lines are drawn in the portrait's pixels"
+    );
+    let (left, right) = (-2.0 * w, 3.0 * w);
+    let edge = |offset: f64, at: f64| y + offset + slope * (at - x);
+    let beam_lines = ".poster__lines line.poster__line--beam";
+    assert_close(
+        &attribute_numbers(&home, beam_lines, "y1"),
+        &[edge(-width / 2.0, left), edge(width / 2.0, left)],
+        "where the beam's edges start",
+    );
+    assert_close(
+        &attribute_numbers(&home, beam_lines, "y2"),
+        &[edge(-width / 2.0, right), edge(width / 2.0, right)],
+        "where the beam's edges end",
+    );
+    assert_eq!(
+        home.count(".poster__lines line"),
+        2,
+        "two lines, the edges of the light"
+    );
+    let stage = home.attributes(".poster", "style").join("");
+    assert!(
+        stage.contains(&format!("--face-x: {}", x / w)),
+        "the face is placed from the beam: {stage}"
+    );
+}
+
+/// The scripted light is only ever the portrait itself: with the AI relight in use, the page adds
+/// no light of its own and does not publish the scripted image. With the scripted portrait in use,
+/// it must have been lit with the current beam: run `scripts/light-portrait` after any change.
+#[test]
+fn the_scripted_light_is_used_only_with_the_scripted_portrait() {
+    let root = env!("CARGO_MANIFEST_DIR");
+    let scripted = "home/portrait-lit.webp";
+    if portrait_file() != scripted {
+        assert!(!site().has_file(scripted), "{scripted} is not published");
+        assert_eq!(
+            home().count(".poster__beam"),
+            0,
+            "no light added on the page"
+        );
+        return;
+    }
+    let used =
+        std::fs::read_to_string(format!("{root}/scripts/light-portrait/beam-used.toml")).unwrap();
+    let used = numbers_after(&used, "");
+    let beam = front_matter_numbers("extra.beam");
+    for key in ["x", "y", "slope", "width", "soft"] {
+        assert_eq!(
+            number(&used, key),
+            number(&beam, key),
+            "{key}: the portrait was lit with another beam; run scripts/light-portrait"
+        );
+    }
+    let published = std::fs::metadata(format!("{root}/static/{scripted}"))
+        .unwrap()
+        .len();
+    assert_eq!(
+        number(&used, "image_bytes"),
+        published as f64,
+        "static/{scripted} is not the file scripts/light-portrait wrote"
+    );
+}
+
+/// `decoding="async"` on the portrait let Chromium paint the Poster without it and add it in a
+/// later raster; with the software renderer that raster could be missed and the Poster showed no
+/// face (PR #20 review). The portrait must decode with the page.
+#[test]
+fn the_portrait_is_not_decoded_asynchronously() {
+    let home = home();
+    assert_eq!(home.count("img.poster__portrait"), 1);
+    assert_eq!(home.count("img.poster__portrait[decoding=async]"), 0);
+    assert_eq!(home.count("img.poster__portrait[loading=lazy]"), 0);
 }
 
 #[test]
@@ -77,7 +255,7 @@ fn the_poster_keeps_its_corner_mark_and_thin_lines() {
     let home = home();
     // The fixtures hold five Videos.
     assert_eq!(home.texts(".poster__mark-number"), ["05"]);
-    assert!(home.count(".poster svg.poster__lines line") >= 3);
+    assert_eq!(home.count(".poster svg.poster__lines line"), 2);
 }
 
 /// The tools of the one list in `content/_index.md`, as (name, logo file) pairs, in order.

@@ -1,0 +1,18 @@
+[package]
+name = "light-portrait"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Makes the Poster's lit portrait (static/home/portrait-lit.webp) and its grain from the cut-out in brand-assets."
+
+# Its own workspace: not part of the site checks, and run by hand only when the portrait or the beam changes.
+[workspace]
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
+webp = "0.3"
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
+
+[profile.release]
+opt-level = 3
