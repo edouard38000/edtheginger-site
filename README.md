@@ -3,9 +3,11 @@
 Personal website of edouardtheginger: the Real or BS list, the Playbooks and the Videos.
 Served at <https://edtheginger.com/>.
 
-Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS, plus one small self-hosted
-script on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without it)
-and one on the Playbook pages (`static/js/playbook.js`, for the Copy buttons; hidden without it):
+Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS, plus small self-hosted
+scripts: one on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without
+it), one on the Playbook pages (`static/js/playbook.js`, for the Copy buttons; hidden without it) and
+two on the home page (`static/js/hero.js`, pausing the Hero video out of view, and `static/js/wheel.js`,
+turning the Wheel and playing its Clips; without them the Hero still plays and the Wheel holds still):
 no third-party scripts, fonts self-hosted. The words used here are defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 ## Build and check

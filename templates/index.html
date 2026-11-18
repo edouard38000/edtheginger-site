@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{# Home page, top to bottom: the Hero, the Wheel's slot, the Playbook shelf, the slot of the Ed's Daily
+{# Home page, top to bottom: the Hero, the Wheel, the Playbook shelf, the slot of the Ed's Daily
    signup, then My Story (opened by the Poster). The shelf and the Poster's count are computed from the
    Entries; the Hero's files and tagline, the Poster's captions and tools, and My Story's text are held
    in content/_index.md. #}
@@ -7,7 +7,9 @@
 {# The Hero owns the top of the page, so the shared header is left out here. #}
 {% block header %}{% endblock header %}
 {#- The Hero's poster is the first thing painted: fetch it before anything else. #}
-{% block head %}<link rel="preload" as="image" href="{{ get_url(path=section.extra.hero.poster) }}" fetchpriority="high">{% endblock head %}
+{% block head %}<link rel="preload" as="image" href="{{ get_url(path=section.extra.hero.poster) }}" fetchpriority="high">
+<script src="{{ get_url(path='js/hero.js', cachebust=true) }}" defer></script>
+<script src="{{ get_url(path='js/wheel.js', cachebust=true) }}" defer></script>{% endblock head %}
 {% block content %}
 {{<validate.entries formats={config.extra.formats} />}}
 {%- set videos_section = get_section(path="videos/_index.md") -%}
@@ -52,8 +54,67 @@
   </nav>
 </section>
 
-{#- The Wheel of the latest Videos fills this slot (#35). #}
-<div class="home-slot home-slot--wheel" data-slot="wheel"></div>
+{#- The Wheel: the eight newest Videos as tilted cards round the top of a wheel whose hub sits low.
+    The rim has sixteen slots (the number is fixed in sass/pages/_home.scss); the Videos fill them
+    in order, newest first, and repeat to fill the rim. The first round is the one list a screen
+    reader gets; the repeats are hidden from it and cannot be focused. Each card shows the Video's
+    still and links to it on TikTok, else Instagram. The page never loads a Clip: its address waits
+    in data-src until static/js/wheel.js needs it. Without that script the Wheel holds still and
+    shows the stills; the script turns it (a CSS animation of one element) and plays the Clips at
+    the top of the rim, never with "reduce motion". No Videos, no Wheel. -#}
+{%- set wheel_videos = videos | sort(attribute="date") | reverse -%}
+{%- set wheel_videos = wheel_videos[:8] -%}
+{%- set wheel_count = wheel_videos | length -%}
+{% if wheel_count > 0 -%}
+<section class="wheel" data-slot="wheel" aria-labelledby="wheel-heading">
+  <header class="wheel__header">
+    <h2 class="wheel__title" id="wheel-heading">Latest Videos</h2>
+    <p class="wheel__tagline">Pick one to watch</p>
+  </header>
+  <div class="wheel__stage">
+    <div class="wheel__hub" aria-hidden="true">
+      <svg class="wheel__mark" viewBox="0 0 40 40" width="40" height="40" focusable="false"><path d="M20 0 C21.5 13 27 18.5 40 20 C27 21.5 21.5 27 20 40 C18.5 27 13 21.5 0 20 C13 18.5 18.5 13 20 0 Z"/></svg>
+    </div>
+    <div class="wheel__ring">
+      <ul class="wheel__list">
+      {%- for slot in range(end=16) %}
+      {%- set first_round = slot < wheel_count %}
+      {%- if slot == wheel_count %}
+      </ul>
+      <div class="wheel__repeats" aria-hidden="true">
+      {%- endif %}
+      {%- set video = wheel_videos | nth(n=slot % wheel_count) %}
+      {%- set link = video.extra.tiktok | default(value=video.extra.instagram | default(value="")) %}
+      {%- if video.extra.tiktok %}{% set platform = "TikTok" %}{% else %}{% set platform = "Instagram" %}{% endif %}
+        <{% if first_round %}li{% else %}div{% endif %} class="wheel__slot" style="--slot: {{ slot }}">
+          {%- if link %}
+          <a class="wheel__card" href="{{ link | safe }}" rel="noopener"{% if first_round %} aria-label="Watch {{ video.title }} on {{ platform }}"{% else %} tabindex="-1"{% endif %}>
+          {%- else %}
+          <span class="wheel__card">{% if first_round %}<span class="playbooks__sr-only">{{ video.title }}</span>{% endif %}
+          {%- endif %}
+            {%- set still = get_image_metadata(path="static/" ~ video.extra.still) %}
+            <img class="wheel__still" src="{{ get_url(path=video.extra.still) }}" width="{{ still.width }}" height="{{ still.height }}" alt="" loading="lazy" decoding="async">
+            <video class="wheel__clip" data-src="{{ get_url(path=video.extra.clip) }}" muted playsinline loop preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+          {%- if link %}
+          </a>
+          {%- else %}
+          </span>
+          {%- endif %}
+        </{% if first_round %}li{% else %}div{% endif %}>
+      {%- endfor %}
+      {%- if wheel_count < 16 %}
+      </div>
+      {%- else %}
+      </ul>
+      {%- endif %}
+    </div>
+  </div>
+  {#- The pause button: shown by the script while the Wheel turns. #}
+  <button class="wheel__toggle" type="button" aria-pressed="false" hidden>
+    <span class="wheel__toggle-icon" aria-hidden="true"></span><span class="playbooks__sr-only">Pause the videos</span>
+  </button>
+</section>
+{%- endif %}
 
 {#- The Playbook shelf: the newest Playbooks (at most six), each with its cover and its button (to its page, or to its PDF).
     The cards are the Playbooks page's cards, cut down; a Playbook with no cover gets the title
