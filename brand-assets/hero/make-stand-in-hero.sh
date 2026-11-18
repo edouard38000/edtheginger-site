@@ -1,36 +1,52 @@
 #!/usr/bin/env bash
-# Makes the stand-in Hero of the home page from Edouard's relit portrait, with ffmpeg and cwebp:
-#   static/home/hero.mp4         about 6 s, 720 x 1280, 30 fps, H.264, no audio track, fast-start
-#   static/home/hero-poster.webp its first frame, shown before the video plays and with "reduce motion"
+# Makes the two stand-in Heroes of the home page from Edouard's relit portrait, with ffmpeg and cwebp:
+#   static/home/hero.mp4              tall: about 6 s, 720 x 1280 (9:16), for portrait screens (phones)
+#   static/home/hero-poster.webp      its first frame
+#   static/home/hero-wide.mp4         wide: the same 6 s, 1280 x 720 (16:9), for landscape screens
+#   static/home/hero-wide-poster.webp its first frame
+# Both videos: 30 fps, H.264, no audio track, fast-start. A poster is shown before its video plays
+# and with "reduce motion".
 #
 # Hard cuts between black-and-white, negative and orange grades of the portrait, each shot with its
 # own crop and a slow zoom in or out, so the cuts feel like different shots. The cuts start 0.2 s
-# apart, speed up to 0.1 s, then slow down to 0.3 s before the loop starts again.
+# apart, speed up to 0.1 s, then slow down to 0.3 s before the loop starts again. The wide one has
+# the same shots in the same order, grades and rhythm; its crops are 16:9 boxes round the same
+# parts of the face. The portrait is taller than wide, so the wide one's widest shot is the full
+# width of the portrait, head to chest: nothing is stretched or padded.
 #
-# Shell and not Rust: it only chains two ffmpeg calls and builds one filter graph, and the repo's
+# Shell and not Rust: it only chains ffmpeg calls and builds one filter graph, and the repo's
 # Rust crate is the check harness, not a place for one-off asset tools.
 #
-# Run from the repo root:  brand-assets/hero/make-stand-in-hero.sh
-# The real Hero (made in the editing project with Higgsfield) replaces the two files; see
+# Run from the repo root:  brand-assets/hero/make-stand-in-hero.sh [tall|wide|both]   (default: both)
+# The real Hero (made in the editing project with Higgsfield) replaces the four files; see
 # [extra.hero] in content/_index.md.
 set -euo pipefail
 
+which=${1:-both}
 source_image="brand-assets/portrait/portrait-relit-ai.png" # 1824 x 2288
-video="static/home/hero.mp4"
-poster="static/home/hero-poster.webp"
 
 # Length of each shot in frames at 30 fps: 0.2 s, speeding up to 0.1 s, slowing down to 0.3 s.
 frames=(6 6 6 6 5 5 4 4 3 3 3 3 3 3 3 3 3 3 4 4 5 5 6 6 7 7 8 8 9 9 9 9 9 9)
 
-# Crops of the portrait, all 9:16, as "width:height:x:y" in the source's pixels.
-crops=(
-  "1287:2288:250:0"    # the whole portrait
-  "540:960:625:520"    # the face
-  "450:800:670:640"    # the eyes
-  "810:1440:490:250"   # head and shoulders
-  "675:1200:1000:300"  # off to the right, the face on the left edge
-  "675:1200:300:500"   # off to the left, the face on the right edge
-  "608:1080:590:950"   # mouth and collar
+# Crops of the portrait, as "width:height:x:y" in the source's pixels. The same seven shots for
+# both: the tall ones 9:16, the wide ones 16:9 round the same part of the face.
+tall_crops=(
+  "1287:2288:250:0"   # the whole portrait
+  "540:960:625:520"   # the face
+  "450:800:670:640"   # the eyes
+  "810:1440:490:250"  # head and shoulders
+  "675:1200:1000:300" # off to the right, the face on the left edge
+  "675:1200:300:500"  # off to the left, the face on the right edge
+  "608:1080:590:950"  # mouth and collar
+)
+wide_crops=(
+  "1824:1026:0:420"   # the full width, head to chest
+  "1280:720:255:640"  # the face
+  "1024:576:383:752"  # the eyes
+  "1600:900:95:520"   # head and shoulders
+  "1067:600:757:600"  # off to the right, the face on the left edge
+  "1067:600:0:800"    # off to the left, the face on the right edge
+  "1280:720:255:1150" # mouth and collar
 )
 
 # Grades: black-and-white, negative, orange. All stay dark at the edges, where the white text sits:
@@ -42,31 +58,52 @@ grades=(
   "format=gray,eq=contrast=1.35:brightness=0.02,format=rgb24,colorchannelmixer=rr=1:rg=0:rb=0:gr=0.36:gg=0:gb=0:br=0.04:bg=0:bb=0"
 )
 
-count=${#frames[@]}
-graph="[0:v]format=rgb24,split=${count}"
-for ((i = 0; i < count; i++)); do graph+="[s${i}]"; done
-graph+=";"
-for ((i = 0; i < count; i++)); do
-  crop=${crops[$(((i * 3) % ${#crops[@]}))]}
-  grade=${grades[$((i % ${#grades[@]}))]}
-  d=${frames[$i]}
-  # Every other shot zooms in, the others zoom out: about 0.6 % per frame.
-  if ((i % 2 == 0)); then zoom="1+0.006*on"; else zoom="1.12-0.006*on"; fi
-  graph+="[s${i}]crop=${crop},scale=1440:2560:flags=lanczos,${grade},"
-  graph+="zoompan=z='${zoom}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=${d}:s=720x1280:fps=30,"
-  graph+="setsar=1,setpts=PTS-STARTPTS[v${i}];"
-done
-for ((i = 0; i < count; i++)); do graph+="[v${i}]"; done
-graph+="concat=n=${count}:v=1:a=0,format=yuv420p[out]"
+# make_hero <video> <poster> <width> <height> <crop>...
+make_hero() {
+  local video=$1 poster=$2 width=$3 height=$4
+  shift 4
+  local crops=("$@")
+  local count=${#frames[@]}
+  local graph="[0:v]format=rgb24,split=${count}"
+  local i crop grade d zoom first_frame
+  for ((i = 0; i < count; i++)); do graph+="[s${i}]"; done
+  graph+=";"
+  for ((i = 0; i < count; i++)); do
+    crop=${crops[$(((i * 3) % ${#crops[@]}))]}
+    grade=${grades[$((i % ${#grades[@]}))]}
+    d=${frames[$i]}
+    # Every other shot zooms in, the others zoom out: about 0.6 % per frame.
+    if ((i % 2 == 0)); then zoom="1+0.006*on"; else zoom="1.12-0.006*on"; fi
+    graph+="[s${i}]crop=${crop},scale=$((width * 2)):$((height * 2)):flags=lanczos,${grade},"
+    graph+="zoompan=z='${zoom}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=${d}:s=${width}x${height}:fps=30,"
+    graph+="setsar=1,setpts=PTS-STARTPTS[v${i}];"
+  done
+  for ((i = 0; i < count; i++)); do graph+="[v${i}]"; done
+  graph+="concat=n=${count}:v=1:a=0,format=yuv420p[out]"
 
-ffmpeg -y -v error -i "$source_image" -filter_complex "$graph" -map "[out]" -an \
-  -c:v libx264 -preset veryslow -crf 28 -profile:v high -pix_fmt yuv420p \
-  -movflags +faststart "$video"
+  ffmpeg -y -v error -i "$source_image" -filter_complex "$graph" -map "[out]" -an \
+    -c:v libx264 -preset veryslow -crf 28 -profile:v high -pix_fmt yuv420p \
+    -movflags +faststart "$video"
 
-# The poster: the first frame, as WebP (cwebp, from Homebrew's webp package).
-first_frame=$(mktemp -t hero-poster).png
-ffmpeg -y -v error -i "$video" -frames:v 1 "$first_frame"
-cwebp -quiet -q 78 "$first_frame" -o "$poster"
-rm "$first_frame"
+  # The poster: the first frame, as WebP (cwebp, from Homebrew's webp package).
+  first_frame=$(mktemp -t hero-poster).png
+  ffmpeg -y -v error -i "$video" -frames:v 1 "$first_frame"
+  cwebp -quiet -q 78 "$first_frame" -o "$poster"
+  rm "$first_frame"
 
-ls -l "$video" "$poster"
+  ls -l "$video" "$poster"
+}
+
+case $which in
+  tall | wide | both) ;;
+  *)
+    echo "usage: $0 [tall|wide|both]" >&2
+    exit 1
+    ;;
+esac
+if [[ $which != wide ]]; then
+  make_hero static/home/hero.mp4 static/home/hero-poster.webp 720 1280 "${tall_crops[@]}"
+fi
+if [[ $which != tall ]]; then
+  make_hero static/home/hero-wide.mp4 static/home/hero-wide-poster.webp 1280 720 "${wide_crops[@]}"
+fi

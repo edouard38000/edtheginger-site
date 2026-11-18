@@ -111,95 +111,183 @@ fn the_hero_tagline_is_text_held_in_the_front_matter() {
     );
 }
 
+/// The Hero's two pairs of files: (video key, poster key) in `[extra.hero]`, tall then wide.
+const HERO_PAIRS: [(&str, &str); 2] = [("video", "poster"), ("wide_video", "wide_poster")];
+
+/// The orientation each pair is for, in the same order as `HERO_PAIRS`.
+const PORTRAIT: &str = "(orientation: portrait)";
+const LANDSCAPE: &str = "(orientation: landscape)";
+
+const HERO_VIDEO: &str = "section.hero video.hero__video";
+
 #[test]
 fn the_hero_video_is_muted_loops_plays_inline_and_has_a_poster() {
     let home = home();
-    let video = "section.hero video.hero__video";
-    assert_eq!(home.count(video), 1);
-    for attribute in ["autoplay", "muted", "loop", "playsinline", "poster"] {
+    assert_eq!(home.count(HERO_VIDEO), 1);
+    for attribute in ["autoplay", "muted", "loop", "playsinline"] {
         assert_eq!(
-            home.count(&format!("{video}[{attribute}]")),
+            home.count(&format!("{HERO_VIDEO}[{attribute}]")),
             1,
             "the Hero video has {attribute}"
         );
     }
-    assert_eq!(home.attributes(video, "preload"), ["metadata"]);
+    assert_eq!(home.attributes(HERO_VIDEO, "preload"), ["metadata"]);
     assert_eq!(
-        home.count(&format!("{video} track")),
+        home.count(&format!("{HERO_VIDEO} track")),
         0,
         "no captions to read"
     );
     assert_eq!(
-        home.count(&format!("{video}[controls]")),
+        home.count(&format!("{HERO_VIDEO}[controls]")),
         0,
         "no controls on the Hero"
+    );
+    assert_eq!(
+        home.count(".hero__stage > picture.hero__poster + video.hero__video"),
+        1,
+        "the poster is a picture under the video"
+    );
+    assert_eq!(
+        home.count(&format!("{HERO_VIDEO}[poster]")),
+        0,
+        "the video has no poster of its own: it would show the tall one on wide screens too"
+    );
+    assert_eq!(
+        home.attributes(".hero__poster img", "alt"),
+        [""],
+        "decorative"
     );
 }
 
 #[test]
 fn the_hero_files_come_from_the_one_setting_and_are_published() {
     let home = home();
-    let video_file = front_matter_text("video");
-    let poster_file = front_matter_text("poster");
-    let video = "section.hero video.hero__video";
+    let address = |key: &str| format!("{SUB_PATH_BASE_URL}/{}", front_matter_text(key));
     assert_eq!(
-        home.attributes(&format!("{video} source"), "src"),
-        [format!("{SUB_PATH_BASE_URL}/{video_file}")]
+        home.attributes(&format!("{HERO_VIDEO} source"), "src"),
+        [address("video"), address("wide_video")],
+        "the tall video, then the wide one"
     );
     assert_eq!(
-        home.attributes(video, "poster"),
-        [format!("{SUB_PATH_BASE_URL}/{poster_file}")]
+        home.attributes(".hero__poster source", "srcset"),
+        [address("wide_poster")],
+        "the wide poster for landscape screens"
     );
-    assert!(site().has_file(&video_file), "{video_file} is published");
-    assert!(site().has_file(&poster_file), "{poster_file} is published");
+    assert_eq!(
+        home.attributes(".hero__poster img", "src"),
+        [address("poster")],
+        "the tall poster otherwise"
+    );
     let template = template();
-    for file in [&video_file, &poster_file] {
-        assert!(
-            !template.contains(file.as_str()),
-            "{file} is not typed in the template: swapping the Hero needs no template change"
-        );
+    for (video, poster) in HERO_PAIRS {
+        for file in [front_matter_text(video), front_matter_text(poster)] {
+            assert!(site().has_file(&file), "{file} is published");
+            assert!(
+                !template.contains(file.as_str()),
+                "{file} is not typed in the template: swapping the Hero needs no template change"
+            );
+        }
+    }
+}
+
+/// One video per page view: each source matches one orientation only, so exactly one matches.
+/// Both name "no reduce motion", so with "reduce motion" none matches, the video stays empty
+/// and the poster under it shows, with or without JavaScript. The tall one comes first: a
+/// browser that ignores `media` on a source plays it, and most visitors are on phones.
+#[test]
+fn each_screen_downloads_one_hero_video_and_reduce_motion_plays_none() {
+    let home = home();
+    assert_eq!(
+        home.attributes(&format!("{HERO_VIDEO} source"), "media"),
+        [
+            format!("{PORTRAIT} and (prefers-reduced-motion: no-preference)"),
+            format!("{LANDSCAPE} and (prefers-reduced-motion: no-preference)"),
+        ]
+    );
+    assert_eq!(
+        home.attributes(&format!("{HERO_VIDEO} source"), "type"),
+        ["video/mp4", "video/mp4"]
+    );
+    assert_eq!(
+        home.attributes(".hero__poster source", "media"),
+        [LANDSCAPE],
+        "the poster follows the same split"
+    );
+    let css = site().file("main.css");
+    let reduce = css
+        .match_indices("@media (prefers-reduced-motion: reduce)")
+        .map(|(at, _)| &css[at..at + css[at..].find('}').unwrap()])
+        .find(|rule| rule.contains(".hero__video"))
+        .expect("with reduce motion the empty video is taken out, so the poster shows");
+    assert!(reduce.replace(' ', "").contains("display:none"), "{reduce}");
+}
+
+#[test]
+fn the_hero_videos_are_under_one_and_a_half_megabytes_and_the_posters_are_light() {
+    let size = |key: &str| {
+        std::fs::metadata(format!("{ROOT}/static/{}", front_matter_text(key)))
+            .unwrap()
+            .len()
+    };
+    for (video, poster) in HERO_PAIRS {
+        let bytes = size(video);
+        assert!(bytes < 1_500_000, "the Hero {video} is {bytes} bytes");
+        let bytes = size(poster);
+        assert!(bytes < 100_000, "the Hero {poster} is {bytes} bytes");
     }
 }
 
 #[test]
-fn the_hero_video_is_under_one_and_a_half_megabytes_and_the_poster_is_light() {
-    let video = std::fs::metadata(format!("{ROOT}/static/{}", front_matter_text("video")))
-        .unwrap()
-        .len();
-    assert!(video < 1_500_000, "the Hero video is {video} bytes");
-    let poster = std::fs::metadata(format!("{ROOT}/static/{}", front_matter_text("poster")))
-        .unwrap()
-        .len();
-    assert!(poster < 100_000, "the Hero poster is {poster} bytes");
+fn the_hero_videos_have_no_audio_track_and_start_fast() {
+    for (video, _) in HERO_PAIRS {
+        let bytes = std::fs::read(format!("{ROOT}/static/{}", front_matter_text(video))).unwrap();
+        let find = |tag: &[u8]| bytes.windows(4).position(|window| window == tag);
+        let moov = find(b"moov").expect("an MP4 with a moov box");
+        let mdat = find(b"mdat").expect("an MP4 with an mdat box");
+        assert!(
+            moov < mdat,
+            "{video}: fast-start, the index comes before the media"
+        );
+        assert!(find(b"vide").is_some(), "{video}: a video track");
+        assert!(find(b"soun").is_none(), "{video}: no audio track");
+        assert!(find(b"avc1").is_some(), "{video}: H.264");
+    }
 }
 
+/// The tall pair is 9:16 and the wide pair 16:9, read from the posters (each its video's first
+/// frame).
 #[test]
-fn the_hero_video_has_no_audio_track_and_starts_fast() {
-    let bytes = std::fs::read(format!("{ROOT}/static/{}", front_matter_text("video"))).unwrap();
-    let find = |tag: &[u8]| bytes.windows(4).position(|window| window == tag);
-    let moov = find(b"moov").expect("an MP4 with a moov box");
-    let mdat = find(b"mdat").expect("an MP4 with an mdat box");
-    assert!(moov < mdat, "fast-start: the index comes before the media");
-    assert!(find(b"vide").is_some(), "a video track");
-    assert!(find(b"soun").is_none(), "no audio track");
-    assert!(find(b"avc1").is_some(), "H.264");
-}
-
-/// With "reduce motion" the video has no source to play, so it shows its poster and never plays,
-/// with or without JavaScript.
-#[test]
-fn with_reduce_motion_the_hero_shows_its_poster_and_does_not_play() {
+fn the_tall_hero_is_nine_by_sixteen_and_the_wide_one_sixteen_by_nine() {
     let home = home();
-    let sources = "section.hero video.hero__video source";
-    assert_eq!(home.count(sources), 1, "one source");
-    assert_eq!(
-        home.attributes(sources, "media"),
-        ["(prefers-reduced-motion: no-preference)"]
+    let size = |selector: &str| {
+        let width: u32 = home.attributes(selector, "width")[0].parse().unwrap();
+        let height: u32 = home.attributes(selector, "height")[0].parse().unwrap();
+        (width, height)
+    };
+    let (width, height) = size(".hero__poster img");
+    assert_eq!(width * 16, height * 9, "tall poster {width} x {height}");
+    let (width, height) = size(".hero__poster source");
+    assert_eq!(width * 9, height * 16, "wide poster {width} x {height}");
+}
+
+/// On landscape screens the stage is the full width (16:9), the orientation the sources use.
+#[test]
+fn on_landscape_screens_the_hero_is_full_width() {
+    let css = site().file("main.css");
+    let landscape = css
+        .find("@media (orientation: landscape)")
+        .expect("a landscape rule for the Hero");
+    let rule = &css[landscape..];
+    let rule = &rule[..rule.find('}').unwrap()];
+    assert!(rule.contains(".hero"), "{rule}");
+    assert!(
+        rule.replace(' ', "").contains("--hero-width:100%"),
+        "{rule}"
     );
 }
 
-/// The Hero video pauses out of view and when the tab is hidden: static/js/hero.js, loaded
-/// with `defer`.
+/// The Hero video pauses out of view and when the tab is hidden, and picks its file again when
+/// the screen turns: static/js/hero.js, loaded with `defer`.
 #[test]
 fn the_hero_script_pauses_the_video_out_of_view() {
     let site = site();
@@ -216,21 +304,30 @@ fn the_hero_script_pauses_the_video_out_of_view() {
         "IntersectionObserver",
         "visibilitychange",
         "(prefers-reduced-motion: reduce)",
+        LANDSCAPE,
+        "video.load()",
     ] {
         assert!(script.contains(needed), "hero.js uses {needed}");
     }
 }
 
+/// Each orientation preloads its own poster only.
 #[test]
 fn the_hero_poster_is_fetched_first() {
     let site = site();
     let page = site.file("index.html");
-    let poster = format!("{SUB_PATH_BASE_URL}/{}", front_matter_text("poster"));
-    let preload =
-        format!("<link rel=\"preload\" as=\"image\" href=\"{poster}\" fetchpriority=\"high\">");
-    assert!(page.contains(&preload), "the Hero poster is preloaded");
+    for (key, media) in [("poster", PORTRAIT), ("wide_poster", LANDSCAPE)] {
+        let poster = format!("{SUB_PATH_BASE_URL}/{}", front_matter_text(key));
+        let preload = format!(
+            "<link rel=\"preload\" as=\"image\" href=\"{poster}\" media=\"{media}\" fetchpriority=\"high\">"
+        );
+        assert!(
+            page.contains(&preload),
+            "the Hero {key} is preloaded for {media}"
+        );
+    }
     assert_eq!(
-        home().count("img[fetchpriority=high]"),
+        home().count("img[fetchpriority=high]:not(.hero__poster img)"),
         0,
         "no other image competes with it"
     );

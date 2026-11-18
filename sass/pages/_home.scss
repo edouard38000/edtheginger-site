@@ -35,16 +35,21 @@
 }
 
 // ---------------------------------------------------------------------------
-// The Hero: the vertical video, full width on a phone and centred on a dark backdrop on
-// wider screens, under a fixed layer of white text: EDOUARD left and THE GINGER right of a
-// centre mark, the tagline small at the foot. The row of links sits under the video.
+// The Hero: the video under a fixed layer of white text: EDOUARD left and THE GINGER right of a
+// centre mark, the tagline small at the foot. The row of links sits under the video. Portrait
+// screens (phones) get the tall video (9:16), full width; landscape screens get the wide one
+// (16:9), full width too, with no empty sides. The orientation here is the one the template's
+// <source media> picks the file by.
 // ---------------------------------------------------------------------------
 .hero {
   // The first screen holds the video and the links, above the Dock.
   --hero-dock: calc(var(--dock-height) + var(--dock-gap) * 2 + env(safe-area-inset-bottom, 0px));
   --hero-links: 52px;
-  // 9:16, as tall as the screen allows: the full width of a phone, narrower on wide screens.
-  --hero-height: min(100vw * 16 / 9, max(28rem, 100svh - var(--hero-dock) - var(--hero-links)));
+  // The room the first screen leaves for the video.
+  --hero-room: max(28rem, 100svh - var(--hero-dock) - var(--hero-links));
+  // 9:16, as tall as the screen allows: the full width of a phone.
+  --hero-width: min(100vw, var(--hero-room) * 9 / 16);
+  --hero-height: min(100vw * 16 / 9, var(--hero-room));
   --hero-ink: #fff;
 
   position: relative;
@@ -55,19 +60,41 @@
   color: var(--hero-ink);
 }
 
+// 16:9 on landscape screens: always the full width, as tall as the first screen allows. When the
+// screen is shorter than 16:9, the video is cropped a little at the top and bottom, never
+// letterboxed.
+@media (orientation: landscape) {
+  .hero {
+    --hero-width: 100%;
+    --hero-height: min(100vw * 9 / 16, var(--hero-room));
+  }
+}
+
 .hero__stage {
   position: relative;
-  width: calc(var(--hero-height) * 9 / 16);
+  width: var(--hero-width);
   height: var(--hero-height);
   margin-inline: auto;
 }
 
+// The poster sits under the video, which is see-through until its first frame and stays so with
+// "reduce motion" (no source).
+.hero__poster img,
 .hero__video {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #0b0908;
+}
+
+// With "reduce motion" no source matches, so the video has nothing to show: take it out, so the
+// poster shows even when the setting is switched on after the video played.
+@media (prefers-reduced-motion: reduce) {
+  .hero__video {
+    display: none;
+  }
 }
 
 // A shade over the video where the text sits (the middle band and the foot), so the white text
