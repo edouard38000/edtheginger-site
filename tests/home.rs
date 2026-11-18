@@ -1,5 +1,5 @@
-//! The home page, top to bottom: the Hero (video, name, tagline, links), the Wheel's slot, the
-//! Playbook shelf, the Ed's Daily slot and My Story (the Poster: lit portrait, beam lines, tool
+//! The home page, top to bottom: the Hero (video, name, tagline, links), the Wheel (the newest
+//! Videos on a turning wheel), the Playbook shelf, the Ed's Daily slot and My Story (the Poster: lit portrait, beam lines, tool
 //! tiles, captions, title; then the story text or the coming-soon line).
 //! Built from the fixture Entries: five Videos, and two Playbooks, "Prompt Pack" (2026-01-20, no
 //! cover) and "Inbox Zero" (2026-01-12, with a cover).
@@ -47,11 +47,11 @@ fn the_sections_are_hero_wheel_playbooks_eds_daily_my_story() {
     let home = home();
     assert_eq!(
         home.count(
-            "main > section.hero + .home-slot[data-slot=wheel] + section.shelf \
+            "main > section.hero + section.wheel[data-slot=wheel] + section.shelf \
              + .home-slot[data-slot=eds-daily] + section.story"
         ),
         1,
-        "Hero, the Wheel's slot, the Playbook shelf, the Ed's Daily slot, My Story, in that order"
+        "Hero, the Wheel, the Playbook shelf, the Ed's Daily slot, My Story, in that order"
     );
     assert_eq!(
         home.count("main > *"),
@@ -230,17 +230,277 @@ fn the_hero_links_go_to_the_three_other_pages() {
 // --- The slots ---------------------------------------------------------------------------------
 
 #[test]
-fn the_wheel_and_eds_daily_slots_are_empty_for_now() {
+fn the_eds_daily_slot_is_empty_for_now() {
     let home = home();
-    for slot in ["wheel", "eds-daily"] {
-        let selector = format!(".home-slot[data-slot={slot}]");
-        assert_eq!(home.count(&selector), 1, "the {slot} slot");
+    let selector = ".home-slot[data-slot=eds-daily]";
+    assert_eq!(home.count(selector), 1, "the Ed's Daily slot");
+    assert_eq!(
+        home.count(&format!("{selector} *")),
+        0,
+        "the Ed's Daily slot is empty"
+    );
+}
+
+// --- The Wheel ---------------------------------------------------------------------------------
+// The fixtures hold five Videos; newest first: Voice Clone (Instagram only), Repo Radar (both
+// links), Inbox Zero (TikTok only), First Hackathon (no link yet), Robot Barista (both links).
+
+const WHEEL_LIST: &str = "section.wheel .wheel__ring > ul.wheel__list > li.wheel__slot";
+const WHEEL_REPEATS: &str = "section.wheel .wheel__ring > .wheel__repeats > .wheel__slot";
+
+/// The names a screen reader hears for the cards of the Wheel's list, in order.
+fn wheel_names(home: &Page) -> Vec<String> {
+    let linked = home.attributes(&format!("{WHEEL_LIST} a.wheel__card"), "aria-label");
+    let unlinked = home.texts(&format!(
+        "{WHEEL_LIST} span.wheel__card .playbooks__sr-only"
+    ));
+    let mut linked = linked.into_iter();
+    let mut unlinked = unlinked.into_iter();
+    // A slot holds a link or, for a Video with no link yet, a plain card with its title.
+    home.attributes(WHEEL_LIST, "style")
+        .iter()
+        .enumerate()
+        .map(|(index, _)| {
+            let slot = format!("{WHEEL_LIST}:nth-child({})", index + 1);
+            if home.count(&format!("{slot} a.wheel__card")) == 1 {
+                linked.next().unwrap()
+            } else {
+                unlinked.next().unwrap()
+            }
+        })
+        .collect()
+}
+
+#[test]
+fn the_wheel_is_named_by_its_heading() {
+    let home = home();
+    let label = home.attributes("section.wheel", "aria-labelledby");
+    assert_eq!(label.len(), 1, "the Wheel is labelled");
+    assert_eq!(
+        home.texts(&format!("section.wheel h2#{}", label[0])),
+        ["Latest Videos"]
+    );
+    assert_eq!(home.count("section.wheel .wheel__tagline"), 1);
+}
+
+#[test]
+fn the_wheel_lists_the_videos_newest_first_each_linking_out() {
+    let home = home();
+    assert_eq!(
+        wheel_names(&home),
+        [
+            "Watch Voice Clone on Instagram",
+            "Watch Repo Radar on TikTok",
+            "Watch Inbox Zero on TikTok",
+            "First Hackathon",
+            "Watch Robot Barista on TikTok",
+        ],
+        "one list item per Video, newest first, each named with its title"
+    );
+    assert_eq!(
+        home.attributes(&format!("{WHEEL_LIST} a.wheel__card"), "href"),
+        [
+            "https://www.instagram.com/reel/FIXTURE0003/",
+            "https://www.tiktok.com/@fixture/video/1000000000000000004",
+            "https://www.tiktok.com/@fixture/video/1000000000000000002",
+            "https://www.tiktok.com/@fixture/video/1000000000000000001",
+        ],
+        "TikTok first, else Instagram; a Video with no link yet is a card without one"
+    );
+}
+
+/// A Video Entry dated `2026-02-<day>`, with a TikTok link and the fixture Clip.
+fn video_entry(day: u32) -> String {
+    format!(
+        "+++\ntitle = \"New {day:02}\"\ndate = 2026-02-{day:02}\n\
+         description = \"Fixture: one more Video.\"\n\n[extra]\nformat = \"Talking head\"\n\
+         cover = \"covers/fixture-cover.png\"\n\
+         tiktok = \"https://www.tiktok.com/@fixture/video/20000000000000000{day:02}\"\n\
+         clip = \"clips/fixture-clip.mp4\"\nstill = \"clips/fixture-clip.webp\"\n+++\n"
+    )
+}
+
+#[test]
+fn the_wheel_shows_the_eight_newest_videos() {
+    let entries: Vec<(String, String)> = (1..=4)
+        .map(|day| (format!("content/videos/new-{day:02}.md"), video_entry(day)))
+        .collect();
+    let files: Vec<(&str, &[u8])> = entries
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.as_bytes()))
+        .collect();
+    let site = Site::try_build_with(&files).unwrap_or_else(|message| panic!("{message}"));
+    let home = site.page("");
+    assert_eq!(
+        wheel_names(&home),
+        [
+            "Watch New 04 on TikTok",
+            "Watch New 03 on TikTok",
+            "Watch New 02 on TikTok",
+            "Watch New 01 on TikTok",
+            "Watch Voice Clone on Instagram",
+            "Watch Repo Radar on TikTok",
+            "Watch Inbox Zero on TikTok",
+            "First Hackathon",
+        ],
+        "nine Videos, the eight newest on the Wheel, newest first"
+    );
+    // Sixteen slots: the eight, then the same eight again, hidden.
+    assert_eq!(home.count(WHEEL_REPEATS), 8);
+    assert_eq!(
+        home.attributes(&format!("{WHEEL_REPEATS} a.wheel__card"), "href"),
+        home.attributes(&format!("{WHEEL_LIST} a.wheel__card"), "href"),
+        "the repeats are the same Videos in the same order"
+    );
+}
+
+#[test]
+fn the_rim_is_filled_by_repeats_hidden_from_screen_readers_and_the_keyboard() {
+    let home = home();
+    assert_eq!(home.count(WHEEL_LIST), 5);
+    assert_eq!(home.count(WHEEL_REPEATS), 11, "sixteen slots round the rim");
+    assert_eq!(
+        home.attributes(".wheel__slot", "style"),
+        (0..16)
+            .map(|slot| format!("--slot: {slot}"))
+            .collect::<Vec<_>>(),
+        "each slot knows its place on the rim"
+    );
+    assert_eq!(
+        home.count(".wheel__ring > .wheel__repeats[aria-hidden=true]"),
+        1
+    );
+    let repeat_links = format!("{WHEEL_REPEATS} a");
+    assert!(home.count(&repeat_links) > 0);
+    assert_eq!(
+        home.count(&format!("{repeat_links}[tabindex='-1']")),
+        home.count(&repeat_links),
+        "no repeated card takes the keyboard focus"
+    );
+    assert_eq!(home.count(&format!("{WHEEL_REPEATS} [aria-label]")), 0);
+    assert_eq!(
+        home.count(&format!("{WHEEL_REPEATS} .playbooks__sr-only")),
+        0
+    );
+}
+
+#[test]
+fn the_ring_is_the_one_element_that_turns() {
+    let home = home();
+    assert_eq!(home.count("section.wheel .wheel__ring"), 1);
+    assert_eq!(
+        home.count(".wheel__ring .wheel__slot"),
+        16,
+        "every card turns with the ring"
+    );
+    let css = site().file("main.css");
+    assert!(
+        css.contains(".wheel--turning .wheel__ring{animation:wheel-turn 32s infinite"),
+        "the ring turns by a CSS animation, 2 s per slot"
+    );
+    assert!(css.contains("@keyframes wheel-turn{0%{transform:rotate(0deg)"));
+    assert!(
+        css.contains("100%{transform:rotate(360deg)}"),
+        "clockwise, one full turn per loop"
+    );
+}
+
+#[test]
+fn no_clip_is_loaded_by_the_page_itself() {
+    let home = home();
+    let clips = "section.wheel video.wheel__clip";
+    assert_eq!(home.count(clips), 16, "a Clip per card");
+    assert_eq!(
+        home.count(&format!("{clips}[src]")),
+        0,
+        "no Clip address in src"
+    );
+    assert_eq!(home.count(&format!("{clips} source")), 0);
+    assert_eq!(
+        home.count(&format!("{clips}[poster]")),
+        0,
+        "the still is the image under it"
+    );
+    for attribute in ["muted", "playsinline", "loop", "data-src"] {
         assert_eq!(
-            home.count(&format!("{selector} *")),
-            0,
-            "the {slot} slot is empty"
+            home.count(&format!("{clips}[{attribute}]")),
+            16,
+            "every Clip has {attribute}"
         );
     }
+    assert_eq!(home.count(&format!("{clips}[preload=none]")), 16);
+    assert_eq!(home.count(&format!("{clips}[autoplay]")), 0);
+    assert_eq!(home.count(&format!("{clips}[aria-hidden=true]")), 16);
+    for address in home.attributes(clips, "data-src") {
+        let file = built_file(&address);
+        assert_eq!(file, "clips/fixture-clip.mp4");
+        assert!(site().has_file(file), "{file} is published");
+    }
+}
+
+/// Without JavaScript the cards are stills that still link out: each card holds its still, the
+/// Wheel only turns once the script adds `.wheel--turning`, and the pause button stays hidden.
+#[test]
+fn without_javascript_the_wheel_holds_still_with_stills_that_link_out() {
+    let home = home();
+    let stills = "section.wheel img.wheel__still";
+    assert_eq!(home.count(stills), 16, "a still per card");
+    assert_eq!(
+        home.count(&format!("{stills}[alt='']")),
+        16,
+        "named by the card"
+    );
+    assert_eq!(home.count(&format!("{stills}[loading=lazy]")), 16);
+    for address in home.attributes(stills, "src") {
+        let file = built_file(&address);
+        assert!(site().has_file(file), "{file} is published");
+    }
+    assert_eq!(home.count("section.wheel.wheel--turning"), 0);
+    assert!(!template().contains("wheel--turning"));
+    let css = site().file("main.css");
+    let base_rule = css
+        .split(".wheel__ring{")
+        .nth(1)
+        .expect("a rule for the ring")
+        .split('}')
+        .next()
+        .unwrap();
+    assert!(
+        !base_rule.contains("animation"),
+        "the ring does not turn on its own: {base_rule}"
+    );
+    assert_eq!(home.count("section.wheel button.wheel__toggle[hidden]"), 1);
+    assert_eq!(
+        home.count("section.wheel button.wheel__toggle[aria-pressed=false]"),
+        1
+    );
+    assert!(site().has_file("js/wheel.js"), "the script is published");
+    assert!(
+        site().file("index.html").contains("/js/wheel.js?h="),
+        "the page loads the script"
+    );
+}
+
+#[test]
+fn with_reduce_motion_the_wheel_holds_still_and_no_clip_plays() {
+    let css = site().file("main.css");
+    let reduce = css
+        .split("@media (prefers-reduced-motion: reduce){")
+        .find(|block| block.starts_with(".wheel__ring"))
+        .expect("a reduce-motion block for the Wheel");
+    assert!(
+        reduce.starts_with(".wheel__ring,.wheel--turning .wheel__ring{animation:none}"),
+        "the ring holds still: {reduce}"
+    );
+    assert!(
+        reduce.contains(".wheel__clip{display:none}"),
+        "no Clip shows"
+    );
+    let script = std::fs::read_to_string(format!("{ROOT}/static/js/wheel.js")).unwrap();
+    assert!(
+        script.contains("(prefers-reduced-motion: reduce)"),
+        "the script plays no Clip with reduce motion"
+    );
 }
 
 // --- My Story ----------------------------------------------------------------------------------
@@ -770,7 +1030,9 @@ fn a_site_with_no_playbooks_has_no_shelf() {
         "no empty heading"
     );
     assert_eq!(
-        home.count("main > section.hero + .home-slot[data-slot=wheel] + .home-slot[data-slot=eds-daily] + section.story"),
+        home.count(
+            "main > section.hero + section.wheel + .home-slot[data-slot=eds-daily] + section.story"
+        ),
         1,
         "the rest of the page is still there, in order"
     );

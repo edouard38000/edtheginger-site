@@ -1,4 +1,6 @@
-// Home page. Phone width first, top to bottom: the Hero, the Wheel's slot, the Playbook shelf,
+@use "sass:math";
+
+// Home page. Phone width first, top to bottom: the Hero, the Wheel, the Playbook shelf,
 // the Ed's Daily slot, then My Story (the Poster and the story text).
 
 .page-home main {
@@ -24,6 +26,7 @@
 
 // Everything but the Hero and the Poster sits in one centred column with the page gutter.
 .page-home .shelf,
+.wheel__header,
 .home-slot,
 .story__header,
 .story__text {
@@ -173,7 +176,211 @@
   outline-color: var(--hero-ink);
 }
 
-// The two empty slots, filled by the Wheel and the Ed's Daily signup.
+// ---------------------------------------------------------------------------
+// The Wheel: the latest Videos as tilted portrait cards round the top half of a wheel whose hub
+// sits low in the section, full width. Sixteen slots, 22.5deg apart (the template fills sixteen);
+// each card is tilted along its radius. The ring is the one element that turns: clockwise, one
+// slot per 2 s step (a 1 s swing, then a 1 s near-pause), 32 s for the loop. It only turns once
+// static/js/wheel.js adds .wheel--turning, so without the script the Wheel holds still; with
+// "reduce motion" it never turns.
+// ---------------------------------------------------------------------------
+$wheel-slots: 16;
+$wheel-step: math.div(360deg, $wheel-slots);
+// How far the near-pause still drifts, out of each step.
+$wheel-drift: 0.6deg;
+
+.wheel {
+  position: relative;
+  margin-top: 56px;
+}
+
+.wheel__stage {
+  --card-w: 104px;
+  --card-h: 146px;
+  --radius: 200px;
+  // The hub: the top card's top edge sits 24px under the top of the stage.
+  --hub-y: calc(24px + var(--card-h) / 2 + var(--radius));
+
+  position: relative;
+  height: calc(var(--hub-y) + 12px);
+  margin-top: 4px;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+// A dashed circle inside the rim, round the hub, with the brand mark in the orange box.
+.wheel__hub {
+  position: absolute;
+  left: 50%;
+  top: var(--hub-y);
+  width: calc((var(--radius) - var(--card-h) / 2 - 18px) * 2);
+  aspect-ratio: 1;
+  border: 2px dashed var(--color-border);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.wheel__mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 7px;
+  background: var(--color-orange);
+  fill: #fff;
+  transform: translate(-50%, calc(-50% - var(--radius) * 0.32)) rotate(-4deg);
+}
+
+.wheel__ring {
+  position: absolute;
+  left: 50%;
+  top: var(--hub-y);
+  width: 0;
+  height: 0;
+}
+
+.wheel__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// A slot is centred on the hub, pushed up the radius, then turned round the hub.
+.wheel__slot {
+  position: absolute;
+  left: calc(var(--card-w) / -2);
+  top: calc(var(--card-h) / -2);
+  width: var(--card-w);
+  height: var(--card-h);
+  transform: rotate(calc(var(--slot) * #{-$wheel-step})) translateY(calc(var(--radius) * -1));
+}
+
+.wheel__card {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-charcoal);
+  box-shadow: 0 10px 22px rgb(25 25 25 / 20%), 0 2px 5px rgb(25 25 25 / 14%);
+}
+
+.wheel__card:focus-visible {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 3px;
+}
+
+.wheel__still,
+.wheel__clip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// A Clip shows only while it plays; paused, the still under it shows.
+.wheel__clip {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.wheel__clip.is-playing {
+  opacity: 1;
+}
+
+// One step per 2 s: a swing of 1 s with an ease, then the near-pause drifts the last bit.
+@keyframes wheel-turn {
+  @for $i from 0 to $wheel-slots {
+    #{math.percentage(math.div($i, $wheel-slots))} {
+      transform: rotate($i * $wheel-step);
+      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    #{math.percentage(math.div($i + 0.5, $wheel-slots))} {
+      transform: rotate(($i + 1) * $wheel-step - $wheel-drift);
+      animation-timing-function: linear;
+    }
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.wheel--turning .wheel__ring {
+  animation: wheel-turn #{$wheel-slots * 2}s infinite;
+  will-change: transform;
+}
+
+// Paused by the button, out of view, or while a card has the keyboard focus or the pointer.
+.wheel--paused .wheel__ring,
+.wheel__stage:focus-within .wheel__ring {
+  animation-play-state: paused;
+}
+
+@media (hover: hover) {
+  .wheel__stage:hover .wheel__ring {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel__ring,
+  .wheel--turning .wheel__ring {
+    animation: none;
+  }
+
+  .wheel__clip {
+    display: none;
+  }
+}
+
+// The pause button, bottom right of the Wheel: two bars, or a play triangle once pressed.
+.wheel__toggle {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-charcoal);
+  cursor: pointer;
+}
+
+.wheel__toggle[hidden] {
+  display: none;
+}
+
+.wheel__toggle:focus-visible {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+.wheel__toggle-icon {
+  box-sizing: border-box;
+  width: 14px;
+  height: 16px;
+  border-inline: 5px solid currentcolor;
+}
+
+.wheel__toggle[aria-pressed="true"] .wheel__toggle-icon {
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-width: 8px 0 8px 14px;
+  border-style: solid;
+  border-color: transparent transparent transparent currentcolor;
+}
+
+// The empty slot, filled by the Ed's Daily signup.
 .home-slot:empty {
   display: none;
 }
@@ -527,14 +734,16 @@
   margin-top: 56px;
 }
 
-.shelf__header {
+.shelf__header,
+.wheel__header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   margin-bottom: 4px;
 }
 
-.shelf__title {
+.shelf__title,
+.wheel__title {
   margin: 0;
   color: var(--color-charcoal);
   font-family: var(--font-display);
@@ -545,7 +754,8 @@
 }
 
 // The Playbooks page's second box, smaller: white capitals on orange, a little askew.
-.shelf__tagline {
+.shelf__tagline,
+.wheel__tagline {
   margin: 8px 0 0;
   padding: 0.35em 0.65em;
   background: var(--color-orange);
@@ -619,6 +829,12 @@
 // Wider screens.
 // ---------------------------------------------------------------------------
 @media (min-width: 44rem) {
+  .wheel__stage {
+    --card-w: 160px;
+    --card-h: 224px;
+    --radius: 330px;
+  }
+
   .poster {
     --stage-width: calc(var(--poster-height) * 0.96);
   }
@@ -650,6 +866,7 @@
   }
 
   .shelf__title,
+  .wheel__title,
   .story__title {
     font-size: 1.75rem;
   }
@@ -668,6 +885,12 @@
 
 // Wide screens: every tool, larger, scattered like desktop icons with its name under it.
 @media (min-width: 64rem) {
+  .wheel__stage {
+    --card-w: 188px;
+    --card-h: 264px;
+    --radius: 420px;
+  }
+
   .poster__foot {
     display: flex;
     align-items: flex-end;
