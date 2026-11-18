@@ -263,7 +263,8 @@ $wheel-drift: 0.6deg;
   height: 100%;
   overflow: hidden;
   border-radius: 14px;
-  background: var(--color-charcoal);
+  // Pale while the still loads, so the Wheel never flashes black.
+  background: var(--color-pale-fill);
   box-shadow: 0 10px 22px rgb(25 25 25 / 20%), 0 2px 5px rgb(25 25 25 / 14%);
 }
 

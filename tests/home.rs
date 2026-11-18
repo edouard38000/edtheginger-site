@@ -198,6 +198,29 @@ fn with_reduce_motion_the_hero_shows_its_poster_and_does_not_play() {
     );
 }
 
+/// The Hero video pauses out of view and when the tab is hidden: static/js/hero.js, loaded
+/// with `defer`.
+#[test]
+fn the_hero_script_pauses_the_video_out_of_view() {
+    let site = site();
+    assert!(site.has_file("js/hero.js"), "the script is published");
+    assert!(
+        site.file("index.html")
+            .contains(&format!("<script src=\"{SUB_PATH_BASE_URL}/js/hero.js?h=")),
+        "the home page loads the script"
+    );
+    let scripts = home().attributes("script[src*='/js/hero.js'][defer]", "src");
+    assert_eq!(scripts.len(), 1, "loaded once, with defer");
+    let script = std::fs::read_to_string(format!("{ROOT}/static/js/hero.js")).unwrap();
+    for needed in [
+        "IntersectionObserver",
+        "visibilitychange",
+        "(prefers-reduced-motion: reduce)",
+    ] {
+        assert!(script.contains(needed), "hero.js uses {needed}");
+    }
+}
+
 #[test]
 fn the_hero_poster_is_fetched_first() {
     let site = site();
