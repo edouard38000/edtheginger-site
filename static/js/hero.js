@@ -2,6 +2,9 @@
 // The video autoplays (muted, looping); this script pauses it while it is out of view or the tab
 // is hidden, and plays it again when it comes back, so it never decodes unseen. With "reduce
 // motion" the video has no source and stays on its poster: the script leaves it alone.
+// The browser picks the tall or the wide file by the screen's orientation once, when the page
+// loads; when the screen turns, the script has it pick again, so a turned phone or a resized
+// window gets the file that fits (and the same when "reduce motion" is switched).
 (function () {
   "use strict";
 
@@ -28,6 +31,14 @@
     update();
   }).observe(video);
 
+  // The sources' media name the orientation and "reduce motion": when either changes, pick again.
+  function pickAgain() {
+    video.load();
+    update();
+  }
+  var landscape = window.matchMedia("(orientation: landscape)");
+  if (landscape.addEventListener) landscape.addEventListener("change", pickAgain);
+  if (reduceMotion.addEventListener) reduceMotion.addEventListener("change", pickAgain);
+
   document.addEventListener("visibilitychange", update);
-  if (reduceMotion.addEventListener) reduceMotion.addEventListener("change", update);
 })();
