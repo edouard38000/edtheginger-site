@@ -10,4 +10,6 @@ tiktok = "https://www.tiktok.com/@edouardtheginger/video/7708050755898313997"
 episode = 1
 tested = "An AI that edits your videos by itself"
 verdict = "bs"
+clip = "clips/real-or-bs-01-higgsfield.mp4"
+still = "clips/real-or-bs-01-higgsfield.webp"
 +++

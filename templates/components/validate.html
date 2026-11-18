@@ -70,7 +70,30 @@
 {{<validate.refuse page={page} problem={"`playbook` is " ~ extra.playbook | json_encode ~ ', which matches no Playbook Entry. It must be the file of the Playbook Entry as a path under content/, like "playbooks/phone-use.md".'} />}}
 {% endif %}
 {% endif %}
+{{<validate.clip page={page} />}}
 {% endcomponent validate.video %}
+
+{# A Video's Clip: an MP4 and its still, a WebP, both in static/clips/. Zola can neither read the
+   size of an MP4 nor tell whether one exists, so `clips_refused` in src/lib.rs refuses a missing
+   Clip file and a Clip over budget. #}
+{% component validate.clip(page) %}
+{% set extra = page.extra %}
+{% if extra.clip is undefined %}
+{{<validate.refuse page={page} problem={'the Video has no Clip: make it with the Clip command and set `clip` to its file, like "clips/my-video.mp4".'} />}}
+{% endif %}
+{% if extra.clip is not string or extra.clip is not matching(pat='^clips/[a-z0-9-]+[.]mp4$') %}
+{{<validate.refuse page={page} problem={'`clip` must be the path of an MP4 in static/clips/, like "clips/my-video.mp4", not ' ~ extra.clip | json_encode ~ "."} />}}
+{% endif %}
+{% if extra.still is undefined %}
+{{<validate.refuse page={page} problem={'the Video has no still: the Clip command makes it with the Clip; set `still` to its file, like "clips/my-video.webp".'} />}}
+{% endif %}
+{% if extra.still is not string or extra.still is not matching(pat='^clips/[a-z0-9-]+[.]webp$') %}
+{{<validate.refuse page={page} problem={'`still` must be the path of a WebP in static/clips/, like "clips/my-video.webp", not ' ~ extra.still | json_encode ~ "."} />}}
+{% endif %}
+{% if not get_image_metadata(path="static/" ~ extra.still, allow_missing=true) %}
+{{<validate.refuse page={page} problem={"the still file static/" ~ extra.still ~ " does not exist."} />}}
+{% endif %}
+{% endcomponent validate.clip %}
 
 {% component validate.playbook(page) %}
 {% set extra = page.extra %}

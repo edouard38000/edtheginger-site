@@ -41,6 +41,9 @@ jobs:
           tar -xzf "${just}" -C "$HOME/.local/bin" just
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Install ffmpeg (for the Clip command's test)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Show tool versions
         run: |
           zola --version

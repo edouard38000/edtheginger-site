@@ -1,0 +1,16 @@
+[package]
+name = "clip"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Makes a Video's Clip (static/clips/<name>.mp4) and its still (static/clips/<name>.webp) from a source video, with ffmpeg."
+
+# Its own workspace: the site checks never build it. `just check` runs its test (`just clip-test`).
+[workspace]
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
+webp = "0.3"
+
+[dev-dependencies]
+tempfile = "3"
