@@ -106,7 +106,10 @@
 
 {#- My Story: the Poster, then the story (the body of content/_index.md) or, until it is written,
     the coming-soon line ([extra] story_coming_soon). -#}
-<section class="story" aria-label="My Story">
+<section class="story" aria-labelledby="story-heading">
+<header class="story__header">
+  <h2 class="story__title" id="story-heading">My Story</h2>
+</header>
 {#- The portrait ([extra] portrait in content/_index.md) fills the Poster; its edges fade into the
     Poster's background, which continues the image's own dark-to-orange glow. The two white lines
     are the top and bottom edges of the band of light across the eyes ([extra.beam]); they are

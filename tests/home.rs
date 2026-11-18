@@ -246,13 +246,24 @@ fn the_wheel_and_eds_daily_slots_are_empty_for_now() {
 // --- My Story ----------------------------------------------------------------------------------
 
 #[test]
+fn my_story_is_named_by_its_visible_heading() {
+    let home = home();
+    let label = home.attributes("section.story", "aria-labelledby");
+    assert_eq!(label.len(), 1, "My Story is labelled by its heading");
+    assert_eq!(home.count("section.story[aria-label]"), 0);
+    assert_eq!(
+        home.texts(&format!("section.story > .story__header h2#{}", label[0])),
+        ["My Story"]
+    );
+}
+
+#[test]
 fn my_story_opens_with_the_poster_then_the_coming_soon_line() {
     let home = home();
-    assert_eq!(home.count("section.story[aria-label]"), 1);
     assert_eq!(
-        home.count("section.story > .poster + .story__text"),
+        home.count("section.story > .story__header + .poster + .story__text"),
         1,
-        "the Poster, then the story text"
+        "the heading, the Poster, then the story text"
     );
     let title = home.texts(".story .poster h2.poster__title").join(" ");
     let words: Vec<&str> = title.split_whitespace().collect();

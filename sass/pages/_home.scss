@@ -25,6 +25,7 @@
 // Everything but the Hero and the Poster sits in one centred column with the page gutter.
 .page-home .shelf,
 .home-slot,
+.story__header,
 .story__text {
   width: min(100% - var(--gutter) * 2, var(--content-width) - var(--gutter) * 2);
   margin-inline: auto;
@@ -126,7 +127,8 @@
 
 .hero__tagline {
   justify-self: center;
-  max-width: 22em;
+  max-width: min(100%, 22em);
+  text-wrap: balance;
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
@@ -181,6 +183,26 @@
 // ---------------------------------------------------------------------------
 .story {
   margin-top: 64px;
+}
+
+// The section title, as the brand sets coloured text: white Montserrat capitals in the orange
+// box, a little askew, like the shelf's tagline box.
+.story__header {
+  margin-bottom: 20px;
+}
+
+.story__title {
+  display: inline-block;
+  margin: 0;
+  padding: 0.3em 0.6em;
+  background: var(--color-orange);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  transform: rotate(-1deg);
 }
 
 .story__text {
@@ -627,7 +649,8 @@
     margin-top: 64px;
   }
 
-  .shelf__title {
+  .shelf__title,
+  .story__title {
     font-size: 1.75rem;
   }
 
