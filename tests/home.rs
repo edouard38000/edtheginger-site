@@ -1,8 +1,8 @@
-//! The home page: the Poster (lit portrait, beam lines, tool tiles, captions, title), the two entry
-//! points, the Playbook shelf and the latest Video.
-//! Built from the fixture Entries, where the newest Video is "Voice Clone" (2026-01-19, Real or BS,
-//! Instagram only), the Verdicts are two `real` and one `bs`, and there are two Playbooks: "Prompt
-//! Pack" (2026-01-20, no cover) and "Inbox Zero" (2026-01-12, with a cover).
+//! The home page, top to bottom: the Hero (video, name, tagline, links), the Wheel's slot, the
+//! Playbook shelf, the Ed's Daily slot and My Story (the Poster: lit portrait, beam lines, tool
+//! tiles, captions, title; then the story text or the coming-soon line).
+//! Built from the fixture Entries: five Videos, and two Playbooks, "Prompt Pack" (2026-01-20, no
+//! cover) and "Inbox Zero" (2026-01-12, with a cover).
 
 use std::sync::OnceLock;
 
@@ -26,13 +26,261 @@ fn built_file(address: &str) -> &str {
         .unwrap_or_else(|| panic!("{address} is not served by the site itself"))
 }
 
+/// The text of `[extra] <key> = "..."` in the home page's front matter.
+fn front_matter_text(key: &str) -> String {
+    let text = std::fs::read_to_string(format!("{ROOT}/content/_index.md")).unwrap();
+    let line = text
+        .lines()
+        .find(|line| line.trim_start().starts_with(&format!("{key} =")))
+        .unwrap_or_else(|| panic!("{key} = \"...\" in content/_index.md"));
+    line.split('"').nth(1).unwrap().to_owned()
+}
+
+fn template() -> String {
+    std::fs::read_to_string(format!("{ROOT}/templates/index.html")).unwrap()
+}
+
+// --- Section order ------------------------------------------------------------------------------
+
 #[test]
-fn the_poster_title_is_the_one_h1() {
+fn the_sections_are_hero_wheel_playbooks_eds_daily_my_story() {
+    let home = home();
+    assert_eq!(
+        home.count(
+            "main > section.hero + .home-slot[data-slot=wheel] + section.shelf \
+             + .home-slot[data-slot=eds-daily] + section.story"
+        ),
+        1,
+        "Hero, the Wheel's slot, the Playbook shelf, the Ed's Daily slot, My Story, in that order"
+    );
+    assert_eq!(
+        home.count("main > *"),
+        5,
+        "nothing else in the page: {:?}",
+        home.attributes("main > *", "class")
+    );
+}
+
+#[test]
+fn the_entry_cards_and_the_latest_video_are_gone() {
+    let home = home();
+    assert_eq!(
+        home.count(".entry-points, .entry-card, .latest, .tally__count"),
+        0
+    );
+    let css = site().file("main.css");
+    for gone in [".entry-card", ".entry-points", ".latest", ".sticker-tag"] {
+        assert!(!css.contains(gone), "the unused style {gone} is removed");
+    }
+}
+
+// --- The Hero ----------------------------------------------------------------------------------
+
+#[test]
+fn the_hero_name_is_the_one_h1_and_real_text() {
     let home = home();
     assert_eq!(home.count("h1"), 1);
-    let title = home.texts(".poster h1").join(" ");
+    assert_eq!(home.count("section.hero h1"), 1, "the h1 is in the Hero");
+    let title = home.texts(".hero h1").join(" ");
     let words: Vec<&str> = title.split_whitespace().collect();
     assert_eq!(words.join(" ").to_uppercase(), "EDOUARD THE GINGER");
+    assert_eq!(
+        home.texts(".hero h1 .hero__name"),
+        ["Edouard", "the Ginger"],
+        "EDOUARD left of the centre mark, THE GINGER right of it"
+    );
+    assert_eq!(
+        home.count(
+            ".hero h1 > .hero__name--first + svg.hero__mark[aria-hidden=true] + .hero__name--last"
+        ),
+        1
+    );
+}
+
+#[test]
+fn the_hero_tagline_is_text_held_in_the_front_matter() {
+    let tagline = front_matter_text("tagline");
+    assert!(!tagline.is_empty());
+    assert_eq!(
+        home().texts(".hero .hero__tagline"),
+        std::slice::from_ref(&tagline)
+    );
+    assert!(
+        !template().contains(&tagline),
+        "the tagline is not typed in the template"
+    );
+}
+
+#[test]
+fn the_hero_video_is_muted_loops_plays_inline_and_has_a_poster() {
+    let home = home();
+    let video = "section.hero video.hero__video";
+    assert_eq!(home.count(video), 1);
+    for attribute in ["autoplay", "muted", "loop", "playsinline", "poster"] {
+        assert_eq!(
+            home.count(&format!("{video}[{attribute}]")),
+            1,
+            "the Hero video has {attribute}"
+        );
+    }
+    assert_eq!(home.attributes(video, "preload"), ["metadata"]);
+    assert_eq!(
+        home.count(&format!("{video} track")),
+        0,
+        "no captions to read"
+    );
+    assert_eq!(
+        home.count(&format!("{video}[controls]")),
+        0,
+        "no controls on the Hero"
+    );
+}
+
+#[test]
+fn the_hero_files_come_from_the_one_setting_and_are_published() {
+    let home = home();
+    let video_file = front_matter_text("video");
+    let poster_file = front_matter_text("poster");
+    let video = "section.hero video.hero__video";
+    assert_eq!(
+        home.attributes(&format!("{video} source"), "src"),
+        [format!("{SUB_PATH_BASE_URL}/{video_file}")]
+    );
+    assert_eq!(
+        home.attributes(video, "poster"),
+        [format!("{SUB_PATH_BASE_URL}/{poster_file}")]
+    );
+    assert!(site().has_file(&video_file), "{video_file} is published");
+    assert!(site().has_file(&poster_file), "{poster_file} is published");
+    let template = template();
+    for file in [&video_file, &poster_file] {
+        assert!(
+            !template.contains(file.as_str()),
+            "{file} is not typed in the template: swapping the Hero needs no template change"
+        );
+    }
+}
+
+#[test]
+fn the_hero_video_is_under_one_and_a_half_megabytes_and_the_poster_is_light() {
+    let video = std::fs::metadata(format!("{ROOT}/static/{}", front_matter_text("video")))
+        .unwrap()
+        .len();
+    assert!(video < 1_500_000, "the Hero video is {video} bytes");
+    let poster = std::fs::metadata(format!("{ROOT}/static/{}", front_matter_text("poster")))
+        .unwrap()
+        .len();
+    assert!(poster < 100_000, "the Hero poster is {poster} bytes");
+}
+
+#[test]
+fn the_hero_video_has_no_audio_track_and_starts_fast() {
+    let bytes = std::fs::read(format!("{ROOT}/static/{}", front_matter_text("video"))).unwrap();
+    let find = |tag: &[u8]| bytes.windows(4).position(|window| window == tag);
+    let moov = find(b"moov").expect("an MP4 with a moov box");
+    let mdat = find(b"mdat").expect("an MP4 with an mdat box");
+    assert!(moov < mdat, "fast-start: the index comes before the media");
+    assert!(find(b"vide").is_some(), "a video track");
+    assert!(find(b"soun").is_none(), "no audio track");
+    assert!(find(b"avc1").is_some(), "H.264");
+}
+
+/// With "reduce motion" the video has no source to play, so it shows its poster and never plays,
+/// with or without JavaScript.
+#[test]
+fn with_reduce_motion_the_hero_shows_its_poster_and_does_not_play() {
+    let home = home();
+    let sources = "section.hero video.hero__video source";
+    assert_eq!(home.count(sources), 1, "one source");
+    assert_eq!(
+        home.attributes(sources, "media"),
+        ["(prefers-reduced-motion: no-preference)"]
+    );
+}
+
+#[test]
+fn the_hero_poster_is_fetched_first() {
+    let site = site();
+    let page = site.file("index.html");
+    let poster = format!("{SUB_PATH_BASE_URL}/{}", front_matter_text("poster"));
+    let preload =
+        format!("<link rel=\"preload\" as=\"image\" href=\"{poster}\" fetchpriority=\"high\">");
+    assert!(page.contains(&preload), "the Hero poster is preloaded");
+    assert_eq!(
+        home().count("img[fetchpriority=high]"),
+        0,
+        "no other image competes with it"
+    );
+}
+
+#[test]
+fn the_hero_links_go_to_the_three_other_pages() {
+    let home = home();
+    assert_eq!(home.count(".hero nav.hero__links[aria-label]"), 1);
+    assert_eq!(
+        home.texts(".hero__links a"),
+        ["Real or BS", "Playbooks", "Videos"]
+    );
+    assert_eq!(
+        home.attributes(".hero__links a", "href"),
+        ["real-or-bs/", "playbooks/", "videos/"].map(|path| format!("{SUB_PATH_BASE_URL}/{path}"))
+    );
+}
+
+// --- The slots ---------------------------------------------------------------------------------
+
+#[test]
+fn the_wheel_and_eds_daily_slots_are_empty_for_now() {
+    let home = home();
+    for slot in ["wheel", "eds-daily"] {
+        let selector = format!(".home-slot[data-slot={slot}]");
+        assert_eq!(home.count(&selector), 1, "the {slot} slot");
+        assert_eq!(
+            home.count(&format!("{selector} *")),
+            0,
+            "the {slot} slot is empty"
+        );
+    }
+}
+
+// --- My Story ----------------------------------------------------------------------------------
+
+#[test]
+fn my_story_opens_with_the_poster_then_the_coming_soon_line() {
+    let home = home();
+    assert_eq!(home.count("section.story[aria-label]"), 1);
+    assert_eq!(
+        home.count("section.story > .poster + .story__text"),
+        1,
+        "the Poster, then the story text"
+    );
+    let title = home.texts(".story .poster h2.poster__title").join(" ");
+    let words: Vec<&str> = title.split_whitespace().collect();
+    assert_eq!(words.join(" ").to_uppercase(), "EDOUARD THE GINGER");
+    let coming_soon = front_matter_text("story_coming_soon");
+    assert_eq!(
+        home.texts(".story__text .story__coming-soon"),
+        std::slice::from_ref(&coming_soon)
+    );
+    assert!(
+        !template().contains(&coming_soon),
+        "the coming-soon line is not typed in the template"
+    );
+}
+
+#[test]
+fn my_story_shows_the_story_once_it_is_written() {
+    let index = std::fs::read_to_string(format!("{ROOT}/content/_index.md")).unwrap();
+    let with_story = format!("{index}\nI grew up somewhere. *Fixture story.*\n");
+    let site = Site::try_build_with(&[("content/_index.md", with_story.as_bytes())])
+        .unwrap_or_else(|message| panic!("{message}"));
+    let home = site.page("");
+    assert_eq!(home.count(".story__coming-soon"), 0, "no coming-soon line");
+    assert_eq!(
+        home.texts(".story__text p"),
+        ["I grew up somewhere. Fixture story."]
+    );
+    assert_eq!(home.count(".story__text em"), 1, "the story is Markdown");
 }
 
 #[test]
@@ -337,92 +585,6 @@ fn the_home_page_links_to_the_three_other_pages() {
 }
 
 #[test]
-fn the_real_list_entry_point_shows_the_tally_and_links_to_real_or_bs() {
-    let home = home();
-    let real_or_bs = format!("{SUB_PATH_BASE_URL}/real-or-bs/");
-    assert_eq!(
-        home.attributes("a.entry-card--real", "href"),
-        [real_or_bs],
-        "the REAL list entry point"
-    );
-    assert_eq!(
-        home.texts("a.entry-card--real .tally__count"),
-        ["REAL: 2", "BS: 1"],
-        "the Tally counts the fixture Verdicts"
-    );
-}
-
-#[test]
-fn the_playbooks_entry_point_counts_the_playbooks_and_links_to_them() {
-    let home = home();
-    let playbooks = format!("{SUB_PATH_BASE_URL}/playbooks/");
-    assert_eq!(
-        home.attributes("a.entry-card--playbooks", "href"),
-        [playbooks],
-        "the Playbooks entry point"
-    );
-    let count = home.texts("a.entry-card--playbooks .entry-card__count");
-    let words: Vec<&str> = count[0].split_whitespace().collect();
-    assert_eq!(words, ["2", "Playbooks"]);
-}
-
-#[test]
-fn the_latest_video_is_the_newest_entry() {
-    let home = home();
-    assert_eq!(home.texts(".latest__title"), ["Voice Clone"]);
-    assert_eq!(home.texts(".latest__format"), ["Real or BS"]);
-    assert_eq!(
-        home.texts(".latest__description"),
-        ["Fixture: a Real or BS Video with the Verdict real and no Playbook."]
-    );
-    // No other Video is shown on the home page. The shelf is left out: it shows the Playbook
-    // "Inbox Zero", which has the same title as a fixture Video.
-    let main_text = home.texts("main section:not(.shelf)").join(" ");
-    for older in [
-        "Repo Radar",
-        "Inbox Zero",
-        "Robot Barista",
-        "First Hackathon",
-    ] {
-        assert!(
-            !main_text.contains(older),
-            "{older} is not the latest Video"
-        );
-    }
-}
-
-#[test]
-fn the_latest_video_links_only_where_it_was_posted() {
-    // The newest fixture Video has an Instagram link and no TikTok link.
-    assert_eq!(
-        home().attributes(".latest__links a", "href"),
-        ["https://www.instagram.com/reel/FIXTURE0003/"]
-    );
-    assert_eq!(home().texts(".latest__links a"), ["Watch on Instagram"]);
-}
-
-#[test]
-fn the_latest_video_cover_is_resized_and_described() {
-    let home = home();
-    assert_eq!(
-        home.attributes(".latest__cover img[alt]:not([alt=''])", "alt"),
-        ["Cover of the Video Voice Clone"]
-    );
-    let covers = home.attributes(".latest__cover img[alt]:not([alt=''])", "src");
-    let file = built_file(&covers[0]);
-    assert!(file.starts_with("processed_images/"), "{file}");
-    assert!(site().has_file(file), "{file} is in the built site");
-}
-
-#[test]
-fn the_home_page_links_to_all_videos() {
-    assert_eq!(
-        home().attributes("a.latest__all", "href"),
-        [format!("{SUB_PATH_BASE_URL}/videos/")]
-    );
-}
-
-#[test]
 fn stickers_are_decoration_and_come_resized_from_the_site_itself() {
     let home = home();
     let stickers = home.attributes("img.sticker", "src");
@@ -442,22 +604,6 @@ fn stickers_are_decoration_and_come_resized_from_the_site_itself() {
 // --- The Playbook shelf ------------------------------------------------------------------------
 
 #[test]
-fn the_playbook_shelf_comes_right_after_the_entry_points() {
-    let home = home();
-    assert_eq!(home.count("section.shelf"), 1, "one shelf");
-    assert_eq!(
-        home.count(".home-body > .entry-points + section.shelf"),
-        1,
-        "the shelf follows the entry points"
-    );
-    assert_eq!(
-        home.count(".home-body > section.shelf + section.latest"),
-        1,
-        "the latest Video follows the shelf"
-    );
-}
-
-#[test]
 fn the_playbook_shelf_is_named_by_its_heading() {
     let home = home();
     let label = home.attributes("section.shelf", "aria-labelledby");
@@ -467,7 +613,7 @@ fn the_playbook_shelf_is_named_by_its_heading() {
     assert_eq!(
         home.count("section.shelf h1"),
         0,
-        "the Poster title stays the one h1"
+        "the Hero's name stays the one h1"
     );
 }
 
@@ -613,8 +759,8 @@ fn a_site_with_no_playbooks_has_no_shelf() {
         "no empty heading"
     );
     assert_eq!(
-        home.count(".latest"),
+        home.count("main > section.hero + .home-slot[data-slot=wheel] + .home-slot[data-slot=eds-daily] + section.story"),
         1,
-        "the rest of the page is still there"
+        "the rest of the page is still there, in order"
     );
 }

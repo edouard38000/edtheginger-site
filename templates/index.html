@@ -1,124 +1,59 @@
 {% extends "base.html" %}
-{# Home page: the Poster, the two entry points (the REAL list with its Tally, the Playbooks),
-   the Playbook shelf, then the latest Video. The Tally, the counts, the shelf and the latest Video
-   are computed from the Entries; the Poster's captions and its list of tools are held in content/_index.md. #}
+{# Home page, top to bottom: the Hero, the Wheel's slot, the Playbook shelf, the slot of the Ed's Daily
+   signup, then My Story (opened by the Poster). The shelf and the Poster's count are computed from the
+   Entries; the Hero's files and tagline, the Poster's captions and tools, and My Story's text are held
+   in content/_index.md. #}
 {% block body_class %}page-home{% endblock body_class %}
-{# The Poster owns the top of the page, so the shared header is left out here. #}
+{# The Hero owns the top of the page, so the shared header is left out here. #}
 {% block header %}{% endblock header %}
+{#- The Hero's poster is the first thing painted: fetch it before anything else. #}
+{% block head %}<link rel="preload" as="image" href="{{ get_url(path=section.extra.hero.poster) }}" fetchpriority="high">{% endblock head %}
 {% block content %}
 {{<validate.entries formats={config.extra.formats} />}}
 {%- set videos_section = get_section(path="videos/_index.md") -%}
 {%- set videos = videos_section.pages -%}
 {%- set playbooks_section = get_section(path="playbooks/_index.md") -%}
 {%- set playbooks = playbooks_section.pages -%}
-{%- set real_count = 0 -%}
-{%- set bs_count = 0 -%}
-{%- for video in videos -%}
-  {%- if video.extra.verdict is defined and video.extra.verdict == "real" -%}{%- set_global real_count = real_count + 1 -%}{%- endif -%}
-  {%- if video.extra.verdict is defined and video.extra.verdict == "bs" -%}{%- set_global bs_count = bs_count + 1 -%}{%- endif -%}
-{%- endfor -%}
-{%- set latest = videos | sort(attribute="date") | last -%}
 {%- set captions = section.extra.captions -%}
 {%- set real_or_bs_url = get_url(path="@/real-or-bs.md") -%}
 {%- set playbooks_url = get_url(path="@/playbooks/_index.md") -%}
 {%- set videos_url = get_url(path="@/videos/_index.md") -%}
 {#- Crayon stickers from static/home/, resized to twice their shown width. -#}
 {%- set tape = resize_image(path="home/tape-strip.png", width=184, op="fit_width") -%}
-{%- set arrow = resize_image(path="home/arrow-down-curve.png", width=96, op="fit_width") -%}
 {%- set pill_new = resize_image(path="home/pill-new.png", width=176, op="fit_width") -%}
-{#- The portrait ([extra] portrait in content/_index.md) fills the Poster; its edges fade into the
-    Poster's background, which continues the image's own dark-to-orange glow. The two white lines
-    are the top and bottom edges of the band of light across the eyes ([extra.beam]); they are
-    drawn in the image's own pixels, so they sit on the edges of the light at every width. -#}
-{%- set portrait_file = section.extra.portrait -%}
-{%- set image = get_image_metadata(path="static/" ~ portrait_file) -%}
-{%- set portrait = resize_image(path=portrait_file, width=675, op="fit_width", format="webp", quality=82) -%}
-{%- set beam = section.extra.beam -%}
-{%- set w = image.width -%}
-{%- set h = image.height -%}
-{#- The lines run across five widths of the image: two to the left, two to the right. -#}
-{%- set left = -2 * w -%}
-{%- set right = 3 * w -%}
-{%- set top_left = beam.y - beam.width / 2 + beam.slope * (left - beam.x) -%}
-{%- set top_right = beam.y - beam.width / 2 + beam.slope * (right - beam.x) -%}
-{%- set bottom_left = top_left + beam.width -%}
-{%- set bottom_right = top_right + beam.width -%}
-
-<section class="poster" aria-label="Poster" style="--face-x: {{ beam.x / w }}; --eye-y: {{ beam.y / h }}; --ratio: {{ h / w }}">
-  <div class="poster__stage">
-    {#- No decoding="async" here: it lets Chromium paint the Poster first and add the portrait in a
-        later raster, which can be missed (a faceless Poster), see tests/home.rs. The 2x version is
-        the published file itself, so it is not compressed twice. #}
-    <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} {{ portrait.width }}w, {{ get_url(path=portrait_file) }} {{ w }}w"
-         sizes="(min-width: 44rem) 52rem, 140vw"
-         width="{{ portrait.width }}" height="{{ portrait.height }}"
-         alt="{{ section.extra.portrait_alt }}" fetchpriority="high">
-    {#- Thin white lines: the top and bottom edges of the band of light. #}
-    <svg class="poster__lines" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-      <defs>
-        {#- Brightest across the face. #}
-        <linearGradient id="beam-line" gradientUnits="userSpaceOnUse" x1="{{ beam.x - 1.6 * w }}" y1="0" x2="{{ beam.x + 1.6 * w }}" y2="0">
-          <stop offset="0" stop-color="#fff" stop-opacity="0.3"/>
-          <stop offset="0.5" stop-color="#fff" stop-opacity="0.75"/>
-          <stop offset="1" stop-color="#fff" stop-opacity="0.3"/>
-        </linearGradient>
-      </defs>
-      <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ top_left }}" x2="{{ right }}" y2="{{ top_right }}"/>
-      <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ bottom_left }}" x2="{{ right }}" y2="{{ bottom_right }}"/>
-    </svg>
-    {#- The tool tiles: one per tool of the list, placed by rank in the stylesheet. Not links. #}
-    <ul class="poster__tools" aria-label="Tools Edouard uses">
-      {%- for tool in section.extra.tools %}
-      <li class="tool">
-        <span class="tool__tile"><img src="{{ get_url(path="home/logos/" ~ tool.logo) }}" width="32" height="32" alt="" decoding="async"></span>
-        <span class="tool__name">{{ tool.name }}</span>
-      </li>
-      {%- endfor %}
+{#- The Hero: the vertical video ([extra.hero] in content/_index.md) behind a fixed text layer,
+    EDOUARD | THE GINGER and the tagline, as real text. The video is muted, loops and plays inline;
+    its only source matches "no reduce motion" only, so with "reduce motion" no source is chosen
+    and the poster stays, without any script. Decorative: the name is the text on top. -#}
+{%- set hero = section.extra.hero -%}
+{%- set hero_poster = get_image_metadata(path="static/" ~ hero.poster) %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__stage">
+    <video class="hero__video" autoplay muted loop playsinline disablepictureinpicture preload="metadata"
+           poster="{{ get_url(path=hero.poster) }}" width="{{ hero_poster.width }}" height="{{ hero_poster.height }}"
+           aria-hidden="true" tabindex="-1">
+      <source src="{{ get_url(path=hero.video) }}" type="video/mp4" media="(prefers-reduced-motion: no-preference)">
+    </video>
+  </div>
+  <div class="hero__layer">
+    <h1 class="hero__title" id="hero-title">
+      <span class="hero__name hero__name--first">Edouard</span>
+      <svg class="hero__mark" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false"><path d="M20 0 C21.5 13 27 18.5 40 20 C27 21.5 21.5 27 20 40 C18.5 27 13 21.5 0 20 C13 18.5 18.5 13 20 0 Z"/></svg>
+      <span class="hero__name hero__name--last">the Ginger</span>
+    </h1>
+    <p class="hero__tagline">{{ section.extra.tagline }}</p>
+  </div>
+  <nav class="hero__links" aria-label="Pages">
+    <ul>
+      <li><a href="{{ real_or_bs_url }}">Real or BS</a></li>
+      <li><a href="{{ playbooks_url }}">Playbooks</a></li>
+      <li><a href="{{ videos_url }}">Videos</a></li>
     </ul>
-  </div>
-
-  <div class="poster__inner">
-    <div class="poster__captions">
-      {%- for caption in captions %}
-      <p class="poster__caption">{{ caption }}</p>
-      {%- endfor %}
-    </div>
-
-    <p class="poster__mark">
-      <span class="poster__mark-number">{% if videos | length < 10 %}0{% endif %}{{ videos | length }}</span>
-      <span class="poster__mark-label">Videos so far</span>
-    </p>
-
-    <div class="poster__foot">
-      <h1 class="poster__title"><span class="poster__name">Edouard</span> <span class="poster__name poster__name--yellow">the Ginger</span></h1>
-      <ul class="poster__words">
-        <li><a href="{{ real_or_bs_url }}">Real or BS</a></li>
-        <li><a href="{{ playbooks_url }}">Playbooks</a></li>
-        <li><a href="{{ videos_url }}">Videos</a></li>
-      </ul>
-    </div>
-  </div>
+  </nav>
 </section>
 
-<div class="home-body">
-<section class="entry-points" aria-label="Start here">
-  <img class="sticker entry-points__arrow" src="{{ arrow.url }}" width="44" height="{{ (arrow.height * 44 / arrow.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
-  <a class="entry-card entry-card--real" href="{{ real_or_bs_url }}">
-    <h2 class="entry-card__title">The REAL list</h2>
-    <p class="entry-card__tally" aria-label="Tally: REAL {{ real_count }}, BS {{ bs_count }}">
-      <span class="tally__count tally__count--real">REAL: <b>{{ real_count }}</b></span>
-      <span class="tally__count tally__count--bs">BS: <b>{{ bs_count }}</b></span>
-    </p>
-    <p class="entry-card__text">Viral AI claims, tested. What is real stays on the list.</p>
-    <span class="entry-card__go">See the REAL list <span aria-hidden="true">&rarr;</span></span>
-  </a>
-  <a class="entry-card entry-card--playbooks" href="{{ playbooks_url }}">
-    <h2 class="entry-card__title">Playbooks</h2>
-    <p class="entry-card__count"><b>{{ playbooks | length }}</b> {% if playbooks | length == 1 %}Playbook{% else %}Playbooks{% endif %}</p>
-    <p class="entry-card__text">Step-by-step guides to do it yourself, one per Video.</p>
-    <span class="entry-card__go">Open the Playbooks <span aria-hidden="true">&rarr;</span></span>
-  </a>
-</section>
+{#- The Wheel of the latest Videos fills this slot (#35). #}
+<div class="home-slot home-slot--wheel" data-slot="wheel"></div>
 
 {#- The Playbook shelf: the newest Playbooks (at most six), each with its cover and its button (to its page, or to its PDF).
     The cards are the Playbooks page's cards, cut down; a Playbook with no cover gets the title
@@ -166,32 +101,92 @@
 </section>
 {%- endif %}
 
-{% if latest -%}
-{%- set cover = resize_image(path=latest.extra.cover, width=270, height=480, op="fill", format="webp", quality=80) -%}
-{%- set cover_2x = resize_image(path=latest.extra.cover, width=540, height=960, op="fill", format="webp", quality=75) -%}
-<section class="latest" aria-labelledby="latest-heading">
-  <p class="latest__label" id="latest-heading">Latest Video</p>
-  <div class="latest__body">
-    <figure class="latest__cover">
-      <img class="sticker latest__tape" src="{{ tape.url }}" width="84" height="{{ (tape.height * 84 / tape.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
-      <img src="{{ cover.url }}" srcset="{{ cover.url }} 1x, {{ cover_2x.url }} 2x" width="270" height="480"
-           alt="Cover of the Video {{ latest.title }}" loading="lazy" decoding="async">
-      <img class="sticker latest__new" src="{{ pill_new.url }}" width="88" height="{{ (pill_new.height * 88 / pill_new.width) | round | int }}" alt="" aria-hidden="true" decoding="async">
-    </figure>
-    <div class="latest__text">
-      <p class="latest__format"><span class="sticker-tag">{{ latest.extra.format }}</span></p>
-      <h2 class="latest__title">{{ latest.title }}</h2>
-      {% if latest.description %}<p class="latest__description">{{ latest.description }}</p>{% endif %}
-      {% if latest.extra.tiktok or latest.extra.instagram -%}
-      <ul class="latest__links">
-        {% if latest.extra.tiktok %}<li><a class="latest__watch" href="{{ latest.extra.tiktok }}" rel="noopener">Watch on TikTok</a></li>{% endif %}
-        {% if latest.extra.instagram %}<li><a class="latest__watch" href="{{ latest.extra.instagram }}" rel="noopener">Watch on Instagram</a></li>{% endif %}
+{#- The Ed's Daily signup fills this slot (#36). #}
+<div class="home-slot home-slot--eds-daily" data-slot="eds-daily"></div>
+
+{#- My Story: the Poster, then the story (the body of content/_index.md) or, until it is written,
+    the coming-soon line ([extra] story_coming_soon). -#}
+<section class="story" aria-label="My Story">
+{#- The portrait ([extra] portrait in content/_index.md) fills the Poster; its edges fade into the
+    Poster's background, which continues the image's own dark-to-orange glow. The two white lines
+    are the top and bottom edges of the band of light across the eyes ([extra.beam]); they are
+    drawn in the image's own pixels, so they sit on the edges of the light at every width. -#}
+{%- set portrait_file = section.extra.portrait -%}
+{%- set image = get_image_metadata(path="static/" ~ portrait_file) -%}
+{%- set portrait = resize_image(path=portrait_file, width=675, op="fit_width", format="webp", quality=82) -%}
+{%- set beam = section.extra.beam -%}
+{%- set w = image.width -%}
+{%- set h = image.height -%}
+{#- The lines run across five widths of the image: two to the left, two to the right. -#}
+{%- set left = -2 * w -%}
+{%- set right = 3 * w -%}
+{%- set top_left = beam.y - beam.width / 2 + beam.slope * (left - beam.x) -%}
+{%- set top_right = beam.y - beam.width / 2 + beam.slope * (right - beam.x) -%}
+{%- set bottom_left = top_left + beam.width -%}
+{%- set bottom_right = top_right + beam.width -%}
+
+<div class="poster" style="--face-x: {{ beam.x / w }}; --eye-y: {{ beam.y / h }}; --ratio: {{ h / w }}">
+  <div class="poster__stage">
+    {#- No decoding="async" here: it lets Chromium paint the Poster first and add the portrait in a
+        later raster, which can be missed (a faceless Poster), see tests/home.rs. The 2x version is
+        the published file itself, so it is not compressed twice. The Hero's poster, not this
+        portrait, is the page's high-priority image. #}
+    <img class="poster__portrait" src="{{ portrait.url }}" srcset="{{ portrait.url }} {{ portrait.width }}w, {{ get_url(path=portrait_file) }} {{ w }}w"
+         sizes="(min-width: 44rem) 52rem, 140vw"
+         width="{{ portrait.width }}" height="{{ portrait.height }}"
+         alt="{{ section.extra.portrait_alt }}">
+    {#- Thin white lines: the top and bottom edges of the band of light. #}
+    <svg class="poster__lines" viewBox="{{ left }} 0 {{ 5 * w }} {{ h }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <defs>
+        {#- Brightest across the face. #}
+        <linearGradient id="beam-line" gradientUnits="userSpaceOnUse" x1="{{ beam.x - 1.6 * w }}" y1="0" x2="{{ beam.x + 1.6 * w }}" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity="0.3"/>
+          <stop offset="0.5" stop-color="#fff" stop-opacity="0.75"/>
+          <stop offset="1" stop-color="#fff" stop-opacity="0.3"/>
+        </linearGradient>
+      </defs>
+      <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ top_left }}" x2="{{ right }}" y2="{{ top_right }}"/>
+      <line class="poster__line poster__line--beam" x1="{{ left }}" y1="{{ bottom_left }}" x2="{{ right }}" y2="{{ bottom_right }}"/>
+    </svg>
+    {#- The tool tiles: one per tool of the list, placed by rank in the stylesheet. Not links. #}
+    <ul class="poster__tools" aria-label="Tools Edouard uses">
+      {%- for tool in section.extra.tools %}
+      <li class="tool">
+        <span class="tool__tile"><img src="{{ get_url(path="home/logos/" ~ tool.logo) }}" width="32" height="32" alt="" decoding="async"></span>
+        <span class="tool__name">{{ tool.name }}</span>
+      </li>
+      {%- endfor %}
+    </ul>
+  </div>
+
+  <div class="poster__inner">
+    <div class="poster__captions">
+      {%- for caption in captions %}
+      <p class="poster__caption">{{ caption }}</p>
+      {%- endfor %}
+    </div>
+
+    <p class="poster__mark">
+      <span class="poster__mark-number">{% if videos | length < 10 %}0{% endif %}{{ videos | length }}</span>
+      <span class="poster__mark-label">Videos so far</span>
+    </p>
+
+    <div class="poster__foot">
+      <h2 class="poster__title"><span class="poster__name">Edouard</span> <span class="poster__name poster__name--yellow">the Ginger</span></h2>
+      <ul class="poster__words">
+        <li><a href="{{ real_or_bs_url }}">Real or BS</a></li>
+        <li><a href="{{ playbooks_url }}">Playbooks</a></li>
+        <li><a href="{{ videos_url }}">Videos</a></li>
       </ul>
-      {%- endif %}
-      <a class="latest__all" href="{{ videos_url }}">All Videos <span aria-hidden="true">&rarr;</span></a>
     </div>
   </div>
-</section>
-{%- endif %}
 </div>
+  <div class="story__text">
+    {%- if section.content | trim %}
+    {{ section.content | safe }}
+    {%- else %}
+    <p class="story__coming-soon">{{ section.extra.story_coming_soon }}</p>
+    {%- endif %}
+  </div>
+</section>
 {% endblock content %}
