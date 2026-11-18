@@ -3,6 +3,12 @@ title = "Edouard the Ginger"
 template = "index.html"
 
 [extra]
+# The Hero's tagline, under EDOUARD | THE GINGER: the one place its wording is held.
+tagline = "Learn AI without the hype, only the facts"
+# My Story: the story itself is the body of this file, below the front matter (Markdown). Until
+# there is one, the section shows this line under the Poster.
+story_coming_soon = "My story is coming soon, in my own words."
+
 # The Poster's captions: the one place their wording is held.
 # Shown together as a small block in the top left corner.
 captions = [
@@ -16,6 +22,14 @@ captions = [
 portrait = "home/portrait-relit-ai.webp"
 # Alt text of the portrait on the Poster.
 portrait_alt = "Edouard the Ginger in the dark, warm light falling across his forehead and eyes"
+
+# The Hero: a short muted vertical video (9:16) and its poster frame, files under static/.
+# The stand-in was made from the portrait by brand-assets/hero/make-stand-in-hero.sh. To put the
+# real Hero live, overwrite these two files (or point these two lines at new ones): H.264 MP4 with
+# no audio track and fast-start, under 1.5 MB; the poster is its first frame as WebP.
+[extra.hero]
+video = "home/hero.mp4"
+poster = "home/hero-poster.webp"
 
 # The light across the face, in pixels of the portrait above (1350 x 1693): a broad, soft diagonal
 # band over the forehead, eyes and nose, falling towards the lower right. The two white lines

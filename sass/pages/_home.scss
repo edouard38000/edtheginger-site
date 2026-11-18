@@ -1,5 +1,5 @@
-// Home page. Owned by ticket #6.
-// Phone width first: the Poster, the two entry points, the Playbook shelf, then the latest Video.
+// Home page. Phone width first, top to bottom: the Hero, the Wheel's slot, the Playbook shelf,
+// the Ed's Daily slot, then My Story (the Poster and the story text).
 
 .page-home main {
   padding-top: 0;
@@ -13,7 +13,7 @@
 }
 
 // ---------------------------------------------------------------------------
-// The Poster: the cut-out portrait on a faded orange background, tool tiles around
+// The Poster, opening My Story: the cut-out portrait on a faded orange background, tool tiles around
 // the head, captions, the corner mark, thin lines and the title. Full width, about
 // one phone screen tall.
 // ---------------------------------------------------------------------------
@@ -22,9 +22,203 @@
   padding-inline: 0;
 }
 
-.home-body {
+// Everything but the Hero and the Poster sits in one centred column with the page gutter.
+.page-home .shelf,
+.home-slot,
+.story__header,
+.story__text {
   width: min(100% - var(--gutter) * 2, var(--content-width) - var(--gutter) * 2);
   margin-inline: auto;
+}
+
+// ---------------------------------------------------------------------------
+// The Hero: the vertical video, full width on a phone and centred on a dark backdrop on
+// wider screens, under a fixed layer of white text: EDOUARD left and THE GINGER right of a
+// centre mark, the tagline small at the foot. The row of links sits under the video.
+// ---------------------------------------------------------------------------
+.hero {
+  // The first screen holds the video and the links, above the Dock.
+  --hero-dock: calc(var(--dock-height) + var(--dock-gap) * 2 + env(safe-area-inset-bottom, 0px));
+  --hero-links: 52px;
+  // 9:16, as tall as the screen allows: the full width of a phone, narrower on wide screens.
+  --hero-height: min(100vw * 16 / 9, max(28rem, 100svh - var(--hero-dock) - var(--hero-links)));
+  --hero-ink: #fff;
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0b0908;
+  border-radius: 0 0 28px 28px;
+  color: var(--hero-ink);
+}
+
+.hero__stage {
+  position: relative;
+  width: calc(var(--hero-height) * 9 / 16);
+  height: var(--hero-height);
+  margin-inline: auto;
+}
+
+.hero__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #0b0908;
+}
+
+// A shade over the video where the text sits (the middle band and the foot), so the white text
+// reads on every shot, the light ones too.
+.hero__stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgb(11 9 8 / 75%) 0%, rgb(11 9 8 / 0%) 26%),
+    linear-gradient(to bottom, rgb(11 9 8 / 0%) 38%, rgb(11 9 8 / 32%) 50%, rgb(11 9 8 / 0%) 62%);
+  pointer-events: none;
+}
+
+.hero__layer {
+  position: absolute;
+  inset: 0 0 var(--hero-links);
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: min(100%, 64rem);
+  margin-inline: auto;
+  padding: 0 var(--gutter) 22px;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 55%);
+  pointer-events: none;
+}
+
+.hero__title {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  align-self: center;
+  margin: 0;
+  color: var(--hero-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.125rem, 5.4vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hero__name--first {
+  justify-self: start;
+}
+
+.hero__name--last {
+  justify-self: end;
+  text-align: right;
+}
+
+.hero__mark {
+  display: block;
+  width: clamp(28px, 9vw, 52px);
+  height: auto;
+  fill: var(--hero-ink);
+  filter: drop-shadow(0 1px 8px rgb(0 0 0 / 45%));
+}
+
+.hero__tagline {
+  justify-self: center;
+  max-width: min(100%, 22em);
+  text-wrap: balance;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+// The row of links under the video: the three other pages.
+.hero__links ul {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  height: var(--hero-links);
+  margin: 0;
+  padding: 0 var(--gutter);
+  list-style: none;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero__links a {
+  display: inline-block;
+  padding-block: 12px;
+  color: var(--hero-ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 40%);
+  text-underline-offset: 0.35em;
+}
+
+.hero__links a:hover {
+  text-decoration-color: currentcolor;
+}
+
+.hero__links a:focus-visible {
+  outline-color: var(--hero-ink);
+}
+
+// The two empty slots, filled by the Wheel and the Ed's Daily signup.
+.home-slot:empty {
+  display: none;
+}
+
+// ---------------------------------------------------------------------------
+// My Story: the Poster, then the story text or the coming-soon line.
+// ---------------------------------------------------------------------------
+.story {
+  margin-top: 64px;
+}
+
+// The section title, as the brand sets coloured text: white Montserrat capitals in the orange
+// box, a little askew, like the shelf's tagline box.
+.story__header {
+  margin-bottom: 20px;
+}
+
+.story__title {
+  display: inline-block;
+  margin: 0;
+  padding: 0.3em 0.6em;
+  background: var(--color-orange);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  transform: rotate(-1deg);
+}
+
+.story__text {
+  margin-top: 24px;
+  max-width: 40rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.story__coming-soon {
+  margin: 0;
+  color: var(--color-muted);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
 }
 
 .poster {
@@ -43,7 +237,7 @@
   height: var(--poster-height);
   overflow: hidden;
   isolation: isolate;
-  border-radius: 0 0 28px 28px;
+  border-radius: 28px;
   color: var(--poster-ink);
   // The portrait's own background, continued past its edges: it darkens to the top and warms
   // to burnt orange lower down, then to the black of the jumper, nearly the same across its
@@ -325,233 +519,6 @@
 }
 
 // ---------------------------------------------------------------------------
-// The two entry points: the REAL list (with the Tally) and the Playbooks.
-// ---------------------------------------------------------------------------
-.entry-points {
-  position: relative;
-  display: grid;
-  gap: 16px;
-  margin-top: 56px;
-}
-
-.entry-points__arrow {
-  position: absolute;
-  top: -46px;
-  right: 22px;
-  z-index: 2;
-  transform: rotate(8deg);
-}
-
-.entry-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 20px 20px 18px;
-  border-radius: 14px;
-  border: 2px solid var(--color-charcoal);
-  box-shadow: 5px 5px 0 var(--color-charcoal);
-  color: var(--color-charcoal);
-  text-decoration: none;
-  transition: transform 120ms ease, box-shadow 120ms ease;
-}
-
-.entry-card:hover,
-.entry-card:focus-visible {
-  transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0 var(--color-charcoal);
-}
-
-.entry-card--real {
-  background: var(--color-orange);
-  color: #fff;
-}
-
-.entry-card--playbooks {
-  background: var(--color-yellow);
-}
-
-.entry-card__title {
-  margin: 0 0 12px;
-  font-size: 0.8125rem;
-  letter-spacing: 0.08em;
-}
-
-.entry-card--real .entry-card__title {
-  color: var(--color-yellow);
-}
-
-.entry-card__tally,
-.entry-card__count {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
-  margin: 0 0 10px;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(2rem, 10.5vw, 2.75rem);
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.entry-card__tally b,
-.entry-card__count b {
-  font-weight: 900;
-}
-
-.tally__count--real b {
-  color: var(--color-yellow);
-}
-
-.entry-card__text {
-  margin: 0 0 16px;
-  max-width: 26em;
-  font-size: 0.9375rem;
-  line-height: 1.4;
-}
-
-.entry-card__go {
-  margin-top: auto;
-  padding: 9px 14px;
-  border-radius: 999px;
-  background: var(--color-charcoal);
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.8125rem;
-}
-
-.entry-card--real .entry-card__go {
-  background: var(--color-background);
-  color: var(--color-charcoal);
-}
-
-// ---------------------------------------------------------------------------
-// The latest Video: a taped cover, its Format as a sticker tag, its links.
-// ---------------------------------------------------------------------------
-.latest {
-  margin-top: 48px;
-}
-
-.latest__label {
-  margin: 0 0 22px;
-  color: var(--color-charcoal);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.5rem;
-  line-height: 1.05;
-  text-transform: uppercase;
-}
-
-.latest__body {
-  display: grid;
-  grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
-  gap: 20px;
-  align-items: center;
-}
-
-.latest__cover {
-  position: relative;
-  margin: 0;
-  padding: 6px;
-  background: #fff;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 10px 24px rgb(25 25 25 / 14%);
-  transform: rotate(-2deg);
-}
-
-.latest__cover > img:not(.sticker) {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 9 / 16;
-  object-fit: cover;
-}
-
-.latest__tape {
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  z-index: 1;
-  transform: translateX(-50%) rotate(-5deg);
-}
-
-.latest__new {
-  position: absolute;
-  right: -18px;
-  bottom: 18px;
-  transform: rotate(-9deg);
-}
-
-.latest__format {
-  margin: 0 0 12px;
-}
-
-// A sticker tag: a small label stuck on at an angle.
-.sticker-tag {
-  display: inline-block;
-  padding: 5px 10px;
-  background: var(--color-yellow);
-  border: 1.5px solid var(--color-charcoal);
-  border-radius: 6px;
-  box-shadow: 2px 2px 0 var(--color-charcoal);
-  color: var(--color-charcoal);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transform: rotate(-3deg);
-}
-
-.latest__title {
-  margin: 0 0 8px;
-  color: var(--color-orange);
-  font-size: clamp(1.5rem, 7.5vw, 2.5rem);
-}
-
-.latest__description {
-  margin: 0 0 14px;
-  color: var(--color-muted);
-  font-size: 0.9375rem;
-  line-height: 1.4;
-}
-
-.latest__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 14px;
-  padding: 0;
-  list-style: none;
-}
-
-.latest__watch {
-  display: inline-block;
-  padding: 9px 14px;
-  border-radius: 999px;
-  background: var(--color-orange);
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  text-decoration: none;
-}
-
-.latest__watch:hover {
-  background: var(--color-charcoal);
-}
-
-.latest__all {
-  display: inline-block;
-  padding-block: 6px;
-  color: var(--color-charcoal);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.9375rem;
-}
-
-// ---------------------------------------------------------------------------
 // The Playbook shelf: the newest Playbooks as the Playbooks page's cards, cut down
 // to the cover, the title and the button. A row that scrolls sideways on phones,
 // the next card peeking in; a grid of three on wider screens.
@@ -678,26 +645,12 @@
   .tool:nth-child(7) { --y: 60; }
   .tool:nth-child(8) { --y: 63; }
 
-  .entry-points {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-top: 56px;
-  }
-
-  .entry-points__arrow {
-    right: auto;
-    left: 34%;
-  }
-
-  .entry-card {
-    padding: 28px 28px 24px;
-  }
-
   .shelf {
     margin-top: 64px;
   }
 
-  .shelf__title {
+  .shelf__title,
+  .story__title {
     font-size: 1.75rem;
   }
 
@@ -711,23 +664,6 @@
     scroll-snap-type: none;
   }
 
-  .latest {
-    margin-top: 64px;
-    padding: 36px 44px 44px;
-    background: var(--color-pale-fill);
-    border: 1px solid var(--color-border);
-    border-radius: 18px;
-  }
-
-  .latest__label {
-    font-size: 1.75rem;
-  }
-
-  .latest__body {
-    grid-template-columns: 220px minmax(0, 30rem);
-    gap: 48px;
-    justify-content: center;
-  }
 }
 
 // Wide screens: every tool, larger, scattered like desktop icons with its name under it.
@@ -799,8 +735,4 @@
   .tool:nth-child(14) { --x: 76.2; --y: 62.7; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .entry-card {
-    transition: none;
-  }
-}
+
