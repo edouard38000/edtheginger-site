@@ -10,8 +10,8 @@ no third-party scripts, fonts self-hosted. The words used here are defined in [`
 
 ## Build and check
 
-You need Rust (cargo, clippy, rustfmt), Zola 0.23.6 and [just](https://just.systems/)
-(`brew install zola just`). CI pins the same Zola version in `.github/workflows/site.yml`.
+You need Rust (cargo, clippy, rustfmt), Zola 0.23.6, [just](https://just.systems/)
+(`brew install zola just`) and Google Chrome or Chromium (or set `CHROME` to its path). CI pins the same Zola version in `.github/workflows/site.yml`.
 
 ```sh
 just check
@@ -19,7 +19,10 @@ just check
 
 That one command checks formatting and lints, runs the Rust test suite (which builds the site from
 the fixture Entries and asserts on the generated pages), checks internal links and builds the real
-site into `public/`. `just serve` previews the real site locally.
+site into `public/`. One check, `tests/phone_layout.rs`, opens every real Playbook page in headless
+Chrome as a 375 px phone and fails on sideways scrolling, anything wider than the screen, reading
+text under 16 px, squeezed phone screenshots or buttons under 44 px tall: most readers open the
+Playbooks on a phone. `just serve` previews the real site locally.
 
 The task runner is a `justfile` and not Rust code because it only chains four commands; `just`
 itself is a Rust tool.
@@ -42,6 +45,7 @@ itself is a Rust tool.
 | `sass/pages/_playbook.scss` | The Playbook pages |
 | `src/lib.rs` | The check harness: fixture Entries in, built pages out |
 | `tests/skeleton.rs` | Checks on what every page shares |
+| `tests/phone_layout.rs` | The real Playbook pages, measured in headless Chrome on a 375 px phone |
 | `tests/{home,real_or_bs,playbooks,videos}.rs` | One test file per page |
 | `tests/fixtures/` | Fixture Entries and covers; the checks on the pages never build the real Entries. The fixture Playbook page (`tests/fixtures/playbook-pages/`) is added only by the checks that use it |
 | `tests/adding_content.rs`, `tests/bad-entries/` | Checks that a broken Entry is refused, with one bad Entry per refusal; one check reads the real Entries for a missing date |

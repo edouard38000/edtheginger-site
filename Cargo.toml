@@ -8,3 +8,6 @@ description = "Checks for edtheginger-site: builds the site from fixture Entries
 [dependencies]
 scraper = "0.23"
 tempfile = "3"
+
+[dev-dependencies]
+headless_chrome = "1.0.22"

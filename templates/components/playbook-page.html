@@ -97,14 +97,17 @@
    screenshots. #}
 {% component beside(srcs, alts, labels=[]) %}
 {%- set text = body | trim | markdown | safe | replace(from="\n\n", to="\n") | replace(from="\n\n", to="\n") -%}
-<div class="pb-beside" style="--pb-count: {{ srcs | length }}"><div class="pb-shots pb-beside__shots">{% for src in srcs %}{% set image = resize_image(path=src, width=480, op="fit_width", format="webp", quality=80) %}<figure class="pb-shot">{% if labels | length >= loop.index %}<figcaption class="pb-label">{{ labels[loop.index0] | escape }}</figcaption>{% endif %}<img class="pb-shot__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alts[loop.index0] | escape }}" loading="lazy" decoding="async"></figure>{% endfor %}</div>
+{%- set first = resize_image(path=srcs | first, width=480, op="fit_width", format="webp", quality=80) -%}
+<div class="pb-beside" style="--pb-count: {{ srcs | length }}"><div class="pb-shots pb-beside__shots{% if first.height > first.width * 1.3 %} pb-shots--tall{% endif %}">{% for src in srcs %}{% set image = resize_image(path=src, width=480, op="fit_width", format="webp", quality=80) %}<figure class="pb-shot">{% if labels | length >= loop.index %}<figcaption class="pb-label">{{ labels[loop.index0] | escape }}</figcaption>{% endif %}<img class="pb-shot__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alts[loop.index0] | escape }}" loading="lazy" decoding="async"></figure>{% endfor %}</div>
 <div class="pb-beside__text">{{ text | safe }}</div></div>
 {% endcomponent beside %}
 
 {# Phone screenshots side by side, each under its own label. `srcs`, `alts` and `labels` are
-   arrays of the same length; `srcs` are paths under static/. #}
+   arrays of the same length; `srcs` are paths under static/. When the first one is tall (a phone
+   screenshot), phones show them one per row, big enough to read; square logos stay two per row. #}
 {% component shots(srcs, alts, labels=[]) %}
-<div class="pb-shots">{% for src in srcs %}{% set image = resize_image(path=src, width=480, op="fit_width", format="webp", quality=80) %}<figure class="pb-shot">{% if labels | length >= loop.index %}<figcaption class="pb-label">{{ labels[loop.index0] | escape }}</figcaption>{% endif %}<img class="pb-shot__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alts[loop.index0] | escape }}" loading="lazy" decoding="async"></figure>{% endfor %}</div>
+{%- set first = resize_image(path=srcs | first, width=480, op="fit_width", format="webp", quality=80) -%}
+<div class="pb-shots{% if first.height > first.width * 1.3 %} pb-shots--tall{% endif %}">{% for src in srcs %}{% set image = resize_image(path=src, width=480, op="fit_width", format="webp", quality=80) %}<figure class="pb-shot">{% if labels | length >= loop.index %}<figcaption class="pb-label">{{ labels[loop.index0] | escape }}</figcaption>{% endif %}<img class="pb-shot__image" src="{{ image.url }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ alts[loop.index0] | escape }}" loading="lazy" decoding="async"></figure>{% endfor %}</div>
 {% endcomponent shots %}
 
 {# Orange pill links, like "FREE WEEK OF CLAUDE CODE ->", then the crayon arrow and CLICK HERE.

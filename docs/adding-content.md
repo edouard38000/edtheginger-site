@@ -172,7 +172,7 @@ single quotes around text that holds double quotes: `title='Say "Hey Claude" thr
 | `prompt` | A prompt box: the label, where to paste it, the exact text (the body, raw text: never Markdown) and a Copy button. Placeholders in square brackets, like `[YOUR CITY]`, are shown in orange. | `label` (default `PROMPT`), `dest` (default `paste in ChatGPT or Claude`), `logos` (`"chatgpt,claude"` by default, `"claude"`, `"chatgpt"` or `""`), `example_label` and `example` for an example under the text (not copied). |
 | `skill` | Under a prompt that uses a skill: a plus, SKILL, and a box with the skill's name and GRAB IT HERE. | `name`; `url` only when the skill has a real public address. |
 | `step_image` | One screenshot with rounded corners: as wide as the text on phones; on wide screens centred and capped by its shape (a phone screenshot stays narrow, a slide wider). | `src` (a path under `static/`), `alt` (what the image shows), `label`, `caption`. |
-| `shots` | Phone screenshots side by side, each under its label. | `srcs`, `alts`, `labels`: lists of the same length. |
+| `shots` | Phone screenshots, each under its label: one per row on phones (big enough to read), side by side from 600 px wide. Square images such as logos stay two per row on phones. | `srcs`, `alts`, `labels`: lists of the same length. |
 | `beside` | Screenshots beside the steps they go with (the body: steps, rows, text). From 60rem wide the screenshots sit on the left of the body; on phones they come first, like `shots`. Best with one or two phone screenshots. | `srcs`, `alts`, `labels`, as for `shots`. |
 | `buttons` | Orange pill links, then the crayon arrow and CLICK HERE. | `texts`, `urls`: lists of the same length. |
 
@@ -195,6 +195,10 @@ single quotes around text that holds double quotes: `title='Say "Hey Claude" thr
 - A component prints one block: leave a blank line before and after it.
 - The components are in `templates/components/playbook-page.html`, their styles in
   `sass/pages/_playbook.scss`.
+- Most readers open a Playbook page on a phone. `just check` opens every Playbook page as a 375 px
+  phone and refuses sideways scrolling, text under 16 px, phone screenshots under 240 px wide and
+  buttons under 44 px tall. Text baked into an image (a diagram, a desktop screenshot) is not
+  checked: look at the page on a phone and keep that text big enough to read.
 
 ## Check locally
 
