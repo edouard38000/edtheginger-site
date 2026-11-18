@@ -179,15 +179,13 @@
 // ---------------------------------------------------------------------------
 // The Wheel: the latest Videos as tilted portrait cards round the top half of a wheel whose hub
 // sits low in the section, full width. Sixteen slots, 22.5deg apart (the template fills sixteen);
-// each card is tilted along its radius. The ring is the one element that turns: clockwise, one
-// slot per 2 s step (a 1 s swing, then a 1 s near-pause), 32 s for the loop. It only turns once
-// static/js/wheel.js adds .wheel--turning, so without the script the Wheel holds still; with
-// "reduce motion" it never turns.
+// each card is tilted along its radius. The ring is the one element that turns: static/js/wheel.js
+// sets its transform, frame by frame, only while it moves (by itself: clockwise, one slot per 2 s;
+// or by hand). The script adds .wheel--ready, so without it the Wheel holds still and its buttons
+// stay hidden.
 // ---------------------------------------------------------------------------
 $wheel-slots: 16;
 $wheel-step: math.div(360deg, $wheel-slots);
-// How far the near-pause still drifts, out of each step.
-$wheel-drift: 0.6deg;
 
 .wheel {
   position: relative;
@@ -266,6 +264,30 @@ $wheel-drift: 0.6deg;
   // Pale while the still loads, so the Wheel never flashes black.
   background: var(--color-pale-fill);
   box-shadow: 0 10px 22px rgb(25 25 25 / 20%), 0 2px 5px rgb(25 25 25 / 14%);
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+// The card under the pointer or the keyboard focus lifts out of the rim, stands upright (the
+// script sets --upright, the slot's tilt undone) and grows a little, over its neighbours. On
+// touch screens the card at the top of the rim has the same look.
+.wheel__slot.is-lifted {
+  z-index: 2;
+}
+
+.wheel__slot.is-lifted .wheel__card {
+  box-shadow: 0 22px 40px rgb(25 25 25 / 28%), 0 6px 12px rgb(25 25 25 / 18%);
+  transform: translateY(-14px) rotate(var(--upright, 0deg)) scale(1.08);
+}
+
+@media (hover: none) {
+  .wheel__slot.is-top {
+    z-index: 1;
+  }
+
+  .wheel__slot.is-top .wheel__card {
+    box-shadow: 0 22px 40px rgb(25 25 25 / 28%), 0 6px 12px rgb(25 25 25 / 18%);
+    transform: translateY(-14px) scale(1.08);
+  }
 }
 
 .wheel__card:focus-visible {
@@ -292,46 +314,33 @@ $wheel-drift: 0.6deg;
   opacity: 1;
 }
 
-// One step per 2 s: a swing of 1 s with an ease, then the near-pause drifts the last bit.
-@keyframes wheel-turn {
-  @for $i from 0 to $wheel-slots {
-    #{math.percentage(math.div($i, $wheel-slots))} {
-      transform: rotate($i * $wheel-step);
-      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
-    }
-
-    #{math.percentage(math.div($i + 0.5, $wheel-slots))} {
-      transform: rotate(($i + 1) * $wheel-step - $wheel-drift);
-      animation-timing-function: linear;
-    }
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.wheel--turning .wheel__ring {
-  animation: wheel-turn #{$wheel-slots * 2}s infinite;
+// With the script: the ring is a layer of its own, a sideways drag turns the Wheel (a vertical
+// one still scrolls the page; pinch zoom still works), and nothing gets selected or dragged out.
+.wheel--ready .wheel__ring {
   will-change: transform;
 }
 
-// Paused by the button, out of view, or while a card has the keyboard focus or the pointer.
-.wheel--paused .wheel__ring,
-.wheel__stage:focus-within .wheel__ring {
-  animation-play-state: paused;
+.wheel--ready .wheel__stage {
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
-@media (hover: hover) {
-  .wheel__stage:hover .wheel__ring {
-    animation-play-state: paused;
-  }
+.wheel--dragging .wheel__stage,
+.wheel--dragging .wheel__card {
+  cursor: grabbing;
+}
+
+.wheel--ready .wheel__card,
+.wheel--ready .wheel__still {
+  -webkit-user-drag: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wheel__ring,
-  .wheel--turning .wheel__ring {
-    animation: none;
+  .wheel__card {
+    transition: none;
   }
 
   .wheel__clip {
@@ -339,11 +348,16 @@ $wheel-drift: 0.6deg;
   }
 }
 
-// The pause button, bottom right of the Wheel: two bars, or a play triangle once pressed.
-.wheel__toggle {
+// Previous, pause and next, bottom right of the Wheel.
+.wheel__controls {
   position: absolute;
   right: var(--gutter);
   bottom: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.wheel__button {
   display: grid;
   place-items: center;
   width: 44px;
@@ -356,15 +370,35 @@ $wheel-drift: 0.6deg;
   cursor: pointer;
 }
 
-.wheel__toggle[hidden] {
+.wheel__button[hidden] {
   display: none;
 }
 
-.wheel__toggle:focus-visible {
+.wheel__button:focus-visible {
   outline: 3px solid var(--color-orange);
   outline-offset: 2px;
 }
 
+// A chevron: two borders of a square, turned.
+.wheel__step-icon {
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  border-top: 3px solid currentcolor;
+  border-right: 3px solid currentcolor;
+}
+
+.wheel__step-icon--previous {
+  margin-left: 4px;
+  transform: rotate(-135deg);
+}
+
+.wheel__step-icon--next {
+  margin-right: 4px;
+  transform: rotate(45deg);
+}
+
+// Pause: two bars, or a play triangle once pressed.
 .wheel__toggle-icon {
   box-sizing: border-box;
   width: 14px;
