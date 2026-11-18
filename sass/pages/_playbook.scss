@@ -1,7 +1,9 @@
 // A Playbook page (templates/playbook.html), and the components its Markdown body is written with
 // (templates/components/playbook-page.html). The look of the PDF Playbooks: cream page, titles in
 // orange boxes, small orange labels, number stickers, rounded screenshots, prompt boxes.
-// Phone width first: one column; wide screens keep a readable column in the middle.
+// Phone width first (375 px): one column, reading text at least 16 px, nothing wider than the
+// screen, tap targets at least 44 px tall. Wide screens keep a readable column in the middle.
+// tests/phone_layout.rs checks this in a real browser.
 
 .pb-sr-only {
   position: absolute;
@@ -38,13 +40,18 @@
 .pb__top {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 4px 16px;
-  margin: 0 0 20px;
-  font-size: 0.875rem;
+  gap: 0 16px;
+  margin: 0 0 12px;
+  font-size: 1rem;
 }
 
 .pb__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  min-height: 44px;
   color: var(--color-muted);
   font-family: var(--font-display);
   font-weight: 700;
@@ -147,7 +154,7 @@
   border-radius: 4px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -177,7 +184,7 @@
   border-radius: 3px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
@@ -215,7 +222,7 @@
   border-radius: 4px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   line-height: 1.4;
 }
 
@@ -225,7 +232,7 @@
 
 .pb-note {
   color: var(--color-muted);
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
 // Plain numbered lists of the body (the parts, what happens): numbers in orange round stickers.
@@ -296,7 +303,7 @@
   align-items: center;
   gap: 6px;
   color: var(--color-charcoal);
-  font-size: 0.8125rem;
+  font-size: 1rem;
 }
 
 .pb-prompt__logos {
@@ -344,16 +351,16 @@
 .pb-prompt__copy {
   display: flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 44px;
   margin: 0 0 0 auto;
-  padding: 8px 18px;
+  padding: 8px 20px;
   background: #fff;
   color: var(--color-orange);
   border: 2px solid var(--color-orange);
   border-radius: 999px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
@@ -392,16 +399,17 @@
   margin: 0 0 6px;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
 .pb-skill__box {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 10px;
+  align-items: center;
+  gap: 0 10px;
   margin: 0;
-  padding: 12px 16px;
+  padding: 4px 16px;
   background: #fff;
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -413,6 +421,9 @@
 }
 
 .pb-skill__grab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-family: var(--font-display);
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -439,7 +450,7 @@
 .pb-figure__caption {
   margin-top: 6px;
   color: var(--color-muted);
-  font-size: 0.875rem;
+  font-size: 1rem;
 }
 
 .pb-shots {
@@ -462,7 +473,7 @@
 
 .pb-shot .pb-label {
   max-width: 100%;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   text-align: center;
 }
 
@@ -473,6 +484,28 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   box-shadow: 0 4px 14px rgb(25 25 25 / 10%);
+}
+
+// Phone screenshots: one per row on phones, wide enough to read what is on them (about three
+// quarters of a 375 px screen). Two or more per row from 600 px.
+.pb-shots--tall {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+}
+
+.pb-shots--tall .pb-shot__image {
+  max-width: 280px;
+}
+
+@media (min-width: 37.5rem) {
+  .pb-shots--tall {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px 16px;
+  }
+
+  .pb-shots--tall .pb-shot__image {
+    max-width: 220px;
+  }
 }
 
 // Screenshots beside their steps (wide screens only; see the media query at the end).
@@ -514,7 +547,7 @@
   border-radius: 999px;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   letter-spacing: 0.04em;
   line-height: 1.2;
   text-decoration: none;
@@ -543,7 +576,7 @@
   gap: 6px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
 
