@@ -41,8 +41,9 @@ cargo run --release --manifest-path scripts/clip/Cargo.toml -- ~/Movies/my-video
 ```
 
 It needs ffmpeg (`brew install ffmpeg`). It takes the first five seconds, crops them to 360 x 640,
-drops the sound and writes `static/clips/real-or-bs-02-phone-use.mp4` (H.264, fast-start, well
-under the 400 KB budget) and its still `static/clips/real-or-bs-02-phone-use.webp`, then prints the
+plays them at 60 fps (Chrome draws the page at the frame rate of its videos, so the Wheel turns at
+60 fps), drops the sound and writes `static/clips/real-or-bs-02-phone-use.mp4` (H.264, fast-start,
+well under the 400 KB budget) and its still `static/clips/real-or-bs-02-phone-use.webp`, then prints the
 two lines to put under `[extra]`:
 
 ```

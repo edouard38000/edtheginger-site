@@ -55,6 +55,12 @@ fn a_clip_is_five_silent_seconds_at_360_by_640_under_budget_with_a_webp_still() 
         probe.duration
     );
     assert_eq!((probe.width, probe.height), (clip::WIDTH, clip::HEIGHT));
+    assert!(
+        (probe.fps - f64::from(clip::FPS)).abs() < 0.01,
+        "the Clip must play at {} fps (from a 30 fps source), not {}",
+        clip::FPS,
+        probe.fps
+    );
     assert_eq!(
         probe.kinds,
         ["video"],

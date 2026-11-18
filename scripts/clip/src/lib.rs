@@ -1,6 +1,7 @@
 //! Makes a Video's Clip and its still from a source video file.
 //!
-//! A Clip is the first five seconds of the Video (its hook): MP4, H.264, 360 x 640, no audio
+//! A Clip is the first five seconds of the Video (its hook): MP4, H.264, 360 x 640, 60 fps (Chrome
+//! draws the page at the frame rate of the videos on it, so the Wheel turns at 60 fps), no audio
 //! track, fast-start (the index at the front, so a phone starts playing it at once). Its still is
 //! the Clip's first frame as WebP. Both are made with `ffmpeg`, which must be on the PATH (or
 //! named by `FFMPEG`); `ffprobe` (or `FFPROBE`) reads them back.
@@ -11,6 +12,8 @@ use std::process::Command;
 
 /// How long a Clip is, in seconds.
 pub const SECONDS: u32 = 5;
+/// The Clip's frame rate: Chrome draws the whole page at the rate of the videos playing on it.
+pub const FPS: u32 = 60;
 /// The Clip's size in pixels: portrait 9:16.
 pub const WIDTH: u32 = 360;
 pub const HEIGHT: u32 = 640;
@@ -78,7 +81,7 @@ pub fn make_clip(source: &Path, out_dir: &Path, name: &str) -> Result<Made, Stri
 
 fn encode(source: &Path, clip: &Path, crf: u32) -> Result<(), String> {
     let filter = format!(
-        "scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},fps=30,format=yuv420p"
+        "scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},fps={FPS},format=yuv420p"
     );
     let crf = crf.to_string();
     let seconds = SECONDS.to_string();
@@ -154,6 +157,8 @@ pub struct Probe {
     pub duration: f64,
     pub width: u32,
     pub height: u32,
+    /// Frames per second of the first video stream (0 when there is none).
+    pub fps: f64,
     /// The codec of each stream, like `h264` or `aac`.
     pub codecs: Vec<String>,
     /// The type of each stream, like `video` or `audio`.
@@ -168,7 +173,7 @@ pub fn probe(file: &Path) -> Result<Probe, String> {
             "-v",
             "error",
             "-show_entries",
-            "format=duration:stream=codec_type,codec_name,width,height",
+            "format=duration:stream=codec_type,codec_name,width,height,avg_frame_rate",
             "-of",
             "default=noprint_wrappers=1",
             &path_arg(file)?,
@@ -179,6 +184,7 @@ pub fn probe(file: &Path) -> Result<Probe, String> {
         duration: 0.0,
         width: 0,
         height: 0,
+        fps: 0.0,
         codecs: Vec::new(),
         kinds: Vec::new(),
     };
@@ -190,12 +196,22 @@ pub fn probe(file: &Path) -> Result<Probe, String> {
             "duration" => probe.duration = value.parse().unwrap_or(0.0),
             "codec_name" => probe.codecs.push(value.to_owned()),
             "codec_type" => probe.kinds.push(value.to_owned()),
+            "avg_frame_rate" if probe.fps == 0.0 => probe.fps = rate(value),
             "width" if probe.width == 0 => probe.width = value.parse().unwrap_or(0),
             "height" if probe.height == 0 => probe.height = value.parse().unwrap_or(0),
             _ => {}
         }
     }
     Ok(probe)
+}
+
+/// A rate like `60/1` as a number; 0 when it cannot be read.
+fn rate(value: &str) -> f64 {
+    let (num, den) = value.split_once('/').unwrap_or((value, "1"));
+    match (num.parse::<f64>(), den.parse::<f64>()) {
+        (Ok(num), Ok(den)) if den > 0.0 => num / den,
+        _ => 0.0,
+    }
 }
 
 /// Whether an MP4 is fast-start: its index (`moov`) comes before its media data (`mdat`).
