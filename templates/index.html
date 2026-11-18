@@ -60,8 +60,10 @@
     reader gets; the repeats are hidden from it and cannot be focused. Each card shows the Video's
     still and links to it on TikTok, else Instagram. The page never loads a Clip: its address waits
     in data-src until static/js/wheel.js needs it. Without that script the Wheel holds still and
-    shows the stills; the script turns it (a CSS animation of one element) and plays the Clips at
-    the top of the rim, never with "reduce motion". No Videos, no Wheel. -#}
+    shows the stills, and its buttons stay hidden. The script turns it (the transform of one
+    element), by itself and by hand (drag, touchpad, the buttons, the arrow keys), lifts the card
+    under the pointer or the keyboard focus, and plays the Clips at the top of the rim, never with
+    "reduce motion". No Videos, no Wheel. -#}
 {%- set wheel_videos = videos | sort(attribute="date") | reverse -%}
 {%- set wheel_videos = wheel_videos[:8] -%}
 {%- set wheel_count = wheel_videos | length -%}
@@ -109,10 +111,19 @@
       {%- endif %}
     </div>
   </div>
-  {#- The pause button: shown by the script while the Wheel turns. #}
-  <button class="wheel__toggle" type="button" aria-pressed="false" hidden>
-    <span class="wheel__toggle-icon" aria-hidden="true"></span><span class="playbooks__sr-only">Pause the videos</span>
-  </button>
+  {#- Previous, pause, next: shown by the script. The pause button only while the Wheel can turn on
+      its own (never with "reduce motion"). #}
+  <div class="wheel__controls">
+    <button class="wheel__button wheel__step" type="button" data-step="-1" hidden>
+      <span class="wheel__step-icon wheel__step-icon--previous" aria-hidden="true"></span><span class="playbooks__sr-only">Previous video</span>
+    </button>
+    <button class="wheel__button wheel__toggle" type="button" aria-pressed="false" hidden>
+      <span class="wheel__toggle-icon" aria-hidden="true"></span><span class="playbooks__sr-only">Pause the videos</span>
+    </button>
+    <button class="wheel__button wheel__step" type="button" data-step="1" hidden>
+      <span class="wheel__step-icon wheel__step-icon--next" aria-hidden="true"></span><span class="playbooks__sr-only">Next video</span>
+    </button>
+  </div>
 </section>
 {%- endif %}
 

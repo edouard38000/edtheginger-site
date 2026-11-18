@@ -7,7 +7,8 @@ Static site, generated with [Zola](https://www.getzola.org/). Templates and CSS,
 scripts: one on the Videos page (`static/js/videos.js`, for the Desktop layout; the page works without
 it), one on the Playbook pages (`static/js/playbook.js`, for the Copy buttons; hidden without it) and
 two on the home page (`static/js/hero.js`, pausing the Hero video out of view, and `static/js/wheel.js`,
-turning the Wheel and playing its Clips; without them the Hero still plays and the Wheel holds still):
+turning the Wheel by itself and by hand, lifting a card on hover or focus and playing its Clips;
+without them the Hero still plays and the Wheel holds still, its buttons hidden):
 no third-party scripts, fonts self-hosted. The words used here are defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 ## Build and check

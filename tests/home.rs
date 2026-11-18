@@ -407,6 +407,20 @@ fn the_rim_is_filled_by_repeats_hidden_from_screen_readers_and_the_keyboard() {
     );
 }
 
+fn wheel_script() -> String {
+    std::fs::read_to_string(format!("{ROOT}/static/js/wheel.js")).unwrap()
+}
+
+/// The body of the first rule of `css` that starts with `selector{`.
+fn css_rule<'a>(css: &'a str, selector: &str) -> &'a str {
+    css.split(&format!("{selector}{{"))
+        .nth(1)
+        .unwrap_or_else(|| panic!("a rule for {selector}"))
+        .split('}')
+        .next()
+        .unwrap()
+}
+
 #[test]
 fn the_ring_is_the_one_element_that_turns() {
     let home = home();
@@ -418,14 +432,106 @@ fn the_ring_is_the_one_element_that_turns() {
     );
     let css = site().file("main.css");
     assert!(
-        css.contains(".wheel--turning .wheel__ring{animation:wheel-turn 32s infinite"),
-        "the ring turns by a CSS animation, 2 s per slot"
+        !css.contains("@keyframes wheel-turn"),
+        "the script turns the ring, not a CSS animation"
     );
-    assert!(css.contains("@keyframes wheel-turn{0%{transform:rotate(0deg)"));
+    assert_eq!(
+        css_rule(&css, ".wheel--ready .wheel__ring"),
+        "will-change:transform"
+    );
+    let script = wheel_script();
+    assert!(script.contains("requestAnimationFrame(frame)"));
     assert!(
-        css.contains("100%{transform:rotate(360deg)}"),
-        "clockwise, one full turn per loop"
+        script.contains("ring.style.transform = \"rotate(\""),
+        "the script sets the ring's transform, and nothing else moves"
     );
+    for layout_read in [
+        "getBoundingClientRect",
+        "offsetWidth",
+        "offsetLeft",
+        "scrollLeft",
+    ] {
+        assert!(
+            !script.contains(layout_read),
+            "the script never measures the page ({layout_read})"
+        );
+    }
+}
+
+/// Previous, pause and next: real buttons, named for screen readers, at least 44 px, hidden until
+/// the script shows them.
+#[test]
+fn the_wheel_has_previous_pause_and_next_buttons() {
+    let home = home();
+    let buttons = "section.wheel > .wheel__controls > button.wheel__button[type=button]";
+    assert_eq!(
+        home.texts(&format!("{buttons} .playbooks__sr-only")),
+        ["Previous video", "Pause the videos", "Next video"]
+    );
+    assert_eq!(home.count(&format!("{buttons}[hidden]")), 3);
+    assert_eq!(
+        home.attributes(&format!("{buttons}.wheel__step"), "data-step"),
+        ["-1", "1"]
+    );
+    assert_eq!(home.count(&format!("{buttons}.wheel__toggle")), 1);
+    assert_eq!(
+        home.count(&format!("{buttons} [aria-hidden=true]")),
+        3,
+        "the icons are not read out"
+    );
+    let css = site().file("main.css");
+    let button = css_rule(&css, ".wheel__button");
+    assert!(
+        button.contains("width:44px;height:44px"),
+        "big enough to tap: {button}"
+    );
+    assert_eq!(css_rule(&css, ".wheel__button[hidden]"), "display:none");
+}
+
+/// A sideways drag turns the Wheel; a vertical swipe still scrolls the page and pinch zoom works.
+#[test]
+fn only_a_sideways_drag_turns_the_wheel() {
+    let css = site().file("main.css");
+    let stage = css_rule(&css, ".wheel--ready .wheel__stage");
+    assert!(
+        stage.starts_with("touch-action:pan-y pinch-zoom;"),
+        "{stage}"
+    );
+    let base = css_rule(&css, ".wheel__stage");
+    assert!(
+        !base.contains("touch-action"),
+        "only with the script: {base}"
+    );
+    let script = wheel_script();
+    assert!(
+        script.contains("\"pointerdown\""),
+        "Pointer Events for touch and mouse"
+    );
+    assert!(
+        script.contains("\"wheel\""),
+        "wheel events for touchpad swipes"
+    );
+    assert!(script.contains("Math.abs(dx) <= Math.abs(dy)"));
+}
+
+/// The card under the mouse or the keyboard focus lifts, upright; on touch screens the top card does.
+#[test]
+fn a_card_lifts_on_hover_and_focus_and_the_top_card_on_touch_screens() {
+    let css = site().file("main.css");
+    assert!(css.contains(
+        ".wheel__slot.is-lifted .wheel__card{box-shadow:0 22px 40px rgba(25,25,25,.28),\
+         0 6px 12px rgba(25,25,25,.18);transform:translateY(-14px) rotate(var(--upright, 0deg)) \
+         scale(1.08)}"
+    ));
+    assert!(
+        css_rule(&css, ".wheel__card").contains("transition:transform .2s ease-out"),
+        "about 200 ms, eased out"
+    );
+    let touch = css
+        .split("@media (hover: none){")
+        .nth(1)
+        .expect("a block for touch screens");
+    assert!(touch.starts_with(".wheel__slot.is-top{z-index:1}.wheel__slot.is-top .wheel__card{"));
 }
 
 #[test]
@@ -462,7 +568,7 @@ fn no_clip_is_loaded_by_the_page_itself() {
 }
 
 /// Without JavaScript the cards are stills that still link out: each card holds its still, the
-/// Wheel only turns once the script adds `.wheel--turning`, and the pause button stays hidden.
+/// Wheel only turns once the script adds `.wheel--ready`, and the buttons stay hidden.
 #[test]
 fn without_javascript_the_wheel_holds_still_with_stills_that_link_out() {
     let home = home();
@@ -478,21 +584,19 @@ fn without_javascript_the_wheel_holds_still_with_stills_that_link_out() {
         let file = built_file(&address);
         assert!(site().has_file(file), "{file} is published");
     }
-    assert_eq!(home.count("section.wheel.wheel--turning"), 0);
-    assert!(!template().contains("wheel--turning"));
+    assert_eq!(home.count("section.wheel.wheel--ready"), 0);
+    assert!(!template().contains("wheel--ready"));
     let css = site().file("main.css");
-    let base_rule = css
-        .split(".wheel__ring{")
-        .nth(1)
-        .expect("a rule for the ring")
-        .split('}')
-        .next()
-        .unwrap();
+    let base_rule = css_rule(&css, ".wheel__ring");
     assert!(
-        !base_rule.contains("animation"),
+        !base_rule.contains("animation") && !base_rule.contains("transform"),
         "the ring does not turn on its own: {base_rule}"
     );
-    assert_eq!(home.count("section.wheel button.wheel__toggle[hidden]"), 1);
+    assert_eq!(
+        home.count("section.wheel .wheel__controls button[hidden]"),
+        3,
+        "no button without the script"
+    );
     assert_eq!(
         home.count("section.wheel button.wheel__toggle[aria-pressed=false]"),
         1
@@ -509,21 +613,30 @@ fn with_reduce_motion_the_wheel_holds_still_and_no_clip_plays() {
     let css = site().file("main.css");
     let reduce = css
         .split("@media (prefers-reduced-motion: reduce){")
-        .find(|block| block.starts_with(".wheel__ring"))
+        .find(|block| block.starts_with(".wheel__card"))
         .expect("a reduce-motion block for the Wheel");
     assert!(
-        reduce.starts_with(".wheel__ring,.wheel--turning .wheel__ring{animation:none}"),
-        "the ring holds still: {reduce}"
+        reduce.starts_with(".wheel__card{transition:none}"),
+        "a card lifts without motion: {reduce}"
     );
     assert!(
         reduce.contains(".wheel__clip{display:none}"),
         "no Clip shows"
     );
-    let script = std::fs::read_to_string(format!("{ROOT}/static/js/wheel.js")).unwrap();
+    let script = wheel_script();
     assert!(
         script.contains("(prefers-reduced-motion: reduce)"),
-        "the script plays no Clip with reduce motion"
+        "the script neither turns the Wheel nor plays a Clip with reduce motion"
     );
+}
+
+/// The buttons sit outside the one list a screen reader gets, and outside the hidden repeats.
+#[test]
+fn the_cards_list_is_still_the_only_list_for_assistive_tech() {
+    let home = home();
+    assert_eq!(home.count("section.wheel ul"), 1);
+    assert_eq!(home.count("section.wheel [aria-hidden=true] button"), 0);
+    assert_eq!(home.count("section.wheel .wheel__ring button"), 0);
 }
 
 // --- My Story ----------------------------------------------------------------------------------
