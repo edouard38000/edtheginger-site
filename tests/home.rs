@@ -267,31 +267,16 @@ fn the_eds_daily_slot_is_empty_for_now() {
 // --- The Wheel ---------------------------------------------------------------------------------
 // The fixtures hold five Videos; newest first: Voice Clone (Instagram only), Repo Radar (both
 // links), Inbox Zero (TikTok only), First Hackathon (no link yet), Robot Barista (both links).
+// Only the three with an Instagram link are on the Wheel.
 
 const WHEEL_LIST: &str = "section.wheel .wheel__ring > ul.wheel__list > li.wheel__slot";
 const WHEEL_REPEATS: &str = "section.wheel .wheel__ring > .wheel__repeats > .wheel__slot";
 
 /// The names a screen reader hears for the cards of the Wheel's list, in order.
 fn wheel_names(home: &Page) -> Vec<String> {
-    let linked = home.attributes(&format!("{WHEEL_LIST} a.wheel__card"), "aria-label");
-    let unlinked = home.texts(&format!(
-        "{WHEEL_LIST} span.wheel__card .playbooks__sr-only"
-    ));
-    let mut linked = linked.into_iter();
-    let mut unlinked = unlinked.into_iter();
-    // A slot holds a link or, for a Video with no link yet, a plain card with its title.
-    home.attributes(WHEEL_LIST, "style")
-        .iter()
-        .enumerate()
-        .map(|(index, _)| {
-            let slot = format!("{WHEEL_LIST}:nth-child({})", index + 1);
-            if home.count(&format!("{slot} a.wheel__card")) == 1 {
-                linked.next().unwrap()
-            } else {
-                unlinked.next().unwrap()
-            }
-        })
-        .collect()
+    let names = home.attributes(&format!("{WHEEL_LIST} > a.wheel__card"), "aria-label");
+    assert_eq!(names.len(), home.count(WHEEL_LIST), "every card is a link");
+    names
 }
 
 #[test]
@@ -307,46 +292,87 @@ fn the_wheel_is_named_by_its_heading() {
 }
 
 #[test]
-fn the_wheel_lists_the_videos_newest_first_each_linking_out() {
+fn the_wheel_lists_the_videos_with_an_instagram_link_newest_first() {
     let home = home();
     assert_eq!(
         wheel_names(&home),
         [
             "Watch Voice Clone on Instagram",
-            "Watch Repo Radar on TikTok",
-            "Watch Inbox Zero on TikTok",
-            "First Hackathon",
-            "Watch Robot Barista on TikTok",
+            "Watch Repo Radar on Instagram",
+            "Watch Robot Barista on Instagram",
         ],
-        "one list item per Video, newest first, each named with its title"
+        "one list item per Video with an Instagram link, newest first"
     );
     assert_eq!(
         home.attributes(&format!("{WHEEL_LIST} a.wheel__card"), "href"),
         [
             "https://www.instagram.com/reel/FIXTURE0003/",
-            "https://www.tiktok.com/@fixture/video/1000000000000000004",
-            "https://www.tiktok.com/@fixture/video/1000000000000000002",
-            "https://www.tiktok.com/@fixture/video/1000000000000000001",
+            "https://www.instagram.com/reel/FIXTURE0004/",
+            "https://www.instagram.com/reel/FIXTURE0001/",
         ],
-        "TikTok first, else Instagram; a Video with no link yet is a card without one"
+        "each card opens the Video on Instagram, even when it also has a TikTok link"
+    );
+    assert_eq!(
+        home.count("section.wheel span.wheel__card"),
+        0,
+        "no card without a link"
     );
 }
 
-/// A Video Entry dated `2026-02-<day>`, with a TikTok link and the fixture Clip.
-fn video_entry(day: u32) -> String {
+#[test]
+fn no_wheel_card_links_to_tiktok() {
+    let home = home();
+    let links = home.attributes("section.wheel a", "href");
+    assert_eq!(links.len(), 16);
+    for link in links {
+        assert!(
+            link.starts_with("https://www.instagram.com/"),
+            "{link} is not an Instagram link"
+        );
+    }
+    assert!(!home.texts("section.wheel").concat().contains("TikTok"));
+}
+
+#[test]
+fn videos_without_an_instagram_link_stay_on_the_videos_page() {
+    let names = wheel_names(&home()).concat();
+    let videos = site().file("videos/index.html");
+    for title in ["Inbox Zero", "First Hackathon"] {
+        assert!(!names.contains(title), "{title} is left off the Wheel");
+        assert!(
+            videos.contains(title),
+            "{title} is still on the Videos page"
+        );
+    }
+}
+
+/// A Video Entry dated `2026-02-<day>`, with a TikTok link, an Instagram link when `instagram`,
+/// and the fixture Clip.
+fn video_entry(day: u32, instagram: bool) -> String {
+    let instagram = if instagram {
+        format!("instagram = \"https://www.instagram.com/reel/NEW{day:02}/\"\n")
+    } else {
+        String::new()
+    };
     format!(
         "+++\ntitle = \"New {day:02}\"\ndate = 2026-02-{day:02}\n\
          description = \"Fixture: one more Video.\"\n\n[extra]\nformat = \"Talking head\"\n\
          cover = \"covers/fixture-cover.png\"\n\
          tiktok = \"https://www.tiktok.com/@fixture/video/20000000000000000{day:02}\"\n\
-         clip = \"clips/fixture-clip.mp4\"\nstill = \"clips/fixture-clip.webp\"\n+++\n"
+         {instagram}clip = \"clips/fixture-clip.mp4\"\nstill = \"clips/fixture-clip.webp\"\n+++\n"
     )
 }
 
 #[test]
-fn the_wheel_shows_the_eight_newest_videos() {
-    let entries: Vec<(String, String)> = (1..=4)
-        .map(|day| (format!("content/videos/new-{day:02}.md"), video_entry(day)))
+fn the_wheel_shows_the_eight_newest_videos_with_an_instagram_link() {
+    // Seven more Videos, six with an Instagram link; the newest has none.
+    let entries: Vec<(String, String)> = (1..=7)
+        .map(|day| {
+            (
+                format!("content/videos/new-{day:02}.md"),
+                video_entry(day, day != 7),
+            )
+        })
         .collect();
     let files: Vec<(&str, &[u8])> = entries
         .iter()
@@ -357,16 +383,21 @@ fn the_wheel_shows_the_eight_newest_videos() {
     assert_eq!(
         wheel_names(&home),
         [
-            "Watch New 04 on TikTok",
-            "Watch New 03 on TikTok",
-            "Watch New 02 on TikTok",
-            "Watch New 01 on TikTok",
+            "Watch New 06 on Instagram",
+            "Watch New 05 on Instagram",
+            "Watch New 04 on Instagram",
+            "Watch New 03 on Instagram",
+            "Watch New 02 on Instagram",
+            "Watch New 01 on Instagram",
             "Watch Voice Clone on Instagram",
-            "Watch Repo Radar on TikTok",
-            "Watch Inbox Zero on TikTok",
-            "First Hackathon",
+            "Watch Repo Radar on Instagram",
         ],
-        "nine Videos, the eight newest on the Wheel, newest first"
+        "nine Videos with an Instagram link, the eight newest on the Wheel, newest first; \
+         New 07 has no Instagram link and is left off"
+    );
+    assert_eq!(
+        home.attributes(&format!("{WHEEL_LIST} a.wheel__card"), "href")[0],
+        "https://www.instagram.com/reel/NEW06/"
     );
     // Sixteen slots: the eight, then the same eight again, hidden.
     assert_eq!(home.count(WHEEL_REPEATS), 8);
@@ -378,10 +409,30 @@ fn the_wheel_shows_the_eight_newest_videos() {
 }
 
 #[test]
+fn a_site_with_no_instagram_link_has_no_wheel() {
+    let site = Site::try_build_changed(
+        &[
+            "content/videos/real-or-bs-01-robot-barista.md",
+            "content/videos/real-or-bs-03-voice-clone.md",
+            "content/videos/github-tools-repo-radar.md",
+        ],
+        &[],
+    )
+    .unwrap_or_else(|message| panic!("{message}"));
+    let home = site.page("");
+    assert_eq!(home.count("section.wheel"), 0, "no Wheel");
+    assert_eq!(home.count("section.hero + section.shelf"), 1);
+    assert!(
+        site.file("videos/index.html").contains("Inbox Zero"),
+        "the Videos are still on the Videos page"
+    );
+}
+
+#[test]
 fn the_rim_is_filled_by_repeats_hidden_from_screen_readers_and_the_keyboard() {
     let home = home();
-    assert_eq!(home.count(WHEEL_LIST), 5);
-    assert_eq!(home.count(WHEEL_REPEATS), 11, "sixteen slots round the rim");
+    assert_eq!(home.count(WHEEL_LIST), 3);
+    assert_eq!(home.count(WHEEL_REPEATS), 13, "sixteen slots round the rim");
     assert_eq!(
         home.attributes(".wheel__slot", "style"),
         (0..16)
