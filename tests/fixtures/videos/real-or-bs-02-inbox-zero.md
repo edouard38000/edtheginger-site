@@ -11,4 +11,6 @@ episode = 2
 tested = "An agent that clears an inbox by itself"
 verdict = "real"
 playbook = "playbooks/inbox-zero.md"
+clip = "clips/fixture-clip.mp4"
+still = "clips/fixture-clip.webp"
 +++

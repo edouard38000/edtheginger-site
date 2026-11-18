@@ -11,4 +11,6 @@ instagram = "https://www.instagram.com/reel/FIXTURE0001/"
 episode = 1
 tested = "A robot that makes a flat white by itself"
 verdict = "bs"
+clip = "clips/fixture-clip.mp4"
+still = "clips/fixture-clip.webp"
 +++

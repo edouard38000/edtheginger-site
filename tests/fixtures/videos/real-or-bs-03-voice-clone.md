@@ -10,4 +10,6 @@ instagram = "https://www.instagram.com/reel/FIXTURE0003/"
 episode = 3
 tested = "Cloning a voice from ten seconds of sound"
 verdict = "real"
+clip = "clips/fixture-clip.mp4"
+still = "clips/fixture-clip.webp"
 +++

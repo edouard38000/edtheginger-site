@@ -8,12 +8,15 @@ use site_checks::Site;
 
 const ROOT: &str = env!("CARGO_MANIFEST_DIR");
 
-/// Adds one bad Entry (a path under `tests/bad-entries/`) to the fixture site and gives back
-/// what the build printed when it refused it.
-fn refusal(entry: &str) -> String {
+/// Adds one bad Entry (a path under `tests/bad-entries/`) to the fixture site, with any extra
+/// files it needs (like a heavy Clip), and gives back what the build printed when it refused it.
+fn refusal_with(entry: &str, extra_files: &[(&str, &[u8])]) -> String {
     let bytes = std::fs::read(format!("{ROOT}/tests/bad-entries/{entry}"))
         .unwrap_or_else(|e| panic!("read the bad Entry {entry}: {e}"));
-    match Site::try_build_with(&[(&format!("content/{entry}"), &bytes)]) {
+    let path = format!("content/{entry}");
+    let mut files = vec![(path.as_str(), bytes.as_slice())];
+    files.extend_from_slice(extra_files);
+    match Site::try_build_with(&files) {
         Ok(_) => panic!("the bad Entry {entry} was not refused"),
         Err(message) => message,
     }
@@ -21,7 +24,11 @@ fn refusal(entry: &str) -> String {
 
 /// The build must refuse the bad Entry, name its file and state the problem.
 fn assert_refused(entry: &str, problem: &str) {
-    let message = refusal(entry);
+    assert_refused_with(entry, &[], problem);
+}
+
+fn assert_refused_with(entry: &str, extra_files: &[(&str, &[u8])], problem: &str) {
+    let message = refusal_with(entry, extra_files);
     let expected = format!("Entry content/{entry} refused: {problem}");
     assert!(
         message.contains(&expected),
@@ -154,6 +161,72 @@ fn the_real_entries_all_have_a_date() {
 }
 
 #[test]
+fn a_video_with_no_clip_is_refused() {
+    assert_refused("videos/no-clip.md", "the Video has no Clip:");
+}
+
+#[test]
+fn a_clip_that_is_not_an_mp4_in_the_clips_folder_is_refused() {
+    assert_refused(
+        "videos/clip-not-mp4.md",
+        "`clip` must be the path of an MP4 in static/clips/",
+    );
+}
+
+#[test]
+fn a_clip_file_that_does_not_exist_is_refused() {
+    assert_refused(
+        "videos/clip-file-missing.md",
+        "the Clip file static/clips/not-there.mp4 does not exist: make it with the Clip command.",
+    );
+}
+
+#[test]
+fn a_clip_over_the_budget_is_refused() {
+    let heavy = vec![0u8; 400_001];
+    assert_refused_with(
+        "videos/clip-over-budget.md",
+        &[("static/clips/heavy.mp4", &heavy)],
+        "the Clip static/clips/heavy.mp4 is 400001 bytes, over the budget of 400000 bytes (400 KB):",
+    );
+}
+
+#[test]
+fn a_clip_at_the_budget_is_accepted() {
+    let bytes = std::fs::read(format!(
+        "{ROOT}/tests/bad-entries/videos/clip-over-budget.md"
+    ))
+    .unwrap();
+    let at_budget = vec![0u8; 400_000];
+    Site::try_build_with(&[
+        ("content/videos/clip-at-budget.md", &bytes),
+        ("static/clips/heavy.mp4", &at_budget),
+    ])
+    .unwrap_or_else(|message| panic!("a Clip of exactly 400 KB was refused:\n{message}"));
+}
+
+#[test]
+fn a_video_with_no_still_is_refused() {
+    assert_refused("videos/no-still.md", "the Video has no still:");
+}
+
+#[test]
+fn a_still_file_that_does_not_exist_is_refused() {
+    assert_refused(
+        "videos/still-file-missing.md",
+        "the still file static/clips/not-there.webp does not exist.",
+    );
+}
+
+/// Zola can neither see an MP4 nor read its size, so this check reads the real Video Entries
+/// and their Clips; `just check` runs it before the build.
+#[test]
+fn the_real_videos_all_have_a_clip_under_budget() {
+    let refused = site_checks::clips_refused(Path::new(ROOT));
+    assert!(refused.is_empty(), "\n{}\n", refused.join("\n"));
+}
+
+#[test]
 fn a_playbook_reference_that_matches_no_playbook_is_refused() {
     assert_refused(
         "videos/playbook-not-found.md",
@@ -264,6 +337,8 @@ fn the_templates_of_the_guide_are_accepted() {
     let templates = guide_templates();
     assert_eq!(templates.len(), 4, "the guide holds four templates");
     let cover = std::fs::read(format!("{ROOT}/tests/fixtures/covers/fixture-cover.png")).unwrap();
+    let clip = std::fs::read(format!("{ROOT}/tests/fixtures/clips/fixture-clip.mp4")).unwrap();
+    let still = std::fs::read(format!("{ROOT}/tests/fixtures/clips/fixture-clip.webp")).unwrap();
     let site = Site::try_build_with(&[
         (
             "content/videos/github-tools-repo-radar.md",
@@ -279,6 +354,10 @@ fn the_templates_of_the_guide_are_accepted() {
         ("static/covers/real-or-bs-02-phone-use.png", &cover),
         ("static/covers/phone-use-playbook.png", &cover),
         ("static/covers/voice-notes-playbook.png", &cover),
+        ("static/clips/github-tools-repo-radar.mp4", &clip),
+        ("static/clips/github-tools-repo-radar.webp", &still),
+        ("static/clips/real-or-bs-02-phone-use.mp4", &clip),
+        ("static/clips/real-or-bs-02-phone-use.webp", &still),
     ])
     .unwrap_or_else(|message| panic!("the guide's templates were refused:\n{message}"));
     for entry in [
@@ -319,8 +398,17 @@ fn the_guide_explains_every_refusal() {
         "matches no Playbook Entry",
         "is not a well-formed https address",
         "has no page and no PDF",
+        "has no Clip",
+        "must be the path of an MP4",
+        "has no still",
+        "must be the path of a WebP",
     ] {
         assert!(checks.contains(phrase), "{phrase:?} is a refusal message");
+        assert!(guide.contains(phrase), "the guide explains {phrase:?}");
+    }
+    let harness = std::fs::read_to_string(format!("{ROOT}/src/lib.rs")).unwrap();
+    for phrase in ["the Clip file", "over the budget of"] {
+        assert!(harness.contains(phrase), "{phrase:?} is a refusal message");
         assert!(guide.contains(phrase), "the guide explains {phrase:?}");
     }
 }

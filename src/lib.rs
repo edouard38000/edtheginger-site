@@ -4,7 +4,7 @@
 //! static files and page stubs next to the fixture Entries from `tests/fixtures`, runs
 //! `zola build` on the result and gives the generated pages back. The real Entries in
 //! `content/` are never built here, so a check on the pages never depends on real content.
-//! The one check that reads them is [`entries_without_a_date`].
+//! The checks that read them are [`entries_without_a_date`] and [`clips_refused`].
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -73,9 +73,10 @@ impl Site {
                 .unwrap_or_else(|e| panic!("create {}: {e}", folder.display()));
             fs::write(&target, bytes).unwrap_or_else(|e| panic!("write {}: {e}", target.display()));
         }
-        let undated = entries_without_a_date(&dir.path().join("content"));
-        if !undated.is_empty() {
-            return Err(undated.join("\n"));
+        let mut refused = entries_without_a_date(&dir.path().join("content"));
+        refused.extend(clips_refused(dir.path()));
+        if !refused.is_empty() {
+            return Err(refused.join("\n"));
         }
         run_zola(dir.path(), SUB_PATH_BASE_URL)?;
         Ok(Site {
@@ -215,6 +216,64 @@ pub fn entries_without_a_date(content: &Path) -> Vec<String> {
         .collect()
 }
 
+/// The most a Clip may weigh, in bytes (400 KB). The Clip command aims well under it.
+pub const CLIP_BUDGET_BYTES: u64 = 400_000;
+
+/// Refuses every Video Entry of a Zola project (`site` holds `content/` and `static/`) whose
+/// Clip file is missing or over [`CLIP_BUDGET_BYTES`], with one message each.
+///
+/// These two refusals are Rust and not template checks because Zola can neither read the size
+/// of an MP4 nor tell whether one exists. An Entry with no `clip`, or one that is not a path in
+/// `static/clips/`, is left to `templates/components/validate.html`.
+pub fn clips_refused(site: &Path) -> Vec<String> {
+    let content = site.join("content");
+    let mut files = Vec::new();
+    collect_entries(&content, &content.join("videos"), &mut files);
+    files.sort();
+    let mut refused = Vec::new();
+    for file in files {
+        let text =
+            fs::read_to_string(&file).unwrap_or_else(|e| panic!("read {}: {e}", file.display()));
+        let Some(clip) = front_matter_string(&text, "clip") else {
+            continue;
+        };
+        if !clip.starts_with("clips/") || !clip.ends_with(".mp4") || clip.contains("..") {
+            continue;
+        }
+        let entry = file.strip_prefix(&content).expect("a file inside content");
+        let entry = entry.to_string_lossy().replace('\\', "/");
+        let problem = match fs::metadata(site.join("static").join(&clip)) {
+            Err(_) => format!(
+                "the Clip file static/{clip} does not exist: make it with the Clip command."
+            ),
+            Ok(meta) if meta.len() > CLIP_BUDGET_BYTES => format!(
+                "the Clip static/{clip} is {} bytes, over the budget of {CLIP_BUDGET_BYTES} \
+                 bytes (400 KB): make it again with the Clip command.",
+                meta.len()
+            ),
+            Ok(_) => continue,
+        };
+        refused.push(format!(
+            "Entry content/{entry} refused: {problem} See docs/adding-content.md."
+        ));
+    }
+    refused
+}
+
+/// The text of a `key = "value"` line in the front matter (between the two `+++` lines).
+fn front_matter_string(text: &str, key: &str) -> Option<String> {
+    text.lines()
+        .skip_while(|line| line.trim() != "+++")
+        .skip(1)
+        .map(str::trim)
+        .take_while(|line| *line != "+++")
+        .find_map(|line| {
+            let rest = line.strip_prefix(key)?.trim_start().strip_prefix('=')?;
+            let value = rest.trim().strip_prefix('"')?.strip_suffix('"')?;
+            Some(value.to_owned())
+        })
+}
+
 fn collect_entries(content: &Path, dir: &Path, found: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(dir) else {
         return;
@@ -255,10 +314,11 @@ fn assemble(root: &Path, site: &Path) {
     fs::copy(root.join("config.toml"), site.join("config.toml")).expect("copy config.toml");
     copy_tree(&root.join("templates"), &site.join("templates"), &|_| true);
     copy_tree(&root.join("sass"), &site.join("sass"), &|_| true);
-    // Static files without the real covers.
+    // Static files without the real covers and Clips.
     let real_covers = root.join("static").join("covers");
+    let real_clips = root.join("static").join("clips");
     copy_tree(&root.join("static"), &site.join("static"), &|path| {
-        !path.starts_with(&real_covers)
+        !path.starts_with(&real_covers) && !path.starts_with(&real_clips)
     });
     // The page stubs and section files, without the real Entries.
     copy_tree(&root.join("content"), &site.join("content"), &|path| {
@@ -276,6 +336,11 @@ fn assemble(root: &Path, site: &Path) {
     copy_tree(
         &fixtures.join("covers"),
         &site.join("static").join("covers"),
+        &|_| true,
+    );
+    copy_tree(
+        &fixtures.join("clips"),
+        &site.join("static").join("clips"),
         &|_| true,
     );
 }

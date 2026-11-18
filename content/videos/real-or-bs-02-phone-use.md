@@ -11,4 +11,6 @@ episode = 2
 tested = "Claude uses my iPhone by itself"
 verdict = "real"
 playbook = "playbooks/phone-use.md"
+clip = "clips/real-or-bs-02-phone-use.mp4"
+still = "clips/real-or-bs-02-phone-use.webp"
 +++
