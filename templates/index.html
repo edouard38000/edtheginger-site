@@ -69,16 +69,23 @@
 {#- The Wheel: the eight newest Videos as tilted cards round the top of a wheel whose hub sits low.
     The rim has sixteen slots (the number is fixed in sass/pages/_home.scss); the Videos fill them
     in order, newest first, and repeat to fill the rim. The first round is the one list a screen
-    reader gets; the repeats are hidden from it and cannot be focused. Each card shows the Video's
-    still and links to it on TikTok, else Instagram. The page never loads a Clip: its address waits
+    reader gets; the repeats are hidden from it and cannot be focused. Only Videos with an Instagram
+    link are on the Wheel (the others stay on the Videos page), and each card shows the Video's still
+    and links to it on Instagram, never TikTok. The page never loads a Clip: its address waits
     in data-src until static/js/wheel.js needs it. Without that script the Wheel holds still and
     shows the stills, and its buttons stay hidden. The script turns it (the transform of one
     element), by itself and by hand (drag, touchpad, the buttons, the arrow keys), lifts the card
     under the pointer or the keyboard focus, and plays the Clips at the top of the rim, never with
-    "reduce motion". No Videos, no Wheel. -#}
-{%- set wheel_videos = videos | sort(attribute="date") | reverse -%}
-{%- set wheel_videos = wheel_videos[:8] -%}
-{%- set wheel_count = wheel_videos | length -%}
+    "reduce motion". No Video with an Instagram link, no Wheel. -#}
+{#- Tera here cannot filter a list or add to one, so the Wheel keeps the places of its Videos in the
+    newest-first list, as text ("0,2,5"), and picks each one by its place. -#}
+{%- set newest_videos = videos | sort(attribute="date") | reverse -%}
+{%- set_global wheel_places = "" -%}
+{%- set_global wheel_count = 0 -%}
+{%- for video in newest_videos -%}
+{%- if video.extra.instagram and wheel_count < 8 %}{% set_global wheel_places = wheel_places ~ "," ~ loop.index0 %}{% set_global wheel_count = wheel_count + 1 %}{% endif -%}
+{%- endfor -%}
+{%- set wheel_places = wheel_places | split(pat=",") -%}
 {% if wheel_count > 0 -%}
 <section class="wheel" data-slot="wheel" aria-labelledby="wheel-heading">
   <header class="wheel__header">
@@ -97,23 +104,13 @@
       </ul>
       <div class="wheel__repeats" aria-hidden="true">
       {%- endif %}
-      {%- set video = wheel_videos | nth(n=slot % wheel_count) %}
-      {%- set link = video.extra.tiktok | default(value=video.extra.instagram | default(value="")) %}
-      {%- if video.extra.tiktok %}{% set platform = "TikTok" %}{% else %}{% set platform = "Instagram" %}{% endif %}
+      {%- set video = newest_videos | nth(n=wheel_places | nth(n=1 + slot % wheel_count) | int) %}
         <{% if first_round %}li{% else %}div{% endif %} class="wheel__slot" style="--slot: {{ slot }}">
-          {%- if link %}
-          <a class="wheel__card" href="{{ link | safe }}" rel="noopener"{% if first_round %} aria-label="Watch {{ video.title }} on {{ platform }}"{% else %} tabindex="-1"{% endif %}>
-          {%- else %}
-          <span class="wheel__card">{% if first_round %}<span class="playbooks__sr-only">{{ video.title }}</span>{% endif %}
-          {%- endif %}
+          <a class="wheel__card" href="{{ video.extra.instagram | safe }}" rel="noopener"{% if first_round %} aria-label="Watch {{ video.title }} on Instagram"{% else %} tabindex="-1"{% endif %}>
             {%- set still = get_image_metadata(path="static/" ~ video.extra.still) %}
             <img class="wheel__still" src="{{ get_url(path=video.extra.still) }}" width="{{ still.width }}" height="{{ still.height }}" alt="" loading="lazy" decoding="async">
             <video class="wheel__clip" data-src="{{ get_url(path=video.extra.clip) }}" muted playsinline loop preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
-          {%- if link %}
           </a>
-          {%- else %}
-          </span>
-          {%- endif %}
         </{% if first_round %}li{% else %}div{% endif %}>
       {%- endfor %}
       {%- if wheel_count < 16 %}

@@ -7,6 +7,7 @@ description = "No team and no code written by hand: the idea, the build with par
 format = "Storytelling"
 cover = "covers/placeholder-cover.png"
 tiktok = "https://www.tiktok.com/@edouardtheginger/video/7707765377731677454"
+instagram = "https://www.instagram.com/reel/Dfu1u1izFcJ/"
 clip = "clips/storytelling-hackathon-win.mp4"
 still = "clips/storytelling-hackathon-win.webp"
 +++

@@ -7,6 +7,7 @@ description = "Can AI actually be more intelligent than humans anytime soon?"
 format = "Talking head"
 cover = "covers/talking-head-smarter-than-humans.jpg"
 tiktok = "https://www.tiktok.com/@edouardtheginger/video/7690990833281092878"
+instagram = "https://www.instagram.com/reel/Dd4J9-xtFWs/"
 clip = "clips/talking-head-smarter-than-humans.mp4"
 still = "clips/talking-head-smarter-than-humans.webp"
 +++

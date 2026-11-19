@@ -91,6 +91,8 @@ still = "clips/github-tools-repo-radar.webp"
 - `tiktok` and `instagram` are the full https addresses of the posted Video. When the Video was
   posted as several iterations, link the iteration with the most views. Leave out the line of
   a link you do not have yet and add it later. Never write an empty or made-up link.
+  Only Videos with an `instagram` link are on the home page's Wheel, and its cards open them on
+  Instagram; a Video without one is still on the Videos page.
 - Do not add `verdict`, `episode` or `tested`: they are only for Real or BS.
 
 ## Template 2: a Real or BS Video with a Verdict and a Playbook

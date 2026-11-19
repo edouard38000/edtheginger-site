@@ -12,7 +12,7 @@ The words this site and its tickets use. One meaning each.
 - **Entry**: one content file describing one Video or one Playbook (for a Playbook page, the file also holds the page itself). Adding an Entry is the only step needed to put something on the site.
 - **Dock**: the fixed row of links to Instagram, TikTok and the contact email.
 - **Hero**: the top of the home page: a short muted video of Edouard's face cutting fast behind his name and tagline, the first thing a visitor sees.
-- **Wheel**: the home page section below the Hero: the Clips of the eight newest Videos on cards fanned round a turning wheel.
+- **Wheel**: the home page section below the Hero: the Clips of the eight newest Videos that have an Instagram link, on cards fanned round a turning wheel, each opening its Video on Instagram.
 - **Ed's Daily**: Edouard's daily newsletter, sent through a pipeline he owns. The home page has its signup.
 - **My Story**: the last section of the home page, Edouard's story in his own words, opened by the Poster.
 - **Poster**: Edouard's portrait with the title, small captions and his tool tiles. It opens the My Story section.
