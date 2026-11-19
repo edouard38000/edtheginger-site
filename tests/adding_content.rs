@@ -44,7 +44,7 @@ fn assert_refused_with(entry: &str, extra_files: &[(&str, &[u8])], problem: &str
 fn an_unknown_format_is_refused() {
     assert_refused(
         "videos/unknown-format.md",
-        "unknown Format \"Vlogs\": `format` must be one of Real or BS, GitHub tools, Storytelling, Talking head.",
+        "unknown Format \"Podcasts\": `format` must be one of Real or BS, GitHub tools, Storytelling, Talking head, Random builds, Make it better, Vlogs, Funny videos, Lifestyle carousel, Educational carousel, With Gena, Other.",
     );
 }
 

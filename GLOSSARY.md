@@ -4,7 +4,7 @@ The words this site and its tickets use. One meaning each.
 
 - **Video**: one short video Edouard posted, shown on the site as a cover or a Clip with links out to TikTok and Instagram. Never an embedded TikTok or Instagram player (see `docs/adr/0001-clips-not-embedded-players.md`).
 - **Clip**: a silent five-second loop cut from the start of a Video (its hook), hosted on the site. A Clip is a preview: tapping it opens the Video on TikTok or Instagram.
-- **Format**: the series a Video belongs to (Real or BS, GitHub tools, Storytelling, Talking head).
+- **Format**: the series a Video belongs to (Real or BS, GitHub tools, Storytelling, Talking head, Random builds, Make it better, Vlogs, Funny videos, Lifestyle carousel, Educational carousel, With Gena, Other).
 - **Verdict**: the outcome of a Real or BS Video: `real` or `bs`. Only Real or BS Videos have one.
 - **Tally**: the two counts `REAL: n  BS: n`, always computed from the Verdicts, never typed by hand.
 - **REAL list**: the Real or BS Videos whose Verdict is `real`, numbered from 1 in posting order and shown newest first, each with its Playbook.
