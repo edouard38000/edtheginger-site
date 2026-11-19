@@ -551,16 +551,16 @@
   width: 28px;
 }
 
-// On a phone the buttons stack and CLICK HERE lands under them: the crayon arrow, drawn pointing
-// left at buttons beside it, turns a quarter so it points up at the buttons above.
-@media (max-width: 47.99rem) {
-  .pb-buttons__click {
-    margin-left: 14px;
-  }
+// CLICK HERE always sits on its own line under the buttons, its crayon arrow (drawn pointing left)
+// turned a quarter so it points up at them. Beside the buttons it only worked when they all fit on
+// one row; when they wrap, on a phone or a computer, it pointed at nothing (Edouard, 19 Nov 2026).
+.pb-buttons__click {
+  flex-basis: 100%;
+  margin-left: 14px;
+}
 
-  .pb-buttons__click img {
-    transform: rotate(90deg);
-  }
+.pb-buttons__click img {
+  transform: rotate(90deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
