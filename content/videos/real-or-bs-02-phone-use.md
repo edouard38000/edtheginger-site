@@ -7,6 +7,7 @@ description = "I asked for sushi for two on Uber Eats. It opened the app, picked
 format = "Real or BS"
 cover = "covers/placeholder-cover.png"
 tiktok = "https://www.tiktok.com/@edouardtheginger/video/7708520005742202125"
+instagram = "https://www.instagram.com/reel/Df0CrxoNHaz/"
 episode = 2
 tested = "Claude uses my iPhone by itself"
 verdict = "real"
