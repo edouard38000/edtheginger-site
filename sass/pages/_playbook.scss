@@ -551,6 +551,18 @@
   width: 28px;
 }
 
+// On a phone the buttons stack and CLICK HERE lands under them: the crayon arrow, drawn pointing
+// left at buttons beside it, turns a quarter so it points up at the buttons above.
+@media (max-width: 47.99rem) {
+  .pb-buttons__click {
+    margin-left: 14px;
+  }
+
+  .pb-buttons__click img {
+    transform: rotate(90deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pb-button__arrow {
     transition: none;
