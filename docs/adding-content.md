@@ -85,7 +85,7 @@ still = "clips/github-tools-repo-radar.webp"
 ```
 
 - `date` is the posting date, written `YYYY-MM-DD` without quotes.
-- `format` is exactly one of: `Real or BS`, `GitHub tools`, `Storytelling`, `Talking head`.
+- `format` is exactly one of: `Real or BS`, `GitHub tools`, `Storytelling`, `Talking head`, `Random builds`, `Make it better`, `Vlogs`, `Funny videos`, `Lifestyle carousel`, `Educational carousel`, `With Gena`, `Other` (the list in `config.toml`).
 - `clip` and `still` are the two files the Clip command wrote, in `static/clips/` (see
   [Add the Clip](#add-the-clip)).
 - `tiktok` and `instagram` are the full https addresses of the posted Video. When the Video was
@@ -273,7 +273,7 @@ Each message starts with `Entry content/<file> refused:` and names the file to f
 | `the Entry has no title` | `title` is missing or empty. | Set `title` above `[extra]`. |
 | `the Entry has no date` | `date` is missing, or it is written under `[extra]`. | Set `date = YYYY-MM-DD` above `[extra]`. |
 | `the Video has no Format` | `format` is missing. | Set `format` under `[extra]`. |
-| `unknown Format` | `format` is not one of the four Formats, letter for letter. | Use `Real or BS`, `GitHub tools`, `Storytelling` or `Talking head`. |
+| `unknown Format` | `format` is not one of the Formats in `config.toml`, letter for letter. | Use one of `Real or BS`, `GitHub tools`, `Storytelling`, `Talking head`, `Random builds`, `Make it better`, `Vlogs`, `Funny videos`, `Lifestyle carousel`, `Educational carousel`, `With Gena`, `Other`. |
 | `the Video has no cover` | `cover` is missing. | Set `cover`, or use the placeholder cover. |
 | `` `cover` must be the path of a PNG or JPEG `` | `cover` starts with `/`, or does not end in `.png`, `.jpg` or `.jpeg`. | Write it like `covers/<file>.png`. |
 | `the cover file static/... does not exist` | No file at that path under `static/`. Often a typo, `static/` written in the path, or the image was not added. | Add the image or correct the path. |
