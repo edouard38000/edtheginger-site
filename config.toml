@@ -16,7 +16,20 @@ internal_level = "error"
 
 [extra]
 # The fixed set of Formats a Video can belong to.
-formats = ["Real or BS", "GitHub tools", "Storytelling", "Talking head"]
+formats = [
+  "Real or BS",
+  "GitHub tools",
+  "Storytelling",
+  "Talking head",
+  "Random builds",
+  "Make it better",
+  "Vlogs",
+  "Funny videos",
+  "Lifestyle carousel",
+  "Educational carousel",
+  "With Gena",
+  "Other",
+]
 
 # The Dock: the one place its three links are held.
 [extra.dock]
