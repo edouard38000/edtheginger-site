@@ -126,7 +126,7 @@ Use a quiet background, clear detail, and controlled volume. No music, speech, n
 
 {%<step n={1} title="Import your clip">%}Open one editor below and upload asmr-sound.mp4. If sound is separate, import both files and align their starts.{%</step>%}
 
-{%<step n={2} title="Open its assistant">%}Use ChatCut chat, Descript Underlord, Kapwing’s video assistant or VEED’s assistant. Paste the prompt below and identify the uploaded clip.{%</step>%}
+{%<step n={2} title="Open its assistant">%}Use ChatCut chat, Descript Underlord, Kapwing's video assistant or VEED's assistant. Paste the prompt below and identify the uploaded clip.{%</step>%}
 
 {%<step n={3} title="Review and export">%}Check the cuts and audio sync. Make any unsupported adjustment in the editor, then export the final MP4.{%</step>%}
 
@@ -159,7 +159,7 @@ Flag any remaining visual artifacts or synchronization problems for review.
 
 {%<step n={2} title="Connect your AI agent">%}Add the official Postiz connector in ChatGPT or Claude where available, or follow its MCP setup guide below. Sign in to your Postiz account.{%</step>%}
 
-{%<step n={3} title="Check the connection">%}Ask: “List my connected social accounts.” Confirm the returned profile names before giving the agent your video.{%</step>%}
+{%<step n={3} title="Check the connection">%}Ask: "List my connected social accounts." Confirm the returned profile names before giving the agent your video.{%</step>%}
 
 {{<buttons texts={["Postiz", "Upload-Post", "Buffer", "Ayrshare"]} urls={["https://postiz.com/mcp", "https://docs.upload-post.com/guides/mcp-server-integration/", "https://buffer.com/mcp", "https://www.ayrshare.com/docs/additional/mcp-action-server"]} />}}
 
@@ -175,7 +175,7 @@ Flag any remaining visual artifacts or synchronization problems for review.
 
 {%<row key="Ayrshare">%}[Action MCP with an API key; not the docs-only server.](https://www.ayrshare.com/docs/additional/mcp-action-server){%</row>%}
 
-If a connector requires an API key, enter it in the connector’s secure settings. If your agent cannot upload local files, use the scheduler’s upload area and provide the resulting accessible media link.
+If a connector requires an API key, enter it in the connector's secure settings. If your agent cannot upload local files, use the scheduler's upload area and provide the resulting accessible media link.
 
 {%<part n={6} id="part-6" title="Prepare captions and schedule">%}
 {%</part>%}
@@ -196,7 +196,7 @@ If a connector requires an API key, enter it in the connector’s secure setting
 
 {%<step n={2} title="Review the plan">%}Check the exact accounts, captions, date and time. Keep the AI-generated disclosure. Approve only the version you want posted.{%</step>%}
 
-{%<step n={3} title="Confirm the queue">%}Check the scheduler for one post per destination. A message saying “done” is not enough; verify its status and scheduled time.{%</step>%}
+{%<step n={3} title="Confirm the queue">%}Check the scheduler for one post per destination. A message saying "done" is not enough; verify its status and scheduled time.{%</step>%}
 
 {%<prompt label="PROMPT" dest="paste in your connected agent" logos="">%}
 Prepare [FINISHED VIDEO FILE OR URL] for publication using [CONNECTED PUBLISHING SERVICE].

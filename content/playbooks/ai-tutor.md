@@ -42,7 +42,7 @@ Claude Code is the part of the Claude app that can do things on your computer, l
 {{<step_image src="playbooks/ai-tutor/code_tab.jpg" label="THE CODE BUTTON" alt="The top left of the Claude app: the orange cursor clicks the Code button, next to the Chat button, above New, Search, Projects and Artifacts." />}}
 
 {%<part n={2} id="part-2" title="Install the tutor">%}
-You don't install anything by hand. You paste one sentence and the link to the tutor, and Claude downloads it and adds it to your Claude.
+Claude does the install for you. You paste one sentence and the link to the tutor, and Claude downloads it and adds it to your Claude.
 {%</part>%}
 
 {%<step n={1} title="Paste the prompt below">%}Paste it in the message box at the bottom of the session and press Enter. Keep the link on its own line.{%</step>%}

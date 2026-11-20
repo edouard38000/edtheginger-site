@@ -68,7 +68,7 @@ Use only supplied facts. Mark missing information [MISSING] and continue without
 
 {%<step n={3}>%}Edit out dead time, add complete captions and check the export on a phone. Keep text clear of platform controls. If the read runs long, cut repetition before speeding up the audio.{%</step>%}
 
-{%<note>%}Click GRAB IT HERE, unzip the download and attach SKILL.md to the same chat as your prompt. For video scripts, also attach [Humanizer](https://gist.github.com/edouard38000/fec5733f5712146660c4a1958b27e909/archive/e165a8126bbbaf3e8f6f5242e6a13ad75661a235.zip). Tell the assistant to use your 2:30-3:00 duration and product CTA instead of the skill’s default duration and follow CTA.{%</note>%}
+{%<note>%}Click GRAB IT HERE, unzip the download and attach SKILL.md to the same chat as your prompt. For video scripts, also attach [Humanizer](https://gist.github.com/edouard38000/fec5733f5712146660c4a1958b27e909/archive/e165a8126bbbaf3e8f6f5242e6a13ad75661a235.zip). Tell the assistant to use your 2:30-3:00 duration and product CTA instead of the skill's default duration and follow CTA.{%</note>%}
 
 {%<part n={3} id="part-3" title="Find creators and send their briefs">%}
 Keep the central claim consistent while giving every creator an angle that fits their audience.
@@ -76,7 +76,7 @@ Keep the central claim consistent while giving every creator an angle that fits 
 
 {{<step_image src="playbooks/viral-launches/creator-platforms.jpg" alt="Find Paid X Creators: the logos of Passionfroot, Favikon, ViralGTM and Collabstr." />}}
 
-Find X creators through [Passionfroot](https://www.passionfroot.me/), [Favikon](https://www.favikon.com/), [ViralGTM](https://viralgtm.ai/), [Collabstr](https://collabstr.com/). Confirm each platform’s current X offering before paying.
+Find X creators through [Passionfroot](https://www.passionfroot.me/), [Favikon](https://www.favikon.com/), [ViralGTM](https://viralgtm.ai/), [Collabstr](https://collabstr.com/). Confirm each platform's current X offering before paying.
 
 Review recent posts and replies for audience fit. Agree on price, format, timing and disclosure.
 

@@ -39,7 +39,7 @@ I say "Hey Claude" and talk for 10 seconds. My iPhone sends the recording to my 
 7. [**Teach the iPhone your voice, and use it.**](#part-7) Say "Hey Claude" three times, then ask for anything.
 
 {%<part n={1} id="part-1" title="Turn the spare PC into a Linux PC">%}
-Phone Use needs a PC running Linux, a free system that replaces Windows. Any Linux works, Ubuntu for example. I recommend Omarchy, a Linux-based OS: one install gives you a complete, ready-to-use system with the developer tools already set up, Claude Code included, and it is light enough to run well on an old laptop. My PC was already running it, so I did not film this part: the steps below are for Omarchy and come from its manual.
+Phone Use needs a PC running Linux, a free system that replaces Windows. Any Linux works, Ubuntu for example. I recommend Omarchy, a Linux-based OS: one install gives you a ready-to-use system with the developer tools already set up, Claude Code included, and it is light enough to run well on an old laptop. My PC was already running it, so I did not film this part: the steps below are for Omarchy and come from its manual.
 {%</part>%}
 
 {{<label text="THIS ERASES THE WHOLE PC" />}}
