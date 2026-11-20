@@ -31,6 +31,10 @@ formats = [
   "Other",
 ]
 
+# Ed's Daily: the address every signup form posts to (the Ed's Daily pipeline's endpoint, see
+# templates/partials/eds-daily-form.html). The one place it is held.
+eds_daily_subscribe = "https://daily.edtheginger.com/subscribe"
+
 # The Dock: the one place its three links are held.
 [extra.dock]
 instagram = "https://www.instagram.com/edouardtheginger/"

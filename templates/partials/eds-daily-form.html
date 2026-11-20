@@ -1,0 +1,24 @@
+{# The Ed's Daily signup form, shared by the home page and the /daily/ pages. The caller sets
+   `eds_daily_source` ("home" or "daily-archive") before including it.
+   A plain form: without JavaScript it posts to the endpoint ([extra] eds_daily_subscribe in
+   config.toml), which answers with a redirect to /daily/check-your-inbox/ or to /daily/?error=...
+   static/js/eds-daily.js sends it with fetch instead and shows the answer in the status line, so
+   the visitor stays on the page. The messages are held here, one per answer of the endpoint.
+   `company` is a honeypot: off-screen and out of the tab order, people leave it empty. #}
+<form class="eds-daily-form" method="post" action="{{ config.extra.eds_daily_subscribe }}"
+      data-message-pending="Check your inbox to confirm."
+      data-message-invalid_email="That email doesn't look right."
+      data-message-rate_limited="Too many tries, wait a few minutes."
+      data-message-unavailable="Something broke on our side, try again later.">
+  <label class="eds-daily-form__label" for="eds-daily-email-{{ eds_daily_source }}">Your email</label>
+  <div class="eds-daily-form__row">
+    <input class="eds-daily-form__input" id="eds-daily-email-{{ eds_daily_source }}" name="email" type="email" autocomplete="email" maxlength="254" required>
+    <button class="eds-daily-form__button" type="submit">Subscribe</button>
+  </div>
+  <div class="eds-daily-form__trap" aria-hidden="true">
+    <label for="eds-daily-company-{{ eds_daily_source }}">Company</label>
+    <input id="eds-daily-company-{{ eds_daily_source }}" name="company" type="text" tabindex="-1" autocomplete="off">
+  </div>
+  <input type="hidden" name="source" value="{{ eds_daily_source }}">
+  <p class="eds-daily-form__status" aria-live="polite"></p>
+</form>

@@ -1,0 +1,172 @@
+// Ed's Daily: the signup section on the home page and the /daily/ pages. Phone width first.
+// The form (templates/partials/eds-daily-form.html) looks the same everywhere.
+
+.eds-daily__line,
+.eds-daily__text,
+.eds-daily-form {
+  max-width: 40rem;
+}
+
+// On the home page: a section of the centred column, titled like the shelf.
+.page-home .eds-daily {
+  margin-top: 64px;
+}
+
+.eds-daily__title {
+  margin: 0 0 12px;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+// On its own pages the title is the page's h1: white capitals in the orange box, a little askew,
+// like the My Story title (never loose orange text).
+.eds-daily--page {
+  margin-top: 24px;
+}
+
+.eds-daily--page .eds-daily__title {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 0.3em 0.6em;
+  background: var(--color-orange);
+  color: #fff;
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  transform: rotate(-1deg);
+}
+
+.eds-daily__line,
+.eds-daily__text {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.eds-daily__line {
+  margin-bottom: 20px;
+}
+
+.eds-daily__text {
+  margin-bottom: 24px;
+}
+
+.eds-daily__back a {
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+// The form: the label, then the field and the button, stacked on phones, side by side when wide.
+.eds-daily-form {
+  position: relative;
+}
+
+.eds-daily-form__label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.eds-daily-form__row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// 16px at least, or iPhones zoom in on the field.
+.eds-daily-form__input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--color-charcoal);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-charcoal);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.eds-daily-form__input:focus-visible {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+.eds-daily-form__button {
+  min-height: 48px;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-orange);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.eds-daily-form__button:hover {
+  background: var(--color-charcoal);
+}
+
+.eds-daily-form__button:focus-visible {
+  outline: 3px solid var(--color-charcoal);
+  outline-offset: 2px;
+}
+
+.eds-daily-form__button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+@media (min-width: 480px) {
+  .eds-daily-form__row {
+    flex-direction: row;
+  }
+
+  .eds-daily-form__input {
+    flex: 1;
+  }
+}
+
+// The honeypot: off-screen, never display:none (some bots skip hidden fields).
+.eds-daily-form__trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+// The status line: empty until the script fills it. Success in the orange box, white text;
+// errors in charcoal on the pale fill, marked by an orange edge.
+.eds-daily-form__status {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+// Kept in the page while empty (only its margin goes): a live region that appears with its
+// message is not always announced.
+.eds-daily-form__status:empty {
+  margin: 0;
+}
+
+.eds-daily-form[data-answer] .eds-daily-form__status {
+  padding: 10px 14px;
+  border-left: 4px solid var(--color-orange);
+  background: var(--color-pale-fill);
+  color: var(--color-charcoal);
+}
+
+.eds-daily-form[data-answer="pending"] .eds-daily-form__status {
+  border-left: 0;
+  background: var(--color-orange);
+  color: #fff;
+}

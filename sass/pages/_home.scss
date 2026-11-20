@@ -1,7 +1,7 @@
 @use "sass:math";
 
 // Home page. Phone width first, top to bottom: the Hero, the Wheel, the Playbook shelf,
-// the Ed's Daily slot, then My Story (the Poster and the story text).
+// the Ed's Daily signup (sass/pages/_daily.scss), then My Story (the Poster and the story text).
 
 .page-home main {
   padding-top: 0;
@@ -440,11 +440,6 @@ $wheel-step: math.div(360deg, $wheel-slots);
   border-width: 8px 0 8px 14px;
   border-style: solid;
   border-color: transparent transparent transparent currentcolor;
-}
-
-// The empty slot, filled by the Ed's Daily signup.
-.home-slot:empty {
-  display: none;
 }
 
 // ---------------------------------------------------------------------------

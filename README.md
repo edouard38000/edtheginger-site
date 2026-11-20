@@ -8,7 +8,9 @@ scripts: one on the Videos page (`static/js/videos.js`, for the Desktop layout; 
 it), one on the Playbook pages (`static/js/playbook.js`, for the Copy buttons; hidden without it) and
 two on the home page (`static/js/hero.js`, pausing the Hero video out of view, and `static/js/wheel.js`,
 turning the Wheel by itself and by hand, lifting a card on hover or focus and playing its Clips;
-without them the Hero still plays and the Wheel holds still, its buttons hidden):
+without them the Hero still plays and the Wheel holds still, its buttons hidden), and one on the home
+page and the `/daily/` pages (`static/js/eds-daily.js`, sending the Ed's Daily signup without leaving
+the page and showing its answer; without it the form posts and the endpoint redirects):
 no third-party scripts, fonts self-hosted. The words used here are defined in [`GLOSSARY.md`](GLOSSARY.md).
 
 ## Build and check
@@ -31,9 +33,11 @@ itself is a Rust tool.
 
 | Path | What it holds |
 | --- | --- |
-| `config.toml` | Site settings: the one `base_url`, the Formats, the Dock links (`[extra.dock]`) |
+| `config.toml` | Site settings: the one `base_url`, the Formats, the Ed's Daily signup endpoint (`eds_daily_subscribe`), the Dock links (`[extra.dock]`) |
 | `content/videos/*.md`, `content/playbooks/*.md` | The real Entries |
 | `content/_index.md`, `content/real-or-bs.md`, `content/*/_index.md` | The four pages (not Entries) |
+| `content/daily/`, `templates/daily.html`, `templates/daily-page.html` | The Ed's Daily pages under `/daily/`, where the signup endpoint and the confirmation email send the visitor |
+| `templates/partials/eds-daily-form.html`, `sass/pages/_daily.scss` | The Ed's Daily signup form (home page and `/daily/` pages) and its styles |
 | `static/covers/` | Cover images of the real Entries |
 | `static/fonts/` | Montserrat, copied from `brand-assets/fonts/` |
 | `templates/base.html`, `templates/partials/dock.html` | Base layout and the Dock, shared by every page |
@@ -45,7 +49,7 @@ itself is a Rust tool.
 | `sass/pages/_playbook.scss` | The Playbook pages |
 | `src/lib.rs` | The check harness: fixture Entries in, built pages out |
 | `tests/skeleton.rs` | Checks on what every page shares |
-| `tests/{home,real_or_bs,playbooks,videos}.rs` | One test file per page |
+| `tests/{home,real_or_bs,playbooks,videos,daily}.rs` | One test file per page (`daily.rs`: the `/daily/` pages) |
 | `tests/fixtures/` | Fixture Entries and covers; the checks on the pages never build the real Entries. The fixture Playbook page (`tests/fixtures/playbook-pages/`) is added only by the checks that use it |
 | `tests/adding_content.rs`, `tests/bad-entries/` | Checks that a broken Entry is refused, with one bad Entry per refusal; one check reads the real Entries for a missing date |
 | `templates/components/validate.html` | The refusals; `templates/entry.html` and every page that lists Entries use them |
