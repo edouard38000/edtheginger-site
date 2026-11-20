@@ -551,6 +551,18 @@
   width: 28px;
 }
 
+// CLICK HERE always sits on its own line under the buttons, its crayon arrow (drawn pointing left)
+// turned a quarter so it points up at them. Beside the buttons it only worked when they all fit on
+// one row; when they wrap, on a phone or a computer, it pointed at nothing (Edouard, 19 Nov 2026).
+.pb-buttons__click {
+  flex-basis: 100%;
+  margin-left: 14px;
+}
+
+.pb-buttons__click img {
+  transform: rotate(90deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pb-button__arrow {
     transition: none;
