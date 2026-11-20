@@ -57,6 +57,7 @@
   isolation: isolate;
   background: #0b0908;
   border-radius: 0 0 28px 28px;
+  box-shadow: 0 24px 80px rgb(255 90 31 / 22%);
   color: var(--hero-ink);
 }
 
@@ -130,12 +131,14 @@
   align-self: center;
   margin: 0;
   color: var(--hero-ink);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(1.125rem, 5.4vw, 2.75rem);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 7vw, 4.5rem);
   line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .hero__name--first {
@@ -240,8 +243,10 @@ $wheel-step: math.div(360deg, $wheel-slots);
   top: var(--hub-y);
   width: calc((var(--radius) - var(--card-h) / 2 - 18px) * 2);
   aspect-ratio: 1;
-  border: 2px dashed var(--color-border);
+  border: 1px dashed rgb(255 233 214 / 28%);
   border-radius: 50%;
+  // The hub glows like the low sun of the page.
+  background: radial-gradient(closest-side, rgb(255 90 31 / 45%), rgb(198 59 0 / 18%) 55%, rgb(18 6 4 / 0%) 100%);
   transform: translate(-50%, -50%);
 }
 
@@ -288,8 +293,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
   height: 100%;
   overflow: hidden;
   border-radius: 14px;
-  // Pale while the still loads, so the Wheel never flashes black.
-  background: var(--color-pale-fill);
+  // Ember while the still loads, so the Wheel never flashes a hole.
+  background: var(--color-ember);
   box-shadow: 0 10px 22px rgb(25 25 25 / 20%), 0 2px 5px rgb(25 25 25 / 14%);
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
@@ -318,7 +323,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .wheel__card:focus-visible {
-  outline: 3px solid var(--color-orange);
+  outline: 3px solid var(--color-yellow);
   outline-offset: 3px;
 }
 
@@ -390,10 +395,10 @@ $wheel-step: math.div(360deg, $wheel-slots);
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-line);
   border-radius: 50%;
-  background: #fff;
-  color: var(--color-charcoal);
+  background: rgb(30 10 5 / 78%);
+  color: var(--color-ink);
   cursor: pointer;
 }
 
@@ -402,7 +407,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .wheel__button:focus-visible {
-  outline: 3px solid var(--color-orange);
+  outline: 3px solid var(--color-yellow);
   outline-offset: 2px;
 }
 
@@ -454,8 +459,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
   margin-top: 64px;
 }
 
-// The section title, as the brand sets coloured text: white Montserrat capitals in the orange
-// box, a little askew, like the shelf's tagline box.
+// The section title, as the brand sets coloured text: white poster serif in the orange box, a
+// little askew, like the shelf's tagline box.
 .story__header {
   margin-bottom: 20px;
 }
@@ -466,11 +471,9 @@ $wheel-step: math.div(360deg, $wheel-slots);
   padding: 0.3em 0.6em;
   background: var(--color-orange);
   color: #fff;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.5rem;
+  font-size: 2.25rem;
   line-height: 1.05;
-  text-transform: uppercase;
+  box-shadow: 0 0 40px rgb(255 90 31 / 35%);
   transform: rotate(-1deg);
 }
 
@@ -483,10 +486,10 @@ $wheel-step: math.div(360deg, $wheel-slots);
 
 .story__coming-soon {
   margin: 0;
-  color: var(--color-muted);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
+  color: var(--color-ink-muted);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.375rem;
   text-align: center;
 }
 
@@ -507,6 +510,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
   overflow: hidden;
   isolation: isolate;
   border-radius: 28px;
+  box-shadow: 0 30px 90px rgb(255 90 31 / 20%);
   color: var(--poster-ink);
   // The portrait's own background, continued past its edges: it darkens to the top and warms
   // to burnt orange lower down, then to the black of the jumper, nearly the same across its
@@ -747,7 +751,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
   flex-direction: column;
   margin: 0 0 12px;
   color: #fff;
-  font-size: clamp(2.6rem, 13.2vw, 4.75rem);
+  font-size: clamp(3.25rem, 16vw, 6rem);
   line-height: 0.92;
   letter-spacing: -0.015em;
   text-shadow: 0 2px 18px rgb(21 10 5 / 55%);
@@ -807,12 +811,9 @@ $wheel-step: math.div(360deg, $wheel-slots);
 .shelf__title,
 .wheel__title {
   margin: 0;
-  color: var(--color-charcoal);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.5rem;
-  line-height: 1.05;
-  text-transform: uppercase;
+  color: var(--color-ink);
+  font-size: 2.5rem;
+  line-height: 1;
 }
 
 // The Playbooks page's second box, smaller: white capitals on orange, a little askew.
@@ -872,16 +873,18 @@ $wheel-step: math.div(360deg, $wheel-slots);
 
 .shelf .shelf__card-title {
   margin-bottom: 14px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.0625rem;
-  line-height: 1.2;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.375rem;
+  line-height: 1.1;
+  text-transform: none;
 }
 
 .shelf__all {
   display: inline-block;
-  padding-block: 6px;
-  color: var(--color-charcoal);
+  padding-block: 12px;
+  color: var(--color-ink);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.9375rem;
@@ -928,9 +931,12 @@ $wheel-step: math.div(360deg, $wheel-slots);
   }
 
   .shelf__title,
-  .wheel__title,
+  .wheel__title {
+    font-size: 3.5rem;
+  }
+
   .story__title {
-    font-size: 1.75rem;
+    font-size: 2.75rem;
   }
 
   .shelf__list {

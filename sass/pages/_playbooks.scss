@@ -1,5 +1,5 @@
 // Playbooks page. Owned by ticket #4.
-// The playbook look: cream page, title in orange boxes, white cards with a thin border,
+// The glow look: night page, title in orange boxes (poster serif), dark cards lit at the edge,
 // sticker tags and an orange button. Phone width first: one column, more on wide screens.
 
 .playbooks__sr-only {
@@ -27,8 +27,8 @@
   padding: 0.14em 0.3em 0.12em;
   background: var(--color-orange);
   color: var(--color-yellow);
-  font-size: clamp(2.25rem, 12vw, 4.5rem);
-  letter-spacing: -0.01em;
+  font-size: clamp(3rem, 15vw, 6rem);
+  box-shadow: 0 0 48px rgb(255 90 31 / 35%);
   transform: rotate(-1.5deg);
 }
 
@@ -54,7 +54,7 @@
 }
 
 .playbooks__empty {
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
 }
 
 .playbooks__list {
@@ -76,10 +76,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: linear-gradient(170deg, var(--color-surface-raised), var(--color-surface) 55%);
+  border: 1px solid var(--color-line);
   border-radius: 14px;
-  box-shadow: 0 2px 0 var(--color-border);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 35%);
 }
 
 // The top of a card: the cover as a taped photo, or an orange title block when there is none.
@@ -90,7 +90,8 @@
   justify-content: center;
   aspect-ratio: 5 / 4;
   margin: 12px 12px 0;
-  background: var(--color-pale-fill);
+  // The cover sits in its own little sunset.
+  background: radial-gradient(90% 80% at 50% 100%, rgb(255 90 31 / 55%), rgb(198 59 0 / 20%) 55%, var(--color-night) 100%);
   border-radius: 8px;
 }
 
@@ -179,7 +180,7 @@
   padding: 3px 10px;
   background: var(--color-orange);
   color: #fff;
-  border: 2px solid #fff;
+  border: 2px solid var(--color-cream);
   border-radius: 999px;
   box-shadow: 0 1px 4px rgb(25 25 25 / 28%);
   font-family: var(--font-display);
@@ -206,14 +207,15 @@
 }
 
 .playbook-card__title {
-  margin: 0 0 6px;
-  color: var(--color-charcoal);
-  font-size: 1.375rem;
+  margin: 0 0 8px;
+  color: var(--color-ink);
+  font-size: 1.625rem;
+  line-height: 1.05;
 }
 
 .playbook-card__description {
   margin: 0 0 16px;
-  color: var(--color-charcoal);
+  color: var(--color-ink-muted);
 }
 
 .playbook-card__button {
@@ -237,7 +239,7 @@
 }
 
 .playbook-card__button:hover {
-  background: var(--color-charcoal);
+  background: var(--color-flame);
 }
 
 .playbook-card__arrow {
