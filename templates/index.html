@@ -188,8 +188,10 @@
 {%- set daily = get_section(path="daily/_index.md", metadata_only=true) -%}
 {%- set eds_daily_source = "home" %}
 <section class="home-slot home-slot--eds-daily eds-daily" data-slot="eds-daily" aria-labelledby="eds-daily-heading">
-  <h2 class="eds-daily__title" id="eds-daily-heading">Ed's Daily</h2>
-  <p class="eds-daily__line">{{ daily.extra.line }}</p>
+  <header class="eds-daily__header">
+    <h2 class="eds-daily__title" id="eds-daily-heading">Ed's Daily</h2>
+    <p class="eds-daily__tagline">{{ daily.extra.line }}</p>
+  </header>
   {% include "partials/eds-daily-form.html" %}
 </section>
 

@@ -140,6 +140,13 @@ fn check_your_inbox_and_confirmed_link_home_and_have_no_form() {
 fn the_daily_titles_and_text() {
     let titles = |path| site().page(path).texts("main h1");
     assert_eq!(titles("daily/"), ["Ed's Daily"]);
+    assert_eq!(
+        site()
+            .page("daily/")
+            .texts("main header.eds-daily__header > h1 + p.eds-daily__tagline"),
+        ["My newsletter, in your inbox every day."],
+        "/daily/ has the home section's header: the title and the tagline box"
+    );
     assert_eq!(titles("daily/check-your-inbox/"), ["Check your inbox"]);
     assert_eq!(titles("daily/confirmed/"), ["You're in"]);
     assert_eq!(titles("daily/link-expired/"), ["This link has expired"]);

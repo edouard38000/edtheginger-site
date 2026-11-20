@@ -792,7 +792,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .shelf__header,
-.wheel__header {
+.wheel__header,
+.eds-daily__header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -800,7 +801,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .shelf__title,
-.wheel__title {
+.wheel__title,
+.eds-daily__title {
   margin: 0;
   color: var(--color-charcoal);
   font-family: var(--font-display);
@@ -812,7 +814,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
 
 // The Playbooks page's second box, smaller: white capitals on orange, a little askew.
 .shelf__tagline,
-.wheel__tagline {
+.wheel__tagline,
+.eds-daily__tagline {
   margin: 8px 0 0;
   padding: 0.35em 0.65em;
   background: var(--color-orange);

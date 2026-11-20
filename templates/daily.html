@@ -9,9 +9,11 @@
 {% block head %}<script src="{{ get_url(path='js/eds-daily.js', cachebust=true) }}" defer></script>{% endblock head %}
 {% block content %}
 {%- set eds_daily_source = "daily-archive" %}
-<section class="eds-daily eds-daily--page" aria-labelledby="eds-daily-heading">
-  <h1 class="eds-daily__title" id="eds-daily-heading">{{ section.title }}</h1>
-  <p class="eds-daily__line">{{ section.extra.line }}</p>
+<section class="eds-daily eds-daily--signup" aria-labelledby="eds-daily-heading">
+  <header class="eds-daily__header">
+    <h1 class="eds-daily__title" id="eds-daily-heading">{{ section.title }}</h1>
+    <p class="eds-daily__tagline">{{ section.extra.line }}</p>
+  </header>
   {% include "partials/eds-daily-form.html" %}
 </section>
 {% endblock content %}

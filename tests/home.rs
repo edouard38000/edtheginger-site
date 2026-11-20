@@ -364,7 +364,13 @@ fn the_eds_daily_slot_is_the_signup() {
         .find(|line| line.starts_with("line ="))
         .and_then(|line| line.split('"').nth(1))
         .expect("line = \"...\" in content/daily/_index.md");
-    assert_eq!(home.texts(&format!("{slot} .eds-daily__line")), [line]);
+    assert_eq!(
+        home.texts(&format!(
+            "{slot} > header.eds-daily__header > h2 + p.eds-daily__tagline"
+        )),
+        [line],
+        "the line is the tagline box under the title, like the shelf's and the Wheel's"
+    );
     assert!(
         !template().contains(line),
         "the line is not typed in the template"

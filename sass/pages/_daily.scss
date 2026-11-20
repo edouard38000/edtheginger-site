@@ -1,7 +1,6 @@
 // Ed's Daily: the signup section on the home page and the /daily/ pages. Phone width first.
 // The form (templates/partials/eds-daily-form.html) looks the same everywhere.
 
-.eds-daily__line,
 .eds-daily__text,
 .eds-daily-form {
   max-width: 40rem;
@@ -12,18 +11,22 @@
   margin-top: 64px;
 }
 
-.eds-daily__title {
-  margin: 0 0 12px;
-  color: var(--color-charcoal);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.5rem;
-  line-height: 1.05;
-  text-transform: uppercase;
+// The title and its tagline box are the shelf's and the Wheel's header (sass/pages/_home.scss),
+// on the home page and on /daily/.
+.eds-daily__header {
+  margin-bottom: 20px;
 }
 
-// On its own pages the title is the page's h1: white capitals in the orange box, a little askew,
-// like the My Story title (never loose orange text).
+.eds-daily--signup {
+  margin-top: 24px;
+}
+
+.eds-daily--signup .eds-daily__title {
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+}
+
+// The pages the signup sends the visitor to (no tagline): the title is the page's h1, white
+// capitals in the orange box, a little askew, like the My Story title (never loose orange text).
 .eds-daily--page {
   margin-top: 24px;
 }
@@ -38,18 +41,10 @@
   transform: rotate(-1deg);
 }
 
-.eds-daily__line,
-.eds-daily__text {
-  font-size: 1.0625rem;
-  line-height: 1.55;
-}
-
-.eds-daily__line {
-  margin-bottom: 20px;
-}
-
 .eds-daily__text {
   margin-bottom: 24px;
+  font-size: 1.0625rem;
+  line-height: 1.55;
 }
 
 .eds-daily__back a {
