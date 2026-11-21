@@ -1,6 +1,6 @@
 //! The home page, top to bottom: the Hero (video, name, tagline, links), the Wheel (the newest
 //! Videos on a turning wheel), the Playbook shelf, the Ed's Daily slot and My Story (the Poster: lit portrait, beam lines, tool
-//! tiles, captions, title; then the story text or the coming-soon line).
+//! tiles, captions, title; then the story text once written, and the tagline closing the page).
 //! Built from the fixture Entries: five Videos, and two Playbooks, "Prompt Pack" (2026-01-20, no
 //! cover) and "Inbox Zero" (2026-01-12, with a cover).
 
@@ -339,7 +339,7 @@ fn the_hero_links_go_to_the_three_other_pages() {
     assert_eq!(home.count(".hero nav.hero__links[aria-label]"), 1);
     assert_eq!(
         home.texts(".hero__links a"),
-        ["Real or BS", "Playbooks", "Videos"]
+        ["REAL list", "Playbooks", "Videos"]
     );
     assert_eq!(
         home.attributes(".hero__links a", "href"),
@@ -802,25 +802,30 @@ fn my_story_is_named_by_its_visible_heading() {
 }
 
 #[test]
-fn my_story_opens_with_the_poster_then_the_coming_soon_line() {
+fn my_story_opens_with_the_poster_then_the_tagline() {
     let home = home();
     assert_eq!(
-        home.count("section.story > .story__header + .poster + .story__text"),
+        home.count("section.story > .story__header + .poster + p.story__tagline"),
         1,
-        "the heading, the Poster, then the story text"
+        "the heading, the Poster, then the tagline (no story yet)"
     );
     let title = home.texts(".story .poster h2.poster__title").join(" ");
     let words: Vec<&str> = title.split_whitespace().collect();
     assert_eq!(words.join(" ").to_uppercase(), "EDOUARD THE GINGER");
-    let coming_soon = front_matter_text("story_coming_soon");
     assert_eq!(
-        home.texts(".story__text .story__coming-soon"),
-        std::slice::from_ref(&coming_soon)
+        home.count(".story__text"),
+        0,
+        "no story text until it is written"
     );
-    assert!(
-        !template().contains(&coming_soon),
-        "the coming-soon line is not typed in the template"
+    assert_eq!(
+        home.texts(".story .story__tagline"),
+        [front_matter_text("tagline")],
+        "the page ends on the Hero's tagline, from the front matter"
     );
+    assert!(!site()
+        .file("index.html")
+        .to_lowercase()
+        .contains("coming soon"));
 }
 
 #[test]
@@ -830,7 +835,11 @@ fn my_story_shows_the_story_once_it_is_written() {
     let site = Site::try_build_with(&[("content/_index.md", with_story.as_bytes())])
         .unwrap_or_else(|message| panic!("{message}"));
     let home = site.page("");
-    assert_eq!(home.count(".story__coming-soon"), 0, "no coming-soon line");
+    assert_eq!(
+        home.count("section.story > .poster + .story__text + .story__tagline"),
+        1,
+        "the story, then the tagline"
+    );
     assert_eq!(
         home.texts(".story__text p"),
         ["I grew up somewhere. Fixture story."]

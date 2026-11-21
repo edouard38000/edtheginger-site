@@ -3,11 +3,11 @@ title = "Edouard the Ginger"
 template = "index.html"
 
 [extra]
-# The Hero's tagline, under EDOUARD | THE GINGER: the one place its wording is held.
-tagline = "Learn AI without the hype, only the facts"
+# The tagline: under EDOUARD | THE GINGER in the Hero, and again as the last line of the page.
+# The one place its wording is held.
+tagline = "Learn AI without all the BS"
 # My Story: the story itself is the body of this file, below the front matter (Markdown). Until
-# there is one, the section shows this line under the Poster.
-story_coming_soon = "My story is coming soon, in my own words."
+# there is one, the Poster is followed straight by the tagline.
 
 # The Poster's captions: the one place their wording is held.
 # Shown together as a small block in the top left corner.

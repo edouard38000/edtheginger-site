@@ -1,6 +1,6 @@
 // A Playbook page (templates/playbook.html), and the components its Markdown body is written with
-// (templates/components/playbook-page.html). The look of the PDF Playbooks: cream page, titles in
-// orange boxes, small orange labels, number stickers, rounded screenshots, prompt boxes.
+// (templates/components/playbook-page.html). The glow look: night page, titles in white poster
+// serif on the glow, small orange labels, number stickers, rounded screenshots, dark prompt boxes.
 // Phone width first: one column; wide screens keep a readable column in the middle.
 
 .pb-sr-only {
@@ -22,15 +22,10 @@
   line-height: 1.55;
 }
 
-// The title look: white capitals, each line in its own orange box.
+// The title look: white poster serif straight on the glow.
 .pb-box {
-  display: inline;
-  padding: 0.12em 0.35em;
-  background: var(--color-orange);
   color: #fff;
-  border-radius: 4px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  text-shadow: 0 0 36px rgb(255 90 31 / 55%);
 }
 
 // --- Top of the page ----------------------------------------------------------------------------
@@ -45,18 +40,18 @@
 }
 
 .pb__back {
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
   font-family: var(--font-display);
   font-weight: 700;
   text-decoration: none;
 }
 
 .pb__back:hover {
-  color: var(--color-orange);
+  color: var(--color-ink);
 }
 
 .pb__by {
-  color: var(--color-charcoal);
+  color: var(--color-ink);
   font-weight: 700;
 }
 
@@ -75,10 +70,8 @@
 
 .pb__title {
   margin: 0;
-  font-size: clamp(1.5rem, 6.4vw, 2.5rem);
-  font-weight: 900;
-  line-height: 1.5;
-  letter-spacing: -0.005em;
+  font-size: clamp(2rem, 8.4vw, 3.25rem);
+  line-height: 1.08;
 }
 
 .pb__body > p {
@@ -110,8 +103,8 @@
 
 .pb-part__title {
   margin: 0;
-  font-size: clamp(1.125rem, 5vw, 1.625rem);
-  line-height: 1.55;
+  font-size: clamp(1.5rem, 6.6vw, 2.125rem);
+  line-height: 1.1;
 }
 
 .pb-part__intro p {
@@ -123,7 +116,9 @@
   align-items: center;
   gap: 10px;
   margin: 36px 0 14px;
-  color: var(--color-charcoal);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-style: normal;
   font-weight: 700;
   font-size: 1.1875rem;
   line-height: 1.25;
@@ -224,7 +219,7 @@
 }
 
 .pb-note {
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
   font-size: 0.9375rem;
 }
 
@@ -267,13 +262,18 @@
 }
 
 .pb__body > ol a {
-  color: var(--color-charcoal);
-  text-decoration-color: var(--color-orange);
+  color: var(--color-ink);
+  text-decoration-color: var(--color-flame);
 }
 
-// The placeholders of a prompt, like [YOUR CITY], in orange.
+// The placeholders of a prompt, like [YOUR CITY]: white on orange, as the brand sets coloured text.
 .pb-hot {
-  color: var(--color-orange);
+  padding: 0 0.2em;
+  background: var(--color-orange);
+  color: #fff;
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 // --- Prompt and skill boxes ---------------------------------------------------------------------
@@ -295,7 +295,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-charcoal);
+  color: var(--color-ink-muted);
   font-size: 0.8125rem;
 }
 
@@ -317,16 +317,17 @@
   align-items: flex-end;
   gap: 12px 16px;
   padding: 16px;
-  background: var(--color-pale-fill);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgb(255 233 214 / 6%);
 }
 
 .pb-prompt__text {
   flex: 1 1 18rem;
   min-width: 0;
   margin: 0;
-  color: var(--color-charcoal);
+  color: var(--color-ink);
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.55;
@@ -338,17 +339,17 @@
   flex: 1 1 100%;
   margin: 0;
   padding-top: 12px;
-  border-top: 1px dashed var(--color-border);
+  border-top: 1px dashed var(--color-line);
 }
 
 .pb-prompt__copy {
   display: flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 44px;
   margin: 0 0 0 auto;
   padding: 8px 18px;
-  background: #fff;
-  color: var(--color-orange);
+  background: transparent;
+  color: var(--color-ink);
   border: 2px solid var(--color-orange);
   border-radius: 999px;
   font-family: var(--font-display);
@@ -370,7 +371,7 @@
 }
 
 .pb-prompt__copy:focus-visible {
-  outline: 3px solid var(--color-charcoal);
+  outline: 3px solid var(--color-yellow);
   outline-offset: 3px;
 }
 
@@ -380,7 +381,7 @@
 
 .pb-skill__plus {
   margin: 0;
-  color: var(--color-orange);
+  color: var(--color-ink);
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 1.75rem;
@@ -402,14 +403,14 @@
   gap: 4px 10px;
   margin: 0;
   padding: 12px 16px;
-  background: #fff;
-  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: 10px;
   text-align: center;
 }
 
 .pb-skill__dot {
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
 }
 
 .pb-skill__grab {
@@ -432,13 +433,14 @@
   display: block;
   width: 100%;
   background: #fff;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-line);
   border-radius: 10px;
+  box-shadow: 0 14px 36px rgb(0 0 0 / 40%);
 }
 
 .pb-figure__caption {
   margin-top: 6px;
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
   font-size: 0.875rem;
 }
 
@@ -470,9 +472,9 @@
   display: block;
   width: 100%;
   max-width: 220px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-line);
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgb(25 25 25 / 10%);
+  box-shadow: 0 14px 36px rgb(0 0 0 / 40%);
 }
 
 // Screenshots beside their steps (wide screens only; see the media query at the end).
@@ -526,7 +528,7 @@
 }
 
 .pb-button:hover {
-  background: var(--color-charcoal);
+  background: var(--color-flame);
 }
 
 .pb-button__arrow {

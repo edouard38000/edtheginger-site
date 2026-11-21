@@ -1,0 +1,2 @@
+Noto Serif Display Regular and Italic - Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic).
+Licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). Subset to Latin and converted to WOFF2 for the site headings.

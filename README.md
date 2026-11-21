@@ -35,7 +35,7 @@ itself is a Rust tool.
 | `content/videos/*.md`, `content/playbooks/*.md` | The real Entries |
 | `content/_index.md`, `content/real-or-bs.md`, `content/*/_index.md` | The four pages (not Entries) |
 | `static/covers/` | Cover images of the real Entries |
-| `static/fonts/` | Montserrat, copied from `brand-assets/fonts/` |
+| `static/fonts/` | Montserrat and Noto Serif Display (the heading serif), copied from `brand-assets/fonts/` |
 | `templates/base.html`, `templates/partials/dock.html` | Base layout and the Dock, shared by every page |
 | `templates/{index,real-or-bs,playbooks,videos}.html` | One template per page |
 | `templates/playbook.html`, `templates/components/playbook-page.html` | A Playbook page, and the components its Markdown is written with |

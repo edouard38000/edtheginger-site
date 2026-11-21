@@ -59,7 +59,7 @@
   </div>
   <nav class="hero__links" aria-label="Pages">
     <ul>
-      <li><a href="{{ real_or_bs_url }}">Real or BS</a></li>
+      <li><a href="{{ real_or_bs_url }}">REAL list</a></li>
       <li><a href="{{ playbooks_url }}">Playbooks</a></li>
       <li><a href="{{ videos_url }}">Videos</a></li>
     </ul>
@@ -185,8 +185,8 @@
 {#- The Ed's Daily signup fills this slot (#36). #}
 <div class="home-slot home-slot--eds-daily" data-slot="eds-daily"></div>
 
-{#- My Story: the Poster, then the story (the body of content/_index.md) or, until it is written,
-    the coming-soon line ([extra] story_coming_soon). -#}
+{#- My Story: the Poster, then the story (the body of content/_index.md) once it is written, then
+    the tagline ([extra] tagline) as the last line of the page. -#}
 <section class="story" aria-labelledby="story-heading">
 <header class="story__header">
   <h2 class="story__title" id="story-heading">My Story</h2>
@@ -258,19 +258,18 @@
     <div class="poster__foot">
       <h2 class="poster__title"><span class="poster__name">Edouard</span> <span class="poster__name poster__name--yellow">the Ginger</span></h2>
       <ul class="poster__words">
-        <li><a href="{{ real_or_bs_url }}">Real or BS</a></li>
+        <li><a href="{{ real_or_bs_url }}">REAL list</a></li>
         <li><a href="{{ playbooks_url }}">Playbooks</a></li>
         <li><a href="{{ videos_url }}">Videos</a></li>
       </ul>
     </div>
   </div>
 </div>
+  {%- if section.content | trim %}
   <div class="story__text">
-    {%- if section.content | trim %}
     {{ section.content | safe }}
-    {%- else %}
-    <p class="story__coming-soon">{{ section.extra.story_coming_soon }}</p>
-    {%- endif %}
   </div>
+  {%- endif %}
+  <p class="story__tagline">{{ section.extra.tagline }}</p>
 </section>
 {% endblock content %}

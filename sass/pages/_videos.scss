@@ -21,10 +21,10 @@
   align-items: center;
   min-height: 44px;
   padding: 0 14px;
-  border: 2px solid var(--color-charcoal);
+  border: 1px solid var(--color-line);
   border-radius: 999px;
-  background: var(--color-background);
-  color: var(--color-charcoal);
+  background: rgb(30 10 5 / 60%);
+  color: var(--color-ink);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.8125rem;
@@ -34,7 +34,7 @@
 }
 
 .videos__format-link:hover {
-  background: var(--color-yellow);
+  border-color: var(--color-flame);
 }
 
 // JavaScript off: "All" is the current link as long as no Format is targeted.
@@ -42,7 +42,8 @@
 .videos:not(.videos--enhanced):not(:has(.videos__group:target)) .videos__format-link[data-format-group=""] {
   border-color: var(--color-orange);
   background: var(--color-orange);
-  color: var(--color-background);
+  color: #fff;
+  box-shadow: 0 0 24px rgb(255 90 31 / 40%);
 }
 
 .videos__wallpaper {
@@ -63,9 +64,9 @@
 }
 
 .videos__group-title {
-  margin: 28px 0 12px;
-  color: var(--color-charcoal);
-  font-size: 1.25rem;
+  margin: 32px 0 14px;
+  color: var(--color-ink);
+  font-size: 1.75rem;
 }
 
 .videos__grid {
@@ -97,21 +98,21 @@
   width: 100%;
   aspect-ratio: 9 / 16;
   object-fit: cover;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-line);
   border-radius: 12px;
-  background: var(--color-pale-fill);
+  background: var(--color-surface);
 }
 
 .video__title {
   margin: 8px 0 2px;
-  color: var(--color-charcoal);
+  color: var(--color-ink);
   font-size: 0.9375rem;
   line-height: 1.15;
 }
 
 .video__format {
   margin: 0 0 8px;
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.6875rem;
@@ -140,7 +141,7 @@
   padding: 0 8px;
   border-radius: 10px;
   background: var(--color-orange);
-  color: var(--color-background);
+  color: #fff;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.75rem;
@@ -148,12 +149,12 @@
 }
 
 .video__link:hover {
-  background: var(--color-charcoal);
+  background: var(--color-flame);
 }
 
 .video__no-link {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--color-ink-muted);
   font-size: 0.8125rem;
 }
 
@@ -192,9 +193,9 @@ body.page-videos:has(.videos--desktop) {
   .videos__stage {
     position: relative;
     min-height: 420px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-line);
     border-radius: 20px;
-    background: var(--color-pale-fill);
+    background: var(--color-night);
   }
 
   .videos__wallpaper {
@@ -211,16 +212,20 @@ body.page-videos:has(.videos--desktop) {
     height: 100%;
     object-fit: cover;
     object-position: 50% 26%;
-    filter: blur(12px);
+    // Blurred and toned to the glow: a figure in orange light.
+    filter: blur(14px) grayscale(1) contrast(1.15) brightness(0.9);
     transform: scale(1.06);
   }
 
-  // A cream veil, so the labels stay readable over the portrait.
+  // An orange light multiplied over the grey portrait: a figure in the glow, dark enough for
+  // the labels to read.
   .videos__wallpaper::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgb(250 248 245 / 30%);
+    background:
+      radial-gradient(90% 80% at 50% 100%, #ff7a2e, #c63b00 45%, #3a1004 100%);
+    mix-blend-mode: multiply;
   }
 
   // The groups stay in the page, in order, but take no room: each Video is placed on the stage.
@@ -258,9 +263,9 @@ body.page-videos:has(.videos--desktop) {
   }
 
   .video__cover img {
-    border: 2px solid var(--color-background);
+    border: 2px solid var(--color-cream);
     border-radius: 8px;
-    box-shadow: 0 4px 14px rgb(25 25 25 / 35%);
+    box-shadow: 0 6px 18px rgb(0 0 0 / 50%);
   }
 
   // The whole icon is the target: the cover link when the Video has one link, the button otherwise.
@@ -277,7 +282,7 @@ body.page-videos:has(.videos--desktop) {
 
   .video__cover:focus-visible::after,
   .video__open:focus-visible {
-    outline: 3px solid var(--color-charcoal);
+    outline: 3px solid var(--color-yellow);
     outline-offset: 3px;
   }
 
@@ -302,7 +307,7 @@ body.page-videos:has(.videos--desktop) {
     padding: 0 7px;
     overflow: hidden;
     border-radius: 7px;
-    background: rgb(250 248 245 / 90%);
+    background: rgb(18 6 4 / 82%);
     font-size: 0.6875rem;
     line-height: 1.5;
     -webkit-box-orient: vertical;
@@ -314,7 +319,7 @@ body.page-videos:has(.videos--desktop) {
   .video:focus-within .video__title,
   .video--open .video__title {
     background: var(--color-orange);
-    color: var(--color-background);
+    color: #fff;
   }
 
   // The card with the Format and the links, beside the icon.
@@ -326,10 +331,10 @@ body.page-videos:has(.videos--desktop) {
     z-index: 2;
     width: 184px;
     padding: 12px;
-    border: 2px solid var(--color-charcoal);
+    border: 1px solid var(--color-line);
     border-radius: 14px;
-    background: var(--color-background);
-    box-shadow: 0 10px 28px rgb(25 25 25 / 28%);
+    background: var(--color-surface);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 50%);
     text-align: left;
   }
 
