@@ -459,8 +459,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
   margin-top: 64px;
 }
 
-// The section title, as the brand sets coloured text: white poster serif in the orange box, a
-// little askew, like the shelf's tagline box.
+// The section title: white poster serif straight on the glow, like the other section titles.
 .story__header {
   margin-bottom: 20px;
 }
@@ -468,13 +467,10 @@ $wheel-step: math.div(360deg, $wheel-slots);
 .story__title {
   display: inline-block;
   margin: 0;
-  padding: 0.3em 0.6em;
-  background: var(--color-orange);
   color: #fff;
-  font-size: 2.25rem;
-  line-height: 1.05;
-  box-shadow: 0 0 40px rgb(255 90 31 / 35%);
-  transform: rotate(-1deg);
+  font-size: 2.5rem;
+  line-height: 1;
+  text-shadow: 0 0 36px rgb(255 90 31 / 55%);
 }
 
 .story__text {
@@ -758,7 +754,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .poster__name--yellow {
-  color: var(--color-yellow);
+  color: #fff;
 }
 
 // The small words along the bottom: the three other pages.
@@ -816,20 +812,17 @@ $wheel-step: math.div(360deg, $wheel-slots);
   line-height: 1;
 }
 
-// The Playbooks page's second box, smaller: white capitals on orange, a little askew.
+// The tagline under a section title: small white capitals, spaced out, like the Playbooks page's.
 .shelf__tagline,
 .wheel__tagline {
-  margin: 8px 0 0;
-  padding: 0.35em 0.65em;
-  background: var(--color-orange);
+  margin: 10px 0 0;
   color: #fff;
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.8125rem;
-  line-height: 1.15;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  transform: rotate(-1deg);
 }
 
 // Phones: one row, wider than the screen, that scrolls inside itself. It reaches the screen's
@@ -936,7 +929,7 @@ $wheel-step: math.div(360deg, $wheel-slots);
   }
 
   .story__title {
-    font-size: 2.75rem;
+    font-size: 3.5rem;
   }
 
   .shelf__list {

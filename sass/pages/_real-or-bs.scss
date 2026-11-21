@@ -1,5 +1,5 @@
 // Real or BS page. Owned by ticket #3.
-// The glow look: the title in orange boxes (poster serif), dark cards lit at the edge, round badges.
+// The glow look: the title in white poster serif on the glow, dark cards lit at the edge, round badges.
 .real-or-bs {
   max-width: 40rem;
   margin-inline: auto;
@@ -16,20 +16,16 @@
   }
 }
 
-// A sticker tag, a little crooked.
+// The credit: small white capitals above the title.
 .real-or-bs__credit {
   display: inline-block;
-  margin: 0 0 18px;
-  padding: 4px 10px;
-  background: var(--color-yellow);
-  border-radius: 4px;
-  box-shadow: 0 1px 0 rgb(25 25 25 / 18%);
-  color: var(--color-charcoal);
+  margin: 0 0 14px;
+  color: #fff;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.8125rem;
-  letter-spacing: 0.02em;
-  transform: rotate(-2deg);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .real-or-bs__title {
@@ -47,16 +43,10 @@
     font-size: clamp(2.75rem, 13vw, 4.25rem);
   }
 
-  h1 span {
-    padding: 0.08em 0.28em 0.14em;
-    box-shadow: 0 0 40px rgb(255 90 31 / 35%);
-    background: var(--color-orange);
-    border-radius: 6px;
-    color: var(--color-yellow);
-  }
-
-  h1 span + span {
+  h1 {
+    gap: 0;
     color: #fff;
+    text-shadow: 0 0 36px rgb(255 90 31 / 55%);
   }
 }
 

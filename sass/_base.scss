@@ -67,7 +67,7 @@ h3 {
   text-transform: uppercase;
 }
 
-// Page and section titles: the poster serif, italic, in cream.
+// Page and section titles: the poster serif, italic, in white.
 h1,
 h2 {
   font-family: var(--font-serif);
@@ -76,6 +76,8 @@ h2 {
   line-height: 1;
   letter-spacing: -0.015em;
   text-transform: none;
+  // A soft orange halo, so the white type sits in the light instead of on top of it.
+  text-shadow: 0 0 36px rgb(255 90 31 / 55%);
 }
 
 h1 {

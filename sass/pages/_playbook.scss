@@ -1,6 +1,6 @@
 // A Playbook page (templates/playbook.html), and the components its Markdown body is written with
-// (templates/components/playbook-page.html). The glow look: night page, titles in orange boxes
-// (poster serif), small orange labels, number stickers, rounded screenshots, dark prompt boxes.
+// (templates/components/playbook-page.html). The glow look: night page, titles in white poster
+// serif on the glow, small orange labels, number stickers, rounded screenshots, dark prompt boxes.
 // Phone width first: one column; wide screens keep a readable column in the middle.
 
 .pb-sr-only {
@@ -22,15 +22,10 @@
   line-height: 1.55;
 }
 
-// The title look: white capitals, each line in its own orange box.
+// The title look: white poster serif straight on the glow.
 .pb-box {
-  display: inline;
-  padding: 0.12em 0.35em;
-  background: var(--color-orange);
   color: #fff;
-  border-radius: 4px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  text-shadow: 0 0 36px rgb(255 90 31 / 55%);
 }
 
 // --- Top of the page ----------------------------------------------------------------------------
@@ -76,7 +71,7 @@
 .pb__title {
   margin: 0;
   font-size: clamp(2rem, 8.4vw, 3.25rem);
-  line-height: 1.32;
+  line-height: 1.08;
 }
 
 .pb__body > p {
@@ -109,7 +104,7 @@
 .pb-part__title {
   margin: 0;
   font-size: clamp(1.5rem, 6.6vw, 2.125rem);
-  line-height: 1.4;
+  line-height: 1.1;
 }
 
 .pb-part__intro p {

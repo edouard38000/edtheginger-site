@@ -16,8 +16,9 @@
   --color-flame: #ff5a1f;
   --color-cream: #ffe9d6;
   --color-page: var(--color-night);
-  --color-ink: var(--color-cream);
-  --color-ink-muted: #c7a68f;
+  // Text is white, straight on the glow, as on the board's posters.
+  --color-ink: #fff;
+  --color-ink-muted: rgb(255 255 255 / 72%);
   --color-surface: #1e0a05;
   --color-surface-raised: #2b1009;
   --color-line: #4a2213;
