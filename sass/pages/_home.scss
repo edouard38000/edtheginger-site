@@ -1,7 +1,7 @@
 @use "sass:math";
 
 // Home page. Phone width first, top to bottom: the Hero, the Wheel, the Playbook shelf,
-// the Ed's Daily slot, then My Story (the Poster and the story text).
+// the Ed's Daily slot, then My Story (the Poster, the story text and the closing tagline).
 
 .page-home main {
   padding-top: 0;
@@ -480,13 +480,18 @@ $wheel-step: math.div(360deg, $wheel-slots);
   line-height: 1.55;
 }
 
-.story__coming-soon {
-  margin: 0;
-  color: var(--color-ink-muted);
+// The tagline again, closing the page: the poster serif, white on the glow.
+.story__tagline {
+  width: min(100% - var(--gutter) * 2, 40rem);
+  margin: 40px auto 0;
+  color: #fff;
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 1.375rem;
+  font-size: clamp(1.75rem, 8vw, 3rem);
+  line-height: 1.1;
+  text-shadow: 0 0 36px rgb(255 90 31 / 55%);
   text-align: center;
+  text-wrap: balance;
 }
 
 .poster {
