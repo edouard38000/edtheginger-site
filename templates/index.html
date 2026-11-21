@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{# Home page, top to bottom: the Hero, the Wheel, the Playbook shelf, the slot of the Ed's Daily
+{# Home page, top to bottom: the Hero, the Wheel, the Playbook shelf, the Ed's Daily
    signup, then My Story (opened by the Poster). The shelf and the Poster's count are computed from the
    Entries; the Hero's files and tagline, the Poster's captions and tools, and My Story's text are held
    in content/_index.md. #}
@@ -11,7 +11,8 @@
 {% block head %}<link rel="preload" as="image" href="{{ get_url(path=section.extra.hero.poster) }}" media="(orientation: portrait)" fetchpriority="high">
 <link rel="preload" as="image" href="{{ get_url(path=section.extra.hero.wide_poster) }}" media="(orientation: landscape)" fetchpriority="high">
 <script src="{{ get_url(path='js/hero.js', cachebust=true) }}" defer></script>
-<script src="{{ get_url(path='js/wheel.js', cachebust=true) }}" defer></script>{% endblock head %}
+<script src="{{ get_url(path='js/wheel.js', cachebust=true) }}" defer></script>
+<script src="{{ get_url(path='js/eds-daily.js', cachebust=true) }}" defer></script>{% endblock head %}
 {% block content %}
 {{<validate.entries formats={config.extra.formats} />}}
 {%- set videos_section = get_section(path="videos/_index.md") -%}
@@ -182,8 +183,17 @@
 </section>
 {%- endif %}
 
-{#- The Ed's Daily signup fills this slot (#36). #}
-<div class="home-slot home-slot--eds-daily" data-slot="eds-daily"></div>
+{#- Ed's Daily: the newsletter signup. The form is templates/partials/eds-daily-form.html, the one
+    the /daily/ pages use too; its line is held in content/daily/_index.md. #}
+{%- set daily = get_section(path="daily/_index.md", metadata_only=true) -%}
+{%- set eds_daily_source = "home" %}
+<section class="home-slot home-slot--eds-daily eds-daily" data-slot="eds-daily" aria-labelledby="eds-daily-heading">
+  <header class="eds-daily__header">
+    <h2 class="eds-daily__title" id="eds-daily-heading">Ed's Daily</h2>
+    <p class="eds-daily__tagline">{{ daily.extra.line }}</p>
+  </header>
+  {% include "partials/eds-daily-form.html" %}
+</section>
 
 {#- My Story: the Poster, then the story (the body of content/_index.md) or, until it is written,
     the coming-soon line ([extra] story_coming_soon). -#}

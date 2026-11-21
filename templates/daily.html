@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{# Ed's Daily (/daily/): the signup on a page of its own. Without JavaScript, the signup endpoint
+   sends a visitor whose signup failed back here as /daily/?error=invalid_email (or rate_limited,
+   unavailable); static/js/eds-daily.js reads that and shows the matching message under the form.
+   Without the script the form simply shows again. The pages under it are templates/daily-page.html. #}
+{% block title %}{{ section.title }} | {{ config.title }}{% endblock title %}
+{% block description %}Sign up to Ed's Daily, Edouard the Ginger's newsletter.{% endblock description %}
+{% block body_class %}page-daily{% endblock body_class %}
+{% block head %}<script src="{{ get_url(path='js/eds-daily.js', cachebust=true) }}" defer></script>{% endblock head %}
+{% block content %}
+{%- set eds_daily_source = "daily-archive" %}
+<section class="eds-daily eds-daily--signup" aria-labelledby="eds-daily-heading">
+  <header class="eds-daily__header">
+    <h1 class="eds-daily__title" id="eds-daily-heading">{{ section.title }}</h1>
+    <p class="eds-daily__tagline">{{ section.extra.line }}</p>
+  </header>
+  {% include "partials/eds-daily-form.html" %}
+</section>
+{% endblock content %}

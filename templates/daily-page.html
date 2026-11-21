@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{# A page of the Ed's Daily signup (content/daily/*.md), where the signup endpoint and the
+   confirmation email send the visitor: its title, its text (the Markdown body), then the form again
+   ([extra] form) or a link back to the home page ([extra] back_home). Kept out of search results. #}
+{% block title %}{{ page.title }} | Ed's Daily | {{ config.title }}{% endblock title %}
+{% block body_class %}page-daily{% endblock body_class %}
+{% block head %}<meta name="robots" content="noindex">
+{%- if page.extra.form %}
+<script src="{{ get_url(path='js/eds-daily.js', cachebust=true) }}" defer></script>
+{%- endif %}{% endblock head %}
+{% block content %}
+<section class="eds-daily eds-daily--page" aria-labelledby="eds-daily-heading">
+  <h1 class="eds-daily__title" id="eds-daily-heading">{{ page.title }}</h1>
+  <div class="eds-daily__text">{{ page.content | safe }}</div>
+  {%- if page.extra.form %}
+  {%- set eds_daily_source = "daily-archive" %}
+  {% include "partials/eds-daily-form.html" %}
+  {%- endif %}
+  {%- if page.extra.back_home %}
+  <p class="eds-daily__back"><a href="{{ get_url(path='@/_index.md') }}">Back to the home page</a></p>
+  {%- endif %}
+</section>
+{% endblock content %}

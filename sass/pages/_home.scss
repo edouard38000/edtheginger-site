@@ -1,7 +1,7 @@
 @use "sass:math";
 
 // Home page. Phone width first, top to bottom: the Hero, the Wheel, the Playbook shelf,
-// the Ed's Daily slot, then My Story (the Poster and the story text).
+// the Ed's Daily signup (sass/pages/_daily.scss), then My Story (the Poster and the story text).
 
 .page-home main {
   padding-top: 0;
@@ -442,11 +442,6 @@ $wheel-step: math.div(360deg, $wheel-slots);
   border-color: transparent transparent transparent currentcolor;
 }
 
-// The empty slot, filled by the Ed's Daily signup.
-.home-slot:empty {
-  display: none;
-}
-
 // ---------------------------------------------------------------------------
 // My Story: the Poster, then the story text or the coming-soon line.
 // ---------------------------------------------------------------------------
@@ -797,7 +792,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .shelf__header,
-.wheel__header {
+.wheel__header,
+.eds-daily__header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -805,7 +801,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
 }
 
 .shelf__title,
-.wheel__title {
+.wheel__title,
+.eds-daily__title {
   margin: 0;
   color: var(--color-charcoal);
   font-family: var(--font-display);
@@ -817,7 +814,8 @@ $wheel-step: math.div(360deg, $wheel-slots);
 
 // The Playbooks page's second box, smaller: white capitals on orange, a little askew.
 .shelf__tagline,
-.wheel__tagline {
+.wheel__tagline,
+.eds-daily__tagline {
   margin: 8px 0 0;
   padding: 0.35em 0.65em;
   background: var(--color-orange);

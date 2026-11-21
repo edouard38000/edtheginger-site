@@ -1,5 +1,5 @@
 //! The home page, top to bottom: the Hero (video, name, tagline, links), the Wheel (the newest
-//! Videos on a turning wheel), the Playbook shelf, the Ed's Daily slot and My Story (the Poster: lit portrait, beam lines, tool
+//! Videos on a turning wheel), the Playbook shelf, the Ed's Daily signup and My Story (the Poster: lit portrait, beam lines, tool
 //! tiles, captions, title; then the story text or the coming-soon line).
 //! Built from the fixture Entries: five Videos, and two Playbooks, "Prompt Pack" (2026-01-20, no
 //! cover) and "Inbox Zero" (2026-01-12, with a cover).
@@ -349,16 +349,87 @@ fn the_hero_links_go_to_the_three_other_pages() {
 
 // --- The slots ---------------------------------------------------------------------------------
 
+/// The Ed's Daily signup: its title, its line (held in content/daily/_index.md) and the form that
+/// posts the email, the honeypot and `source=home` to the endpoint. `tests/daily.rs` checks the
+/// /daily/ pages and the script.
 #[test]
-fn the_eds_daily_slot_is_empty_for_now() {
+fn the_eds_daily_slot_is_the_signup() {
     let home = home();
-    let selector = ".home-slot[data-slot=eds-daily]";
-    assert_eq!(home.count(selector), 1, "the Ed's Daily slot");
+    let slot = "section.home-slot[data-slot=eds-daily]";
+    assert_eq!(home.count(slot), 1, "the Ed's Daily slot");
+    assert_eq!(home.texts(&format!("{slot} h2")), ["Ed's Daily"]);
+    let daily = std::fs::read_to_string(format!("{ROOT}/content/daily/_index.md")).unwrap();
+    let line = daily
+        .lines()
+        .find(|line| line.starts_with("line ="))
+        .and_then(|line| line.split('"').nth(1))
+        .expect("line = \"...\" in content/daily/_index.md");
     assert_eq!(
-        home.count(&format!("{selector} *")),
-        0,
-        "the Ed's Daily slot is empty"
+        home.texts(&format!(
+            "{slot} > header.eds-daily__header > h2 + p.eds-daily__tagline"
+        )),
+        [line],
+        "the line is the tagline box under the title, like the shelf's and the Wheel's"
     );
+    assert!(
+        !template().contains(line),
+        "the line is not typed in the template"
+    );
+
+    let form = format!("{slot} form.eds-daily-form");
+    assert_eq!(home.count("form"), 1, "the one form of the page");
+    assert_eq!(home.attributes(&form, "method"), ["post"]);
+    assert_eq!(
+        home.attributes(&form, "action"),
+        ["https://daily.edtheginger.com/subscribe"],
+        "posts to [extra] eds_daily_subscribe"
+    );
+    assert_eq!(
+        home.attributes(&format!("{form} input"), "name"),
+        ["email", "company", "source"]
+    );
+    assert_eq!(
+        home.count(&format!(
+            "{form} input[name=email][type=email][autocomplete=email][maxlength='254'][required]"
+        )),
+        1
+    );
+    assert_eq!(
+        home.texts(&format!("{form} label[for=eds-daily-email-home]")),
+        ["Your email"],
+        "the field has a visible label"
+    );
+    assert_eq!(
+        home.count(&format!(
+            "{form} [aria-hidden=true] input[name=company][tabindex='-1'][autocomplete=off]"
+        )),
+        1,
+        "the honeypot, hidden from people"
+    );
+    assert_eq!(
+        home.attributes(&format!("{form} input[name=source][type=hidden]"), "value"),
+        ["home"]
+    );
+    assert_eq!(
+        home.texts(&format!("{form} button[type=submit]")),
+        ["Subscribe"]
+    );
+    assert_eq!(
+        home.count(&format!("{form} [aria-live=polite]")),
+        1,
+        "messages are announced to screen readers"
+    );
+}
+
+#[test]
+fn the_eds_daily_script_is_loaded_once_with_defer() {
+    assert!(
+        site().has_file("js/eds-daily.js"),
+        "the script is published"
+    );
+    let home = home();
+    assert_eq!(home.count("script[src*='/js/eds-daily.js']"), 1);
+    assert_eq!(home.count("script[src*='/js/eds-daily.js'][defer]"), 1);
 }
 
 // --- The Wheel ---------------------------------------------------------------------------------
